@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  industry  String?
+  address   String
+  latitude  Float
+  longitude Float
+  stockInfo Json?
+  phone     String?
+  createdAt DateTime @default(now())
+
+  @@index([name])
+  @@index([industry])
+  @@index([createdAt])
+  @@index([latitude, longitude])
+  @@index([name, industry])
+  @@index([createdAt, id])
+  @@index([name, createdAt])
+  @@index([name(ops: raw("gin_trgm_ops"))], map: "idx_customers_name_trgm", type: Gin)
+  @@map("customers")
+}
+
+model Product {
+  id           Int           @id @default(autoincrement())
+  name         String
+  description  String?
+  barcode      String        @unique
+  category     String?
+  brand        String?
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  productUnits ProductUnit[]
+
+  @@index([name])
+  @@index([category])
+  @@index([brand])
+  @@index([isActive])
+  @@index([createdAt])
+  @@index([name, category])
+  @@index([isActive, createdAt])
+  @@map("products")
+}
+
+model ProductUnit {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  unitType  UnitType
+  unitName  String
+  unitSize  Int
+  price     Float
+  costPrice Float?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, unitType])
+  @@index([productId])
+  @@index([unitType])
+  @@index([isActive])
+  @@index([price])
+  @@index([productId, isActive])
+  @@index([price, unitType])
+  @@map("product_units")
+}
+
+model Salesman {
+  name       String
+  phone      String         @unique
+  address    String?
+  status     SalesmanStatus @default(INACTIVE)
+  password   String
+  deviceId   String?
+  loginState LoginState     @default(INITIAL)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  id         Int            @id @default(autoincrement())
+}
+
+enum UnitType {
+  PIECE
+  BOX
+  CARTON
+}
+
+enum SalesmanStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum LoginState {
+  INITIAL
+  ACTIVE
+}

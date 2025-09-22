@@ -1,0 +1,28 @@
+{
+  "name": "mobisales",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "seed:customers": "node seeders/customerSeeder.js",
+    "seed:1000": "node seeders/customerSeeder.js 1000",
+    "seed:10000": "node seeders/customerSeeder.js 10000",
+    "seed:50000": "node seeders/customerSeeder.js 50000",
+    "seed:100000": "node seeders/customerSeeder.js 100000",
+    "seed:patterns": "node seeders/advancedCustomerSeeder.js",
+    "seed:products": "node seeders/productSeeder.js",
+    "test:performance": "node tests/performanceTest.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "@prisma/client": "^6.13.0",
+    "axios": "^1.11.0",
+    "joi": "^18.0.0",
+    "nodemon": "^3.1.10",
+    "prisma": "^6.13.0"
+  }
+}

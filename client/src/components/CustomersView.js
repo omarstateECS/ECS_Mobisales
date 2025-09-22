@@ -1,0 +1,243 @@
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Plus, Search, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import CustomerGrid from './CustomerGrid';
+
+const CustomersView = ({
+  handleNavigation,
+  openAddCustomerModal,
+  fetchCustomers,
+  loading,
+  customers,
+  handleDeleteCustomer,
+  deletingCustomerId,
+  handleEditCustomer,
+  handleViewDetails
+}) => {
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedIndustry, setSelectedIndustry] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder] = useState('asc');
+  const [committedSearch, setCommittedSearch] = useState('');
+  const [hasMorePages, setHasMorePages] = useState(true);
+
+  // Get unique industries for filter
+  const industries = [...new Set(customers.map(c => c.industry).filter(Boolean))].sort();
+
+  // Note: For server-side pagination, we treat `customers` as the current page from server.
+  // Optional client-side filtering is applied only within the current page.
+  const filteredCustomers = customers
+    .filter(customer => {
+      // Server handles text search; only filter by industry on client
+      const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
+      return matchesIndustry;
+    })
+    .sort((a, b) => {
+      let aValue = a[sortBy];
+      let bValue = b[sortBy];
+      
+      if (sortBy === 'createdAt') {
+        aValue = new Date(aValue);
+        bValue = new Date(bValue);
+      }
+      
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+  // Server-side pagination calculations
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + filteredCustomers.length;
+  const currentCustomers = filteredCustomers; // already a single page from the server
+
+  // Wrapper function to handle pagination response
+  const fetchCustomersForPage = async (page, limit, search) => {
+    try {
+      const url = `http://localhost:3000/api/customers?page=${page}&limit=${limit}${search ? `&q=${encodeURIComponent(search)}` : ''}`;
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.customers) {
+          fetchCustomers(page, limit, search); // Update the main customer list
+          setHasMorePages(data.hasMore || false);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+      setHasMorePages(false);
+    }
+  };
+
+  // When page, limit, or committed search changes, fetch that page from the server
+  useEffect(() => {
+    fetchCustomersForPage(currentPage, itemsPerPage, committedSearch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, itemsPerPage, committedSearch]);
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handle items per page change
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => handleNavigation('dashboard')}
+            className="p-2 rounded-xl hover:bg-gray-800/50 text-gray-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <h2 className="text-2xl font-bold text-white">All Customers</h2>
+            <p className="text-gray-400">Manage your customers</p>
+          </div>
+        </div>
+        <button 
+          onClick={openAddCustomerModal}
+          className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25 flex items-center space-x-2">
+          <Plus size={16} />
+          <span>Add Customer</span>
+        </button>
+      </div>
+
+
+
+      {/* Search and Filter Bar */}
+      <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4">
+        <div className="flex flex-col gap-4">
+          {/* Search and Basic Filters */}
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                             <input
+                 type="text"
+                 placeholder="Search customers by name..."
+                 value={searchTerm}
+                 onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+              />
+            </div>
+            <button 
+              onClick={() => {
+                const q = searchTerm.trim();
+                setCurrentPage(1);
+                setCommittedSearch(q);
+                fetchCustomersForPage(1, itemsPerPage, q);
+              }}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all"
+            >
+              Search
+            </button>
+            <select
+              value={selectedIndustry}
+              onChange={(e) => setSelectedIndustry(e.target.value)}
+              className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+            >
+              <option value="">All Industries</option>
+              {industries.map(industry => (
+                <option key={industry} value={industry}>{industry}</option>
+              ))}
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+            >
+              <option value="name">Sort by Name</option>
+              <option value="industry">Sort by Industry</option>
+              <option value="createdAt">Sort by Date</option>
+            </select>
+            <button 
+              onClick={() => fetchCustomersForPage(currentPage, itemsPerPage, committedSearch)}
+              className="px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-white rounded-xl font-medium transition-all duration-200 border border-gray-700/50 hover:border-gray-600"
+            >
+              {loading ? 'Loading...' : 'Refresh'}
+            </button>
+          </div>
+          
+          {/* Results Summary */}
+          <div className="flex items-center justify-between text-sm text-gray-400">
+            <div>
+              Showing {startIndex + 1}-{endIndex} customers on page {currentPage}
+              {committedSearch && ` matching "${committedSearch}"`}
+              {selectedIndustry && ` in ${selectedIndustry} industry`}
+            </div>
+            <div className="flex items-center space-x-2">
+              <span>Items per page:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+                className="px-2 py-1 bg-gray-800/50 border border-gray-700/50 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Customers Grid */}
+      <CustomerGrid
+        customers={currentCustomers}
+        loading={loading}
+        handleDeleteCustomer={handleDeleteCustomer}
+        deletingCustomerId={deletingCustomerId}
+        openAddCustomerModal={openAddCustomerModal}
+        handleEditCustomer={handleEditCustomer}
+        handleViewDetails={handleViewDetails}
+      />
+
+      {/* Pagination Controls */}
+      {(currentPage > 1 || hasMorePages) && (
+        <div className="flex items-center justify-between bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4">
+          <div className="text-sm text-gray-400">
+            Page {currentPage} • {filteredCustomers.length} customers on this page
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            {/* Previous Page */}
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-800 text-gray-400 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            
+            {/* Current Page Number */}
+            <div className="px-3 py-1 rounded-lg bg-blue-600 text-white text-sm">
+              {currentPage}
+            </div>
+            
+            {/* Next Page */}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!hasMorePages}
+              className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-800 text-gray-400 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CustomersView;

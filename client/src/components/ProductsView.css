@@ -1,0 +1,233 @@
+/* Custom styles for ProductsView - most styling is now handled by Tailwind classes */
+
+/* Line clamp utility for description text */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Custom scrollbar for the page numbers if needed */
+.page-numbers::-webkit-scrollbar {
+  height: 4px;
+}
+
+.page-numbers::-webkit-scrollbar-track {
+  background: rgba(55, 65, 81, 0.5);
+  border-radius: 2px;
+}
+
+.page-numbers::-webkit-scrollbar-thumb {
+  background: rgba(147, 51, 234, 0.5);
+  border-radius: 2px;
+}
+
+.page-numbers::-webkit-scrollbar-thumb:hover {
+  background: rgba(147, 51, 234, 0.7);
+}
+
+/* ProductsView.css - Consistent Card Sizing */
+
+/* Ensure cards maintain consistent dimensions */
+.product-card,
+.customer-card,
+.salesman-card {
+  min-height: 420px;
+  max-height: 420px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Prevent content overflow */
+.product-card .card-content,
+.customer-card .card-content,
+.salesman-card .card-content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ensure grid items maintain equal heights */
+.grid-auto-rows-fr {
+  grid-auto-rows: 1fr;
+}
+
+/* Handle text overflow in cards */
+.product-card h3,
+.customer-card h3,
+.salesman-card h3 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.product-card .description,
+.customer-card .description,
+.salesman-card .description {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+  max-height: 2.8em;
+}
+
+/* Ensure consistent button sizing */
+.product-card button,
+.customer-card button,
+.salesman-card button {
+  flex-shrink: 0;
+}
+
+/* Prevent button overflow in header */
+.product-card .flex-shrink-0,
+.customer-card .flex-shrink-0,
+.salesman-card .flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+.product-card .min-w-0,
+.customer-card .min-w-0,
+.salesman-card .min-w-0 {
+  min-width: 0;
+}
+
+/* Ensure action buttons stay within bounds */
+.product-card .flex.space-x-1,
+.customer-card .flex.space-x-1,
+.salesman-card .flex.space-x-1 {
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+/* Modal stacking context - ensure modals appear above sidebar */
+.modal-backdrop {
+  position: fixed;
+  z-index: 9999 !important;
+  isolation: isolate;
+}
+
+.modal-content {
+  position: relative;
+  z-index: 10000 !important;
+  isolation: isolate;
+}
+
+/* Responsive card sizing */
+@media (max-width: 768px) {
+  .product-card,
+  .customer-card,
+  .salesman-card {
+    min-height: 380px;
+    max-height: 380px;
+  }
+}
+
+@media (max-width: 640px) {
+  .product-card,
+  .customer-card,
+  .salesman-card {
+    min-height: 360px;
+    max-height: 360px;
+  }
+}
+
+/* Prevent zoom-related layout issues */
+@media screen and (max-resolution: 1dppx) {
+  .product-card,
+  .customer-card,
+  .salesman-card {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+}
+
+/* Ensure consistent spacing in flexbox layout */
+.product-card > *,
+.customer-card > *,
+.salesman-card > * {
+  flex-shrink: 0;
+}
+
+.product-card .flex-1,
+.customer-card .flex-1,
+.salesman-card .flex-1 {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Additional overflow protection for zoom scenarios */
+@media (max-width: 1200px) {
+  .product-card,
+  .customer-card,
+  .salesman-card {
+    padding: 1rem;
+  }
+  
+  .product-card .flex.space-x-1,
+  .customer-card .flex.space-x-1,
+  .salesman-card .flex.space-x-1 {
+    gap: 0.25rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .product-card,
+  .customer-card,
+  .salesman-card {
+    padding: 0.75rem;
+  }
+}
+
+/* High z-index for modals to ensure they appear above sidebar */
+.modal-overlay {
+  z-index: 9999 !important;
+  position: fixed !important;
+  isolation: isolate;
+}
+
+/* Ensure modal content is above backdrop */
+.modal-dialog {
+  z-index: 10000 !important;
+  position: relative !important;
+  isolation: isolate;
+}
+
+/* Additional zoom protection for modals */
+@media screen and (max-resolution: 1dppx) {
+  .modal-overlay {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: transform;
+  }
+  
+  .modal-dialog {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: transform;
+  }
+}
+
+/* Ensure modals are above all other elements in any scenario */
+.modal-overlay,
+.modal-dialog {
+  position: fixed !important;
+  z-index: 9999 !important;
+  isolation: isolate;
+}
+
+.modal-dialog {
+  z-index: 10000 !important;
+}
+
+/* Force modal stacking context */
+.modal-overlay {
+  contain: layout style paint;
+}
+
+.modal-dialog {
+  contain: layout style paint;
+}
