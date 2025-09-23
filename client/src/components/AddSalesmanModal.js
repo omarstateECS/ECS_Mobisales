@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Save, User, Phone, MapPin, Lock, Smartphone, Shield } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Save, User, Phone, MapPin, Lock, Smartphone, Shield, Hash } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AddSalesmanModal = ({
@@ -8,19 +8,57 @@ const AddSalesmanModal = ({
   onSalesmanAdded
 }) => {
   const [formData, setFormData] = useState({
+    id: '',
     name: '',
     phone: '',
     address: '',
     password: '',
-    deviceId: '',
     status: 'INACTIVE'
   });
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Fetch next available ID when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchNextSalesmanId();
+    }
+  }, [isOpen]);
+
+  const fetchNextSalesmanId = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/salesmen');
+      if (response.ok) {
+        const salesmen = await response.json();
+        let nextId = 1000000; // Default starting ID
+        
+        if (salesmen && salesmen.length > 0) {
+          // Find the highest ID and add 1
+          const maxId = Math.max(...salesmen.map(s => s.id));
+          nextId = maxId + 1;
+        }
+        
+        setFormData(prev => ({
+          ...prev,
+          id: nextId.toString(),
+          password: nextId.toString() // Set password to predicted ID
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching next salesman ID:', error);
+      // Fallback to default
+      setFormData(prev => ({
+        ...prev,
+        id: '1000000',
+        password: '1000000'
+      }));
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -54,12 +92,6 @@ const AddSalesmanModal = ({
 
     if (!formData.password.trim()) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-
-    if (!formData.deviceId.trim()) {
-      newErrors.deviceId = 'Device ID is required';
     }
 
     setErrors(newErrors);
@@ -79,7 +111,6 @@ const AddSalesmanModal = ({
         phone: formData.phone.trim(),
         address: formData.address.trim(),
         password: formData.password,
-        deviceId: formData.deviceId.trim(),
         status: formData.status
       };
 
@@ -99,11 +130,11 @@ const AddSalesmanModal = ({
         
         // Reset form
         setFormData({
+          id: '',
           name: '',
           phone: '',
           address: '',
           password: '',
-          deviceId: '',
           status: 'INACTIVE'
         });
         setErrors({});
@@ -144,7 +175,6 @@ const AddSalesmanModal = ({
         phone: '',
         address: '',
         password: '',
-        deviceId: '',
         status: 'INACTIVE'
       });
       setErrors({});
@@ -196,6 +226,23 @@ const AddSalesmanModal = ({
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* ID (Display Only) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                <Hash size={16} className="inline mr-2" />
+                Salesman ID (Auto-Generated)
+              </label>
+              <input
+                type="text"
+                name="id"
+                value=""
+                readOnly
+                placeholder="Will be auto-generated..."
+                className="w-full px-4 py-3 bg-gray-700/30 border border-gray-600/30 rounded-xl text-gray-500 placeholder-gray-600 cursor-not-allowed opacity-60"
+              />
+              <p className="mt-1 text-xs text-gray-500">This ID will be automatically assigned when the salesman is created</p>
+            </div>
+
             {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -279,25 +326,7 @@ const AddSalesmanModal = ({
               />
               {errors.password && <p className="mt-2 text-sm text-red-400">{errors.password}</p>}
             </div>
-
-            {/* Device ID */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                <Smartphone size={16} className="inline mr-2" />
-                Device ID *
-              </label>
-              <input
-                type="text"
-                name="deviceId"
-                value={formData.deviceId}
-                onChange={handleInputChange}
-                disabled={loading}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                placeholder="Enter device ID *"
-              />
-              {errors.deviceId && <p className="mt-2 text-sm text-red-400">{errors.deviceId}</p>}
-            </div>
-
+            
             {/* Status */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">

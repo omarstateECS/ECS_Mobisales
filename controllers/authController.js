@@ -7,25 +7,19 @@ class AuthController {
             // Validate request body
             const { error } = LoginValidation(req.body);
             if (error) {
-                return res.status(400).json({ 
-                    success: false,
-                    error: error.details[0].message 
-                });
+                return res.status(400).json(error.details[0].message);
             }
 
-            const { phone, password } = req.body;
+            const { id, password, deviceId } = req.body;
 
             // Attempt login
-            const result = await authService.login(phone, password);
+            const result = await authService.login(id, password, deviceId);
 
             res.status(200).json(result);
 
         } catch (error) {
             console.error('Login error:', error);
-            res.status(401).json({ 
-                success: false,
-                error: error.message 
-            });
+            res.status(401).json(error.message);
         }
     }
 
@@ -58,8 +52,6 @@ class AuthController {
 
     async logout(req, res) {
         try {
-            // For simple auth, just return success
-            // In production, you might want to blacklist the token
             res.status(200).json({
                 success: true,
                 message: 'Logged out successfully'
@@ -70,6 +62,17 @@ class AuthController {
                 success: false,
                 error: error.message 
             });
+        }
+    }
+
+    async changePassword(req, res) {
+        try {
+            const { id, oldPassword, newPassword } = req.body;
+            const result = await authService.changePassword(id, oldPassword, newPassword);
+            res.status(200).json(result);
+        } catch (error) {
+            console.error('Change password error:', error);
+            res.status(500).json(error.message );
         }
     }
 }

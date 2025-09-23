@@ -79,10 +79,10 @@ model Salesman {
   status     SalesmanStatus @default(INACTIVE)
   password   String
   deviceId   String
-  loginState LoginState     @default(INITIAL)
+  isInitial  Boolean        @default(true)
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
-  id         Int            @id @default(autoincrement())
+  id         Int            @id @default(autoincrement()) @db.Integer
   authorities SalesmanAuthority[]
 }
 
@@ -96,11 +96,6 @@ enum SalesmanStatus {
   ACTIVE
   INACTIVE
   BLOCKED
-}
-
-enum LoginState {
-  INITIAL
-  ACTIVE
 }
 
 enum AuthorityType {
@@ -126,6 +121,7 @@ model SalesmanAuthority {
   id           Int       @id @default(autoincrement())
   salesmanId   Int
   authorityId  Int
+  value        Boolean   @default(true)
   createdAt    DateTime  @default(now())
   salesman     Salesman  @relation(fields: [salesmanId], references: [id], onDelete: Cascade)
   authority    Authority @relation(fields: [authorityId], references: [id], onDelete: Cascade)

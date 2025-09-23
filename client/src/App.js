@@ -12,6 +12,7 @@ import CustomerDetailsPage from './components/CustomerDetailsPage';
 import AddProductModal from './components/AddProductModal';
 import AddSalesmanModal from './components/AddSalesmanModal';
 import EditSalesmanModal from './components/EditSalesmanModal';
+import SalesmanDetailsPage from './components/SalesmanDetailsPage';
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -57,6 +58,10 @@ const Dashboard = () => {
   const [showCustomerDetails, setShowCustomerDetails] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
 
+  // Salesman details view states
+  const [showSalesmanDetails, setShowSalesmanDetails] = useState(false);
+  const [selectedSalesman, setSelectedSalesman] = useState(null);
+
   // Add Product Modal states
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [productsRefreshKey, setProductsRefreshKey] = useState(0);
@@ -98,9 +103,16 @@ const Dashboard = () => {
     setShowEditSalesmanModal(false);
     setEditingSalesman(null);
     setSalesmenRefreshKey(prev => prev + 1);
+    
     // Update the salesman in the current list
     if (updatedSalesman) {
       setSalesmen(prev => prev.map(s => s.id === updatedSalesman.id ? updatedSalesman : s));
+      
+      // If we're currently viewing this salesman's details, update the selected salesman too
+      if (selectedSalesman && selectedSalesman.id === updatedSalesman.id) {
+        console.log('🔄 Updating selected salesman after edit:', updatedSalesman);
+        setSelectedSalesman(updatedSalesman);
+      }
     }
   };
 
@@ -213,10 +225,10 @@ const Dashboard = () => {
     setShowEditSalesmanModal(true);
   };
 
-  // View salesman details function (placeholder for future implementation)
+  // View salesman details function
   const handleViewSalesmanDetails = (salesman) => {
-    console.log('View salesman details:', salesman);
-    alert('View salesman details functionality will be implemented soon!');
+    setSelectedSalesman(salesman);
+    setShowSalesmanDetails(true);
   };
 
   // Add new customer function
@@ -429,6 +441,37 @@ const Dashboard = () => {
     setSelectedCustomer(null);
   };
 
+  // Salesman details functions
+  const handleEditSalesmanFromDetails = (salesman) => {
+    // Keep salesman details open in background
+    setEditingSalesman(salesman);
+    setShowEditSalesmanModal(true);
+  };
+
+  const handleBackFromSalesmanDetails = () => {
+    setShowSalesmanDetails(false);
+    setSelectedSalesman(null);
+  };
+
+  // Function to refresh selected salesman data
+  const refreshSelectedSalesman = async () => {
+    if (!selectedSalesman?.id) return;
+    
+    try {
+      console.log('🔄 Refreshing selected salesman data for ID:', selectedSalesman.id);
+      const response = await fetch(`http://localhost:3000/api/salesmen/${selectedSalesman.id}`);
+      if (response.ok) {
+        const updatedSalesman = await response.json();
+        console.log('✅ Updated salesman data received:', updatedSalesman);
+        setSelectedSalesman(updatedSalesman);
+      } else {
+        console.error('Failed to refresh salesman data:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error refreshing salesman data:', error);
+    }
+  };
+
   // Handle edit map click
   const handleEditMapClick = (...args) => {
     if (args.length > 1 && typeof args[0] === 'number') {
@@ -588,6 +631,25 @@ const Dashboard = () => {
             customer={selectedCustomer}
             onBack={handleBackFromDetails}
             onEdit={handleEditFromDetails}
+          />
+        </motion.div>
+      );
+    }
+
+    if (showSalesmanDetails && selectedSalesman) {
+      return (
+        <motion.div
+          key="salesman-details"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          <SalesmanDetailsPage
+            salesman={selectedSalesman}
+            onBack={handleBackFromSalesmanDetails}
+            onEdit={handleEditSalesmanFromDetails}
+            onRefresh={refreshSelectedSalesman}
           />
         </motion.div>
       );

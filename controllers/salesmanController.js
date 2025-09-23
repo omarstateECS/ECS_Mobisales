@@ -53,6 +53,44 @@ class SalesmanController {
         }
     }
 
+    async getAuthorities(req, res) {
+        try {
+            const salesmanId = req.params.id;
+            const authorities = await salesmanService.getSalesmanAuthorities(salesmanId);
+            
+            res.status(200).json({
+                success: true,
+                data: authorities,
+                message: 'Authorities retrieved successfully'
+            });
+        } catch (error) {
+            console.error('Error getting salesman authorities:', error);
+            res.status(500).json({ 
+                success: false,
+                message: error.message || 'Internal server error' 
+            });
+        }
+    }
+
+    async getAllAuthorities(req, res) {
+        try {
+            const salesmanId = req.params.id;
+            const authorities = await salesmanService.getAllSalesmanAuthorities(salesmanId);
+            
+            res.status(200).json({
+                success: true,
+                data: authorities,
+                message: 'All authorities retrieved successfully'
+            });
+        } catch (error) {
+            console.error('Error getting all salesman authorities:', error);
+            res.status(500).json({ 
+                success: false,
+                message: error.message || 'Internal server error' 
+            });
+        }
+    }
+
     async assignAuthorities(req, res) {
         try {
             const { authorityIds } = req.body;
@@ -74,6 +112,34 @@ class SalesmanController {
             });
         } catch (error) {
             console.error('Error assigning authorities:', error);
+            res.status(500).json({ 
+                success: false,
+                message: error.message || 'Internal server error' 
+            });
+        }
+    }
+
+    async updateAuthorities(req, res) {
+        try {
+            const { authorityIds } = req.body;
+            const salesmanId = req.params.id;
+
+            if (!authorityIds || !Array.isArray(authorityIds)) {
+                return res.status(400).json({ 
+                    success: false,
+                    message: 'authorityIds must be an array' 
+                });
+            }
+
+            const updatedSalesman = await salesmanService.updateAuthorities(salesmanId, authorityIds);
+            
+            res.status(200).json({
+                success: true,
+                data: updatedSalesman,
+                message: 'Authorities updated successfully'
+            });
+        } catch (error) {
+            console.error('Error updating authorities:', error);
             res.status(500).json({ 
                 success: false,
                 message: error.message || 'Internal server error' 

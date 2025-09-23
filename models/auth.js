@@ -3,8 +3,9 @@ const Joi = require('joi');
 // Joi validation schema for login
 function LoginValidation(loginData) {
   const schema = Joi.object({
-    phone: Joi.string().min(10).max(20).required(),
-    password: Joi.string().min(1).max(255).required()
+    id: Joi.number().required(),
+    password: Joi.string().min(2).max(255).required(),
+    deviceId: Joi.string().optional().allow('')
   });
 
   return schema.validate(loginData);

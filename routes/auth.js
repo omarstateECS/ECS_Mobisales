@@ -11,4 +11,8 @@ router.post('/validate', authController.validateToken);
 // POST /api/auth/logout - Logout endpoint
 router.post('/logout', authController.logout);
 
+// POST /api/auth/changePassword - Change password endpoint
+router.post('/changePassword', authController.changePassword);
+
+
 module.exports = router;

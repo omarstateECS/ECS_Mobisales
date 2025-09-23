@@ -12,7 +12,13 @@ router.post('/', salesmanController.create);
 router.put('/:id', salesmanController.update);
 // DELETE a salesman
 router.delete('/:id', salesmanController.delete);
+// GET salesman's authorities (only assigned ones)
+router.get('/:id/authorities', salesmanController.getAuthorities);
+// GET all salesman's authorities with values (for modal)
+router.get('/:id/authorities/all', salesmanController.getAllAuthorities);
 // ASSIGN authorities to a salesman
 router.post('/:id/authorities', salesmanController.assignAuthorities);
+// UPDATE salesman's authorities (replace all)
+router.put('/:id/authorities', salesmanController.updateAuthorities);
 
 module.exports = router;

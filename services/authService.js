@@ -1,50 +1,67 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const bcrypt = require('bcrypt');
+
 
 class AuthService {
-    async login(phone, password) {
+    async login(id, password, deviceId = null) {
         try {
-            // Find salesman by phone
             const salesman = await prisma.salesman.findUnique({
-                where: { phone: phone },
-                select: {
-                    id: true,
-                    name: true,
-                    phone: true,
-                    address: true,
-                    password: true,
-                    deviceId: true,
-                    status: true,
-                    createdAt: true,
-                    updatedAt: true
+                where: { 
+                    id: parseInt(id),
+                    status: 'ACTIVE'
+                },
+                include: {
+                    authorities: {
+                        include: {
+                            authority: true
+                        }
+                    }
                 }
             });
 
-            if (!salesman) {
-                throw new Error('Invalid phone number or password');
+            if (!salesman || salesman.password !== password) {
+                throw new Error('Invalid id or password');
             }
 
-            // Check if salesman is active
-            if (salesman.status !== 'ACTIVE') {
-                throw new Error('Account is not active. Please contact administrator.');
+            // If deviceId is provided and salesman's deviceId is empty, register the device
+            if (deviceId && (!salesman.deviceId || salesman.deviceId.trim() === '')) {
+                await prisma.salesman.update({
+                    where: { id: parseInt(id) },
+                    data: { deviceId: deviceId }
+                });
+                // Update the salesman object for the response
+                salesman.deviceId = deviceId;
             }
 
-            // Simple password comparison (in production, use hashed passwords)
-            if (salesman.password !== password) {
-                throw new Error('Invalid phone number or password');
-            }
+            // Get ALL authorities from database
+            const allAuthorities = await prisma.authority.findMany({
+                where: {
+                    type: 'MOBILE'
+                },
+                orderBy: { name: 'asc' }
+            });
 
-            // Return salesman data without password
-            const { password: _, ...salesmanData } = salesman;
+            // Create a map of salesman's authority assignments
+            const salesmanAuthorityMap = new Map();
+            salesman.authorities.forEach(sa => {
+                salesmanAuthorityMap.set(sa.authorityId, sa.value);
+            });
+
+            // Extract ALL authorities as key-value pairs (authority name -> boolean)
+            const authorities = {};
+            allAuthorities.forEach(auth => {
+                // If salesman has this authority, use the value, otherwise default to false
+                authorities[auth.name] = salesmanAuthorityMap.get(auth.id) || false;
+            });
+
+            // Return salesman data without password but with authorities
+            const { password: _, authorities: __, ...salesmanData } = salesman;
             
             return {
-                success: true,
-                message: 'Login successful',
                 data: {
                     salesman: salesmanData,
-                    // Simple session token (in production, use JWT)
-                    token: `session_${salesman.id}_${Date.now()}`,
-                    expiresIn: '24h'
+                    authorities: authorities
                 }
             };
 
@@ -97,6 +114,34 @@ class AuthService {
             }
 
             return salesman;
+
+        } catch (error) {
+            throw new Error(error.message);
+        }
+    }
+
+    async changePassword(id, oldPassword, newPassword) {
+        try {
+
+            const salesman = await prisma.salesman.findUnique({
+                where: { id: id },
+            });
+
+            if (!salesman) {
+                throw new Error('Salesman not found');
+            }
+
+            await prisma.salesman.update({
+                where: { id: id },
+                data: { password: newPassword,
+                    isInitial: false
+                 },
+            });
+            
+            return {
+                success: true,
+                message: 'Password changed successfully',
+            };
 
         } catch (error) {
             throw new Error(error.message);

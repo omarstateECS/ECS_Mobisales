@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { User, Phone, MapPin, Shield, Edit, Eye, Trash2 } from 'lucide-react';
+import { User, Phone, MapPin, Smartphone, Edit, Eye, Trash2 } from 'lucide-react';
 
 const SalesmanCard = ({ 
   salesman, 
@@ -82,7 +82,7 @@ const SalesmanCard = ({
 
         {/* Device ID */}
         <div className="flex items-center space-x-3">
-          <Shield size={16} className="text-gray-400 flex-shrink-0" />
+          <Smartphone size={16} className="text-gray-400 flex-shrink-0" />
           <span className="text-gray-300 text-sm truncate">
             {salesman.deviceId || 'No device ID'}
           </span>
