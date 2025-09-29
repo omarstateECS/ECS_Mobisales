@@ -171,6 +171,44 @@ class SalesmanService {
         // This is the same as assignAuthorities - replace all authorities
         return await this.assignAuthorities(salesmanId, authorityIds);
     }
+
+    async getStats() {
+        const prisma = getPrismaClient();
+        const totalSales = await prisma.salesman.count();
+    
+        return {
+            totalSales
+        };
+    }
+
+    async checkIn(checkInData) {
+        const prisma = getPrismaClient();
+        const { salesmanId, deviceId, salesman } = checkInData;
+        const foundSalesman = await prisma.salesman.findUnique({ where: { id: Number(salesmanId) } });
+        if (!foundSalesman) {
+            throw new Error('Salesman not found');
+        }
+        if (foundSalesman.deviceId !== deviceId) {
+            throw new Error('Unauthorized device');
+        }
+        // Helper function to parse timestamp and adjust for timezone
+        const parseTimestamp = (timestamp) => {
+            if (!timestamp) return null;
+            // Parse the timestamp as local time, then add 3 hours to get correct UTC
+            const localDate = new Date(timestamp);
+            const utcDate = new Date(localDate.getTime() + (3 * 60 * 60 * 1000)); // Add 3 hours
+            return utcDate;
+        };
+
+        const journey = await prisma.journies.create({
+            data: {
+                salesId: Number(salesmanId),
+                startJourney: salesman.startJourney ? parseTimestamp(salesman.startJourney) : new Date(),
+                endJourney: salesman.endJourney ? parseTimestamp(salesman.endJourney) : null,
+            }
+        });
+        return journey;
+    }
 }
 
 module.exports = new SalesmanService(); 

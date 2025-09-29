@@ -6,7 +6,6 @@ import AddProductModal from './AddProductModal';
 import ConfirmationModal from './common/ConfirmationModal';
 import NotificationModal from './common/NotificationModal';
 import { useNotification } from '../hooks/useNotification';
-import './ProductsView.css';
 
 // Set axios base URL
 axios.defaults.baseURL = 'http://localhost:3000';

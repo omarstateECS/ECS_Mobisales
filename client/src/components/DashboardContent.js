@@ -50,20 +50,20 @@ const DashboardContent = ({
       color: 'from-emerald-500 to-emerald-600'
     },
     {
+      title: 'Available Products',
+      value: '18',
+      change: '-15%',
+      changeType: 'decrease',
+      icon: Package,
+      color: 'from-orange-500 to-orange-600'
+    },
+    {
       title: 'Routes Completed',
       value: '1,247',
       change: '+8%',
       changeType: 'increase',
       icon: Route,
       color: 'from-purple-500 to-purple-600'
-    },
-    {
-      title: 'Pending Restocks',
-      value: '34',
-      change: '-15%',
-      changeType: 'decrease',
-      icon: Package,
-      color: 'from-orange-500 to-orange-600'
     }
   ];
 

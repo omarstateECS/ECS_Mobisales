@@ -146,6 +146,76 @@ class SalesmanController {
             });
         }
     }
+
+    async checkIn(req, res) {
+        try {
+          console.log("🧾 === CHECK-IN REQUEST DEBUG ===");
+          console.log("🧾 Request method:", req.method);
+          console.log("🧾 Request URL:", req.url);
+          console.log("🧾 Content-Type:", req.get('Content-Type'));
+          console.log("🧾 All headers:", req.headers);
+          console.log("🧾 Body type:", typeof req.body);
+          console.log("🧾 Body content:", req.body);
+          console.log("🧾 Body keys:", req.body ? Object.keys(req.body) : 'No body');
+          console.log("🧾 === END DEBUG ===");
+          
+          const checkInData = req.body;
+          
+          // Validate request body
+          if (!checkInData || Object.keys(checkInData).length === 0) {
+            return res.status(400).json({
+              success: false,
+              message: 'Request body is empty or invalid. Please send JSON data with Content-Type: application/json'
+            });
+          }
+          
+          // Validate required fields
+          if (!checkInData.salesmanId) {
+            return res.status(400).json({
+              success: false,
+              message: 'salesmanId is required'
+            });
+          }
+          
+          if (!checkInData.deviceId) {
+            return res.status(400).json({
+              success: false,
+              message: 'deviceId is required'
+            });
+          }
+      
+          const journey = await salesmanService.checkIn(checkInData);
+      
+          res.status(200).json({
+            success: true,
+            data: journey,
+            message: 'Salesman checked in successfully'
+          });
+        } catch (error) {
+          console.error('Error checking in:', error);
+          res.status(500).json({ 
+            success: false,
+            message: error.message || 'Internal server error' 
+          });
+        }
+      }
+
+    async getStats(req, res) {  
+        try {
+            const stats = await salesmanService.getStats();
+            res.status(200).json({
+                success: true,
+                data: stats,
+                message: 'Stats retrieved successfully'
+            });
+        } catch (error) {
+            console.error('Error getting stats:', error);
+            res.status(500).json({ 
+                success: false,
+                message: error.message || 'Internal server error' 
+            });
+        }
+    }
 }
 
 module.exports = new SalesmanController();

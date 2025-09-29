@@ -112,7 +112,7 @@ class CustomerService {
     async getStats() {
         const prisma = getPrismaClient();
         const totalCustomers = await prisma.customer.count();
-        
+    
         return {
             totalCustomers
         };

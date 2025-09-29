@@ -3,6 +3,8 @@ const router = express.Router();
 const salesmanController = require('../controllers/salesmanController');
 const loadController = require('../controllers/loadController');
 
+// CHECK IN (must be before parameterized routes)
+router.post('/checkIn', express.json(), salesmanController.checkIn);
 // GET all salesmen
 router.get('/', salesmanController.getAll);
 // GET a salesman by ID
@@ -23,5 +25,7 @@ router.post('/:id/authorities', salesmanController.assignAuthorities);
 router.put('/:id/authorities', salesmanController.updateAuthorities);
 // GET ALL DATA
 router.get('/load/:id', loadController.syncData);
+// GET STATS
+router.get('/stats', salesmanController.getStats);
 
 module.exports = router;

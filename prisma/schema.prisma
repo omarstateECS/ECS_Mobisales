@@ -9,14 +9,15 @@ datasource db {
 
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model Customer {
-  id        Int      @id @default(autoincrement())
+  id        Int             @id @default(autoincrement())
   name      String
   industry  String?
   address   String
   latitude  Float
   longitude Float
   phone     String?
-  createdAt DateTime @default(now())
+  createdAt DateTime        @default(now())
+  invoices  InvoiceHeader[]
   visits    Visit[]
 
   @@index([name])
@@ -44,13 +45,13 @@ model Product {
 }
 
 model ProductUOM {
-  prodId   Int
-  uom      String   @db.VarChar(3)
-  uomName  String
-  barcode  String   @unique
-  num      Int
-  denum    Int
-  product  Product  @relation(fields: [prodId], references: [prodId], onDelete: Cascade)
+  prodId  Int
+  uom     String  @db.VarChar(3)
+  uomName String
+  barcode String  @unique
+  num     Int
+  denum   Int
+  product Product @relation(fields: [prodId], references: [prodId], onDelete: Cascade)
 
   @@id([prodId, uom])
   @@map("prod_uom")
@@ -67,6 +68,8 @@ model Salesman {
   updatedAt   DateTime            @updatedAt
   id          Int                 @id @default(autoincrement())
   isInitial   Boolean             @default(true)
+  invoices    InvoiceHeader[]
+  journies    Journies[]
   authorities SalesmanAuthority[]
   visits      Visit[]
 }
@@ -124,6 +127,60 @@ model Visit {
   @@map("visits")
 }
 
+model InvoiceHeader {
+  invId          Int           @id @default(autoincrement())
+  custId         Int
+  salesId        Int
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  inv_type       InvoiceType
+  reason_id      Int
+  net_amt        Float
+  tax_amt        Float
+  dis_amt        Float
+  total_amt      Float
+  payment_method PaymentMethod
+  currency       String
+  inv_ref        Int
+  customer       Customer      @relation(fields: [custId], references: [id], onDelete: Cascade)
+  salesman       Salesman      @relation(fields: [salesId], references: [id], onDelete: Cascade)
+}
+
+model Reasons {
+  id          Int      @id @default(autoincrement())
+  description String
+  sellable    Boolean
+  isHeader    Boolean
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Journies {
+  id           Int       @id @default(autoincrement())
+  salesId      Int
+  startJourney DateTime?
+  endJourney   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  salesman     Salesman  @relation(fields: [salesId], references: [id], onDelete: Cascade)
+}
+
+model InvoiceItem {
+  qty             Decimal
+  disAmt          Decimal
+  invoiceHeaderId Int
+  invoiceItem     Int
+  netAmt          Decimal
+  productId       Int
+  productUom      String
+  reasonId        Int
+  taxAmt          Decimal
+  totAmt          Decimal
+
+  @@id([invoiceHeaderId, invoiceItem], map: "invoice_items_pkey")
+  @@map("INV_items")
+}
+
 enum UnitType {
   PIECE
   BOX
@@ -134,6 +191,18 @@ enum SalesmanStatus {
   ACTIVE
   INACTIVE
   BLOCKED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  CREDIT
+}
+
+enum InvoiceType {
+  SALE
+  RETURN
+  EXCHANGE
 }
 
 enum AuthorityType {

@@ -15,15 +15,6 @@ function generateCustomer() {
   const zipCode = faker.location.zipCode();
   const fullAddress = `${streetAddress}, ${city}, ${state} ${zipCode}`;
   
-  // Generate stock info (optional field)
-  const stockInfo = faker.datatype.boolean(0.7) ? {
-    category: faker.helpers.arrayElement(['electronics', 'clothing', 'food', 'beverages', 'household']),
-    quantity: faker.number.int({ min: 10, max: 1000 }),
-    reorderPoint: faker.number.int({ min: 50, max: 200 }),
-    supplier: faker.company.name(),
-    lastRestocked: faker.date.recent({ days: 30 }).toISOString()
-  } : null;
-  
   return {
     name: faker.company.name(),
     industry: faker.helpers.arrayElement([
@@ -36,7 +27,6 @@ function generateCustomer() {
     latitude: parseFloat(latitude.toFixed(6)),
     longitude: parseFloat(longitude.toFixed(6)),
     phone: faker.datatype.boolean(0.8) ? faker.phone.number() : null,
-    stockInfo: stockInfo,
     createdAt: faker.date.between({ 
       from: '2023-01-01', 
       to: '2024-12-31' 
@@ -147,7 +137,6 @@ async function testPerformance() {
     where: {
       industry: { in: ['retail', 'grocery'] },
       latitude: { gte: 35.0, lte: 45.0 },
-      stockInfo: { not: null }
     },
     orderBy: { createdAt: 'desc' },
     take: 50
