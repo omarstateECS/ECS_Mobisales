@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, User, Phone, MapPin, Lock, Smartphone, Shield, Hash } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNotification } from '../hooks/useNotification';
+import NotificationModal from './common/NotificationModal';
 
 const AddSalesmanModal = ({
   isOpen,
   onClose,
   onSalesmanAdded
 }) => {
+  const { notification, showSuccess, showError, hideNotification } = useNotification();
   const [formData, setFormData] = useState({
     id: '',
     name: '',
@@ -147,7 +150,7 @@ const AddSalesmanModal = ({
         // Close modal
         onClose();
         
-        alert('Salesman added successfully!');
+        showSuccess('Salesman Added', 'Salesman has been added successfully!');
       } else {
         const errorData = await response.json();
         let errorMessage = errorData.error || `API failed with status: ${response.status}`;
@@ -162,7 +165,7 @@ const AddSalesmanModal = ({
       
     } catch (error) {
       console.error('Error adding salesman:', error);
-      alert(`Error adding salesman: ${error.message}`);
+      showError('Error Adding Salesman', error.message);
     } finally {
       setLoading(false);
     }

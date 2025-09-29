@@ -6,25 +6,27 @@ import axios from 'axios';
 const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
     const [formData, setFormData] = useState({
         name: '',
-        description: '',
-        barcode: '',
         category: '',
-        brand: '',
-        isActive: true
+        stock: 0,
+        nonSellableQty: 0,
+        baseUom: 'PCE',
+        basePrice: ''
     });
 
     const [productUnits, setProductUnits] = useState([
         {
-            unitType: 'PIECE',
-            unitSize: 1,
-            price: '',
-            isActive: true
+            uom: 'PCE',
+            uomName: 'Piece',
+            barcode: '',
+            num: 1,
+            denum: 1
         }
     ]);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [categories, setCategories] = useState([]);
+    const [isNewCategory, setIsNewCategory] = useState(false);
 
     // Set axios base URL
     useEffect(() => {
@@ -54,12 +56,29 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
 
     const handleUnitChange = (index, field, value) => {
         const updatedUnits = [...productUnits];
+        const oldUom = updatedUnits[index].uom;
+        
         updatedUnits[index] = {
             ...updatedUnits[index],
             [field]: value
         };
 
-        // No auto-update needed since unitName was removed
+        // Auto-update uomName when uom changes
+        if (field === 'uom') {
+            const uomNames = {
+                'PCE': 'Piece',
+                'BOX': 'Box',
+                'CTN': 'Carton',
+                'KGM': 'Kilogram',
+                'LTR': 'Liter'
+            };
+            updatedUnits[index].uomName = uomNames[value] || value;
+            
+            // If this was the base UOM, update the baseUom to the new value
+            if (formData.baseUom === oldUom) {
+                handleInputChange('baseUom', value);
+            }
+        }
 
         setProductUnits(updatedUnits);
     };
@@ -68,17 +87,25 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
         setProductUnits(prev => [
             ...prev,
             {
-                unitType: 'PIECE',
-                unitSize: 1,
-                price: '',
-                isActive: true
+                uom: 'PCE',
+                uomName: 'Piece',
+                barcode: '',
+                num: 1,
+                denum: 1
             }
         ]);
     };
 
     const removeProductUnit = (index) => {
         if (productUnits.length > 1) {
-            setProductUnits(prev => prev.filter((_, i) => i !== index));
+            const unitToRemove = productUnits[index];
+            const updatedUnits = productUnits.filter((_, i) => i !== index);
+            setProductUnits(updatedUnits);
+            
+            // If the removed unit was the base UOM, set the first remaining unit as base
+            if (formData.baseUom === unitToRemove.uom && updatedUnits.length > 0) {
+                handleInputChange('baseUom', updatedUnits[0].uom);
+            }
         }
     };
 
@@ -87,23 +114,50 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
             setError('Product name is required');
             return false;
         }
-        if (!formData.barcode.trim()) {
-            setError('Barcode is required');
+        if (!formData.category.trim()) {
+            setError('Category is required');
+            return false;
+        }
+        if (!formData.basePrice || parseFloat(formData.basePrice) <= 0) {
+            setError('Base price must be greater than 0');
             return false;
         }
 
-        // Check if any product unit has empty price
+        // Check if any product unit has empty barcode
         for (let i = 0; i < productUnits.length; i++) {
             const unit = productUnits[i];
-            if (!unit.price || unit.price.trim() === '' || parseFloat(unit.price) <= 0) {
-                setError(`Price for ${unit.unitType} unit must be greater than 0`);
+            if (!unit.barcode.trim()) {
+                setError(`Barcode for ${unit.uomName} unit is required`);
                 return false;
             }
         }
 
-        // Validate that category is not "new" (should have actual text)
-        if (formData.category === 'new') {
+        // Check for duplicate UOM codes
+        const uomCodes = productUnits.map(unit => unit.uom);
+        const duplicateUoms = uomCodes.filter((uom, index) => uomCodes.indexOf(uom) !== index);
+        if (duplicateUoms.length > 0) {
+            setError(`Duplicate UOM codes found: ${duplicateUoms.join(', ')}. Each unit must have a unique UOM code.`);
+            return false;
+        }
+
+        // Check for duplicate barcodes
+        const barcodes = productUnits.map(unit => unit.barcode.trim()).filter(barcode => barcode);
+        const duplicateBarcodes = barcodes.filter((barcode, index) => barcodes.indexOf(barcode) !== index);
+        if (duplicateBarcodes.length > 0) {
+            setError(`Duplicate barcodes found: ${duplicateBarcodes.join(', ')}. Each unit must have a unique barcode.`);
+            return false;
+        }
+
+        // Validate that if it's a new category, it has actual text
+        if (isNewCategory && !formData.category.trim()) {
             setError('Please enter a valid category name');
+            return false;
+        }
+
+        // Validate that baseUom exists in productUnits
+        const baseUomExists = productUnits.some(unit => unit.uom === formData.baseUom);
+        if (!baseUomExists) {
+            setError('Base UOM must match one of the product units');
             return false;
         }
 
@@ -121,14 +175,20 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
         setError('');
 
         try {
-            // Prepare the data according to Prisma model structure
+            // Prepare the data according to new Prisma model structure
             const productData = {
-                ...formData,
-                productUnits: productUnits.map(unit => ({
-                    unitType: unit.unitType,
-                    unitSize: parseInt(unit.unitSize),
-                    price: parseFloat(unit.price),
-                    isActive: unit.isActive
+                name: formData.name,
+                category: formData.category,
+                stock: parseInt(formData.stock) || 0,
+                nonSellableQty: parseInt(formData.nonSellableQty) || 0,
+                baseUom: formData.baseUom,
+                basePrice: formData.basePrice,
+                units: productUnits.map(unit => ({
+                    uom: unit.uom,
+                    uomName: unit.uomName,
+                    barcode: unit.barcode,
+                    num: parseInt(unit.num) || 1,
+                    denum: parseInt(unit.denum) || 1
                 }))
             };
 
@@ -140,17 +200,19 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
             // Reset form
             setFormData({
                 name: '',
-                description: '',
-                barcode: '',
                 category: '',
-                brand: '',
-                isActive: true
+                stock: 0,
+                nonSellableQty: 0,
+                baseUom: 'PCE',
+                basePrice: ''
             });
+            setIsNewCategory(false);
             setProductUnits([{
-                unitType: 'PIECE',
-                unitSize: 1,
-                price: '',
-                isActive: true
+                uom: 'PCE',
+                uomName: 'Piece',
+                barcode: '',
+                num: 1,
+                denum: 1
             }]);
 
             onProductAdded(response.data);
@@ -175,12 +237,12 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
         }
     };
 
-    const generateBarcode = () => {
-        // Generate a simple barcode (you can implement a more sophisticated one)
+    const generateBarcode = (unitIndex) => {
+        // Generate a simple barcode for a specific unit
         const timestamp = Date.now().toString();
         const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
         const barcode = `PRD${timestamp.slice(-6)}${random}`;
-        setFormData(prev => ({ ...prev, barcode }));
+        handleUnitChange(unitIndex, 'barcode', barcode);
     };
 
     const formatPrice = (price) => {
@@ -286,42 +348,53 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Description
+                                    Stock Quantity
                                 </label>
-                                <textarea
-                                    value={formData.description}
-                                    onChange={(e) => handleInputChange('description', e.target.value)}
-                                    rows={3}
-                                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all resize-none"
-                                    placeholder="Enter product description"
+                                <input
+                                    type="number"
+                                    value={formData.stock}
+                                    onChange={(e) => handleInputChange('stock', parseInt(e.target.value) || 0)}
+                                    min="0"
+                                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                                    placeholder="Enter stock quantity"
+                                    disabled={loading}
                                 />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Barcode <span className="text-red-400">*</span>
+                                    Non-Sellable Quantity
                                 </label>
-                                <div className="flex space-x-2">
+                                <input
+                                    type="number"
+                                    value={formData.nonSellableQty}
+                                    onChange={(e) => handleInputChange('nonSellableQty', parseInt(e.target.value) || 0)}
+                                    min="0"
+                                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                                    placeholder="Enter non-sellable quantity"
+                                    disabled={loading}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Base Price <span className="text-red-400">*</span>
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm font-medium">EGP</span>
                                     <input
-                                        type="text"
-                                        value={formData.barcode}
-                                        onChange={(e) => handleInputChange('barcode', e.target.value)}
-                                        className={`flex-1 px-4 py-3 bg-gray-800/50 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all ${
-                                            formData.barcode.trim() === '' ? 'border-red-500/50' : 'border-gray-700/50 focus:border-purple-500/50'
+                                        type="number"
+                                        value={formData.basePrice}
+                                        onChange={(e) => handleInputChange('basePrice', e.target.value)}
+                                        step="0.01"
+                                        min="0.01"
+                                        className={`w-full pl-12 pr-3 py-3 bg-gray-800/50 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all ${
+                                            !formData.basePrice || parseFloat(formData.basePrice) <= 0 ? 'border-red-500/50' : 'border-gray-700/50 focus:border-purple-500/50'
                                         }`}
-                                        placeholder="Enter barcode"
+                                        placeholder="0.00"
                                         required
                                         disabled={loading}
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={generateBarcode}
-                                        className="px-4 py-3 bg-gray-700/50 hover:bg-gray-700 text-gray-300 rounded-xl transition-colors border border-gray-600/50 hover:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title="Generate barcode"
-                                        disabled={loading}
-                                    >
-                                        <Hash size={16} />
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -334,15 +407,17 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Category
+                                    Category <span className="text-red-400">*</span>
                                 </label>
                                 <div className="flex space-x-2">
                                     <select
-                                        value={formData.category === 'new' ? 'new' : formData.category}
+                                        value={isNewCategory ? 'new' : formData.category}
                                         onChange={(e) => {
                                             if (e.target.value === 'new') {
-                                                handleInputChange('category', 'new');
+                                                setIsNewCategory(true);
+                                                handleInputChange('category', '');
                                             } else {
+                                                setIsNewCategory(false);
                                                 handleInputChange('category', e.target.value);
                                             }
                                         }}
@@ -356,48 +431,38 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                                         <option value="new">+ Add New Category</option>
                                     </select>
                                 </div>
-                                {formData.category === 'new' && (
+                                {isNewCategory && (
                                     <input
                                         type="text"
+                                        value={formData.category}
                                         placeholder="Enter new category name"
                                         className="w-full mt-2 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
                                         onChange={(e) => {
-                                            // Update the category with the actual text value
-                                            setFormData(prev => ({
-                                                ...prev,
-                                                category: e.target.value
-                                            }));
+                                            handleInputChange('category', e.target.value);
                                         }}
                                         disabled={loading}
+                                        autoFocus
                                     />
                                 )}
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Brand
+                                    Base UOM <span className="text-red-400">*</span>
                                 </label>
-                                <input
-                                    type="text"
-                                    value={formData.brand}
-                                    onChange={(e) => handleInputChange('brand', e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
-                                    placeholder="Enter brand name"
+                                <select
+                                    value={formData.baseUom}
+                                    onChange={(e) => handleInputChange('baseUom', e.target.value)}
+                                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
                                     disabled={loading}
-                                />
-                            </div>
-
-                            <div className="flex items-center space-x-3">
-                                <label className="flex items-center space-x-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.isActive}
-                                        onChange={(e) => handleInputChange('isActive', e.target.checked)}
-                                        className="w-4 h-4 text-purple-600 bg-gray-800 border-gray-700 rounded focus:ring-purple-500 focus:ring-2"
-                                        disabled={loading}
-                                    />
-                                    <span className="text-sm text-gray-300">Active Product</span>
-                                </label>
+                                >
+                                    {productUnits.map((unit, index) => (
+                                        <option key={index} value={unit.uom}>{unit.uomName} ({unit.uom})</option>
+                                    ))}
+                                </select>
+                                <p className="text-xs text-gray-400 mt-1">
+                                    Select which unit of measure will be the base unit for this product
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -407,7 +472,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                         <div className="flex items-center justify-between">
                             <h3 className="text-lg font-medium text-white flex items-center space-x-2">
                                 <ShoppingCart size={20} className="text-purple-400" />
-                                <span>Product Units & Pricing</span>
+                                <span>Product Units of Measure (UOM)</span>
                             </h3>
                             <button
                                 type="button"
@@ -425,7 +490,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                                 <div key={index} className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-4">
                                     <div className="flex items-center justify-between mb-4">
                                         <h4 className="text-md font-medium text-white">
-                                            {unit.unitType} Unit
+                                            {unit.uomName} Unit
                                         </h4>
                                         {productUnits.length > 1 && (
                                             <button
@@ -440,75 +505,95 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                                         )}
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                        <div>
+                                    <div className="flex flex-wrap gap-3">
+                                        <div className="flex-shrink-0 w-24">
                                             <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                Unit Type
+                                                UOM Code
                                             </label>
                                             <select
-                                                value={unit.unitType}
-                                                onChange={(e) => handleUnitChange(index, 'unitType', e.target.value)}
-                                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                                                value={unit.uom}
+                                                onChange={(e) => handleUnitChange(index, 'uom', e.target.value)}
+                                                className="w-full px-2 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all text-sm"
                                                 disabled={loading}
                                             >
-                                                <option value="PIECE">Piece</option>
-                                                <option value="BOX">Box</option>
-                                                <option value="CARTON">Carton</option>
+                                                <option value="PCE">PCE</option>
+                                                <option value="BOX">BOX</option>
+                                                <option value="CTN">CTN</option>
+                                                <option value="KGM">KGM</option>
+                                                <option value="LTR">LTR</option>
                                             </select>
                                         </div>
 
-
-
-                                        <div>
+                                        <div className="flex-1 min-w-32">
                                             <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                Unit Size
+                                                UOM Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={unit.uomName}
+                                                onChange={(e) => handleUnitChange(index, 'uomName', e.target.value)}
+                                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                                                placeholder="Unit name"
+                                                disabled={loading}
+                                            />
+                                        </div>
+
+                                        <div className="flex-1 min-w-48">
+                                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                Barcode <span className="text-red-400">*</span>
+                                            </label>
+                                            <div className="flex space-x-1">
+                                                <input
+                                                    type="text"
+                                                    value={unit.barcode}
+                                                    onChange={(e) => handleUnitChange(index, 'barcode', e.target.value)}
+                                                    className={`flex-1 px-3 py-2 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all ${
+                                                        !unit.barcode.trim() ? 'border-red-500/50' : 'border-gray-700/50 focus:border-purple-500/50'
+                                                    }`}
+                                                    placeholder="Barcode"
+                                                    required
+                                                    disabled={loading}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => generateBarcode(index)}
+                                                    className="px-2 py-2 bg-gray-700/50 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors border border-gray-600/50 hover:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    title="Generate barcode"
+                                                    disabled={loading}
+                                                >
+                                                    <Hash size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex-shrink-0 w-20">
+                                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                Numerator
                                             </label>
                                             <input
                                                 type="number"
-                                                value={unit.unitSize}
-                                                onChange={(e) => handleUnitChange(index, 'unitSize', parseInt(e.target.value) || 1)}
+                                                value={unit.num}
+                                                onChange={(e) => handleUnitChange(index, 'num', parseInt(e.target.value) || 1)}
                                                 min="1"
-                                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                                                className="w-full px-2 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all text-sm"
                                                 placeholder="1"
                                                 disabled={loading}
                                             />
                                         </div>
 
-                                        <div>
+                                        <div className="flex-shrink-0 w-20">
                                             <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                Selling Price <span className="text-red-400">*</span>
+                                                Denominator
                                             </label>
-                                            <div className="relative">
-                                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm font-medium">EGP</span>
-                                                <input
-                                                    type="number"
-                                                    value={unit.price}
-                                                    onChange={(e) => handleUnitChange(index, 'price', e.target.value)}
-                                                    step="0.01"
-                                                    min="0.01"
-                                                    className={`w-full pl-12 pr-3 py-2 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all ${
-                                                        !unit.price || unit.price.trim() === '' || parseFloat(unit.price) <= 0 ? 'border-red-500/50' : 'border-gray-700/50 focus:border-purple-500/50'
-                                                    }`}
-                                                    placeholder="0.00"
-                                                    required
-                                                    disabled={loading}
-                                                />
-                                            </div>
-                                        </div>
-
-
-
-                                        <div className="flex items-center space-x-3">
-                                            <label className="flex items-center space-x-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={unit.isActive}
-                                                    onChange={(e) => handleUnitChange(index, 'isActive', e.target.checked)}
-                                                    className="w-4 h-4 text-purple-600 bg-gray-800 border-gray-700 rounded focus:ring-purple-500 focus:ring-2"
-                                                    disabled={loading}
-                                                />
-                                                <span className="text-sm text-gray-300">Active Unit</span>
-                                            </label>
+                                            <input
+                                                type="number"
+                                                value={unit.denum}
+                                                onChange={(e) => handleUnitChange(index, 'denum', parseInt(e.target.value) || 1)}
+                                                min="1"
+                                                className="w-full px-2 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all text-sm"
+                                                placeholder="1"
+                                                disabled={loading}
+                                            />
                                         </div>
                                     </div>
                                 </div>

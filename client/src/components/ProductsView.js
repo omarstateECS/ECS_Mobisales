@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import { Package, Tag, BarChart3, Eye, Settings, Trash2, Edit, Search, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import AddProductModal from './AddProductModal';
+import ConfirmationModal from './common/ConfirmationModal';
+import NotificationModal from './common/NotificationModal';
+import { useNotification } from '../hooks/useNotification';
 import './ProductsView.css';
 
 // Set axios base URL
@@ -154,6 +157,15 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [categories, setCategories] = useState([]);
     const [deletingProductId, setDeletingProductId] = useState(null);
+    const [confirmationModal, setConfirmationModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: null,
+        loading: false
+    });
+    
+    const { notification, showSuccess, showError, hideNotification } = useNotification();
 
     useEffect(() => {
         fetchProducts();
@@ -249,20 +261,29 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
     };
 
     const handleDeleteProduct = async (productId, productName) => {
-        if (!window.confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
-            return;
-        }
+        setConfirmationModal({
+            isOpen: true,
+            title: 'Delete Product',
+            message: `Are you sure you want to delete "${productName}"? This action cannot be undone.`,
+            onConfirm: () => confirmDeleteProduct(productId),
+            loading: false
+        });
+    };
 
+    const confirmDeleteProduct = async (productId) => {
+        setConfirmationModal(prev => ({ ...prev, loading: true }));
         setDeletingProductId(productId);
         
         try {
             await axios.delete(`/api/products/${productId}`);
             setProducts(prev => prev.filter(product => product.id !== productId));
             setTotalProducts(prev => prev - 1);
-            // TODO: Show success message
+            setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
+            showSuccess('Product Deleted', 'Product has been deleted successfully!');
         } catch (error) {
             console.error('Error deleting product:', error);
-            // TODO: Show error message
+            setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
+            showError('Error Deleting Product', error.response?.data?.error || error.message);
         } finally {
             setDeletingProductId(null);
         }
@@ -488,6 +509,30 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                 onClose={closeAddModal}
                 onProductAdded={handleProductAdded}
             /> */}
+
+            {/* Notification Modal */}
+            <NotificationModal
+                isOpen={notification.isOpen}
+                onClose={hideNotification}
+                type={notification.type}
+                title={notification.title}
+                message={notification.message}
+                autoClose={notification.autoClose}
+                autoCloseDelay={notification.autoCloseDelay}
+            />
+
+            {/* Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={confirmationModal.isOpen}
+                onClose={() => setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false })}
+                onConfirm={confirmationModal.onConfirm}
+                title={confirmationModal.title}
+                message={confirmationModal.message}
+                loading={confirmationModal.loading}
+                type="danger"
+                confirmText="Delete"
+                cancelText="Cancel"
+            />
         </div>
     );
 };

@@ -13,8 +13,12 @@ import AddProductModal from './components/AddProductModal';
 import AddSalesmanModal from './components/AddSalesmanModal';
 import EditSalesmanModal from './components/EditSalesmanModal';
 import SalesmanDetailsPage from './components/SalesmanDetailsPage';
+import ConfirmationModal from './components/common/ConfirmationModal';
+import NotificationModal from './components/common/NotificationModal';
+import { useNotification } from './hooks/useNotification';
 
 const Dashboard = () => {
+  const { notification, showSuccess, showError, showWarning, hideNotification } = useNotification();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState({
     customers: false,
@@ -24,6 +28,13 @@ const Dashboard = () => {
   const [customers, setCustomers] = useState([]);
   const [salesmen, setSalesmen] = useState([]);
   const [deletingSalesmanId, setDeletingSalesmanId] = useState(null);
+  const [confirmationModal, setConfirmationModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    loading: false
+  });
 
   const [loading, setLoading] = useState(false);
   const [currentView, setCurrentView] = useState('dashboard');
@@ -192,10 +203,17 @@ const Dashboard = () => {
 
   // Delete salesman function
   const handleDeleteSalesman = async (salesmanId, salesmanName) => {
-    if (!window.confirm(`Are you sure you want to delete salesman "${salesmanName}"?`)) {
-      return;
-    }
+    setConfirmationModal({
+      isOpen: true,
+      title: 'Delete Salesman',
+      message: `Are you sure you want to delete salesman "${salesmanName}"? This action cannot be undone.`,
+      onConfirm: () => confirmDeleteSalesman(salesmanId),
+      loading: false
+    });
+  };
 
+  const confirmDeleteSalesman = async (salesmanId) => {
+    setConfirmationModal(prev => ({ ...prev, loading: true }));
     setDeletingSalesmanId(salesmanId);
 
     try {
@@ -206,14 +224,16 @@ const Dashboard = () => {
       if (response.ok) {
         // Remove the salesman from the local state
         setSalesmen(prev => prev.filter(salesman => salesman.id !== salesmanId));
-        alert('Salesman deleted successfully!');
+        setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
+        showSuccess('Salesman Deleted', 'Salesman has been deleted successfully!');
       } else {
         const errorData = await response.json();
         throw new Error(errorData.error || `Failed to delete salesman`);
       }
     } catch (error) {
       console.error('Error deleting salesman:', error);
-      alert(`Error deleting salesman: ${error.message}`);
+      setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
+      showError('Error Deleting Salesman', error.message);
     } finally {
       setDeletingSalesmanId(null);
     }
@@ -237,7 +257,7 @@ const Dashboard = () => {
     e.stopPropagation();
     
     if (!formData.name || !formData.latitude || !formData.longitude || !formData.industry) {
-      alert('Please fill in all required fields');
+      showWarning('Please fill in all required fields');
       return;
     }
     
@@ -264,7 +284,7 @@ const Dashboard = () => {
       if (response.ok) {
         const apiCustomer = await response.json();
         setCustomers(prev => [...prev, apiCustomer]);
-        alert('Customer added successfully!');
+        showSuccess('Customer added successfully!');
       } else {
         throw new Error(`API failed with status: ${response.status}`);
       }
@@ -276,7 +296,7 @@ const Dashboard = () => {
       };
       
       setCustomers(prev => [...prev, localCustomer]);
-      alert(`Customer added locally! (${error.message})`);
+      showWarning(`Customer added locally! (${error.message})`);
     }
     
     setAddCustomerLoading(false);
@@ -344,9 +364,17 @@ const Dashboard = () => {
 
   // Handle customer deletion
   const handleDeleteCustomer = async (customerId, customerName) => {
-    if (!window.confirm(`Are you sure you want to delete "${customerName}"? This action cannot be undone.`)) {
-      return;
-    }
+    setConfirmationModal({
+      isOpen: true,
+      title: 'Delete Customer',
+      message: `Are you sure you want to delete "${customerName}"? This action cannot be undone.`,
+      onConfirm: () => confirmDeleteCustomer(customerId),
+      loading: false
+    });
+  };
+
+  const confirmDeleteCustomer = async (customerId) => {
+    setConfirmationModal(prev => ({ ...prev, loading: true }));
 
     setDeletingCustomerId(customerId);
     
@@ -360,13 +388,15 @@ const Dashboard = () => {
       
       if (response.ok) {
         setCustomers(prev => prev.filter(customer => customer.id !== customerId));
-        alert('Customer deleted successfully!');
+        setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
+        showSuccess('Customer Deleted', 'Customer has been deleted successfully!');
       } else {
         throw new Error(`Failed to delete customer: ${response.status}`);
       }
     } catch (error) {
       console.error('Error deleting customer:', error);
-      alert(`Failed to delete customer: ${error.message}`);
+      setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
+      showError('Error Deleting Customer', error.message);
     } finally {
       setDeletingCustomerId(null);
     }
@@ -518,7 +548,7 @@ const Dashboard = () => {
     e.stopPropagation();
     
     if (!editFormData.name || !editFormData.latitude || !editFormData.longitude || !editFormData.industry) {
-      alert('Please fill in all required fields');
+      showWarning('Please fill in all required fields');
       return;
     }
     
@@ -552,7 +582,7 @@ const Dashboard = () => {
           setSelectedCustomer(apiCustomer);
         }
         
-        alert('Customer updated successfully!');
+        showSuccess('Customer updated successfully!');
       } else {
         throw new Error(`API failed with status: ${response.status}`);
       }
@@ -570,7 +600,7 @@ const Dashboard = () => {
         setSelectedCustomer(localUpdatedCustomer);
       }
       
-      alert(`Customer updated locally! (${error.message})`);
+      showWarning(`Customer updated locally! (${error.message})`);
     }
     
     setEditCustomerLoading(false);
@@ -818,6 +848,30 @@ const Dashboard = () => {
           </AnimatePresence>
         </main>
       </div>
+
+      {/* Notification Modal */}
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={hideNotification}
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+        autoClose={notification.autoClose}
+        autoCloseDelay={notification.autoCloseDelay}
+      />
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        onClose={() => setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false })}
+        onConfirm={confirmationModal.onConfirm}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        loading={confirmationModal.loading}
+        type="danger"
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

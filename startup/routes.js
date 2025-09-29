@@ -4,6 +4,7 @@ const customersRoute = require('../routes/customer');
 const productsRoute = require('../routes/products');
 const salesmenRoute = require('../routes/salesman');
 const authorityRoute = require('../routes/authority');
+const visitsRoute = require('../routes/visit');
 const authRoute = require('../routes/auth');
 
 module.exports = function(app) { 
@@ -13,4 +14,5 @@ module.exports = function(app) {
     app.use('/api/products', productsRoute);
     app.use('/api/salesmen', salesmenRoute);
     app.use('/api/authorities', authorityRoute);
+    app.use('/api/visits', visitsRoute);
 };

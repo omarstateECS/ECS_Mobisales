@@ -15,9 +15,9 @@ model Customer {
   address   String
   latitude  Float
   longitude Float
-  stockInfo Json?
   phone     String?
   createdAt DateTime @default(now())
+  visits    Visit[]
 
   @@index([name])
   @@index([industry])
@@ -30,60 +30,98 @@ model Customer {
 }
 
 model Product {
-  id           Int           @id @default(autoincrement())
-  name         String
-  description  String?
-  barcode      String        @unique
-  category     String?
-  brand        String?
-  isActive     Boolean       @default(true)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  productUnits ProductUnit[]
+  prodId         Int          @id @default(autoincrement())
+  name           String
+  category       String
+  stock          Int
+  nonSellableQty Int
+  baseUom        String
+  basePrice      Float
+  units          ProductUOM[]
 
-  @@index([name])
   @@index([category])
-  @@index([brand])
-  @@index([isActive])
-  @@index([createdAt])
-  @@index([name, category])
-  @@index([isActive, createdAt])
-  @@map("products")
+  @@index([baseUom])
 }
 
-model ProductUnit {
-  id        Int      @id @default(autoincrement())
-  productId Int
-  unitType  UnitType
-  unitSize  Int
-  price     Float
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+model ProductUOM {
+  prodId   Int
+  uom      String   @db.VarChar(3)
+  uomName  String
+  barcode  String   @unique
+  num      Int
+  denum    Int
+  product  Product  @relation(fields: [prodId], references: [prodId], onDelete: Cascade)
 
-  @@unique([productId, unitType])
-  @@index([productId])
-  @@index([unitType])
-  @@index([isActive])
-  @@index([price])
-  @@index([productId, isActive])
-  @@index([price, unitType])
-  @@map("product_units")
+  @@id([prodId, uom])
+  @@map("prod_uom")
 }
 
 model Salesman {
-  name       String
-  phone      String         @unique
-  address    String
-  status     SalesmanStatus @default(INACTIVE)
-  password   String
-  deviceId   String
-  isInitial  Boolean        @default(true)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-  id         Int            @id @default(autoincrement()) @db.Integer
+  name        String
+  phone       String              @unique
+  address     String
+  status      SalesmanStatus      @default(INACTIVE)
+  password    String
+  deviceId    String
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  id          Int                 @id @default(autoincrement())
+  isInitial   Boolean             @default(true)
   authorities SalesmanAuthority[]
+  visits      Visit[]
+}
+
+model Authority {
+  id        Int                 @id @default(autoincrement())
+  name      String              @unique
+  type      AuthorityType
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  salesmen  SalesmanAuthority[]
+
+  @@index([name])
+  @@index([type])
+  @@index([createdAt])
+  @@map("authorities")
+}
+
+model SalesmanAuthority {
+  id          Int       @id @default(autoincrement())
+  salesmanId  Int
+  authorityId Int
+  createdAt   DateTime  @default(now())
+  value       Boolean   @default(true)
+  authority   Authority @relation(fields: [authorityId], references: [id], onDelete: Cascade)
+  salesman    Salesman  @relation(fields: [salesmanId], references: [id], onDelete: Cascade)
+
+  @@unique([salesmanId, authorityId])
+  @@index([salesmanId])
+  @@index([authorityId])
+  @@index([createdAt])
+  @@map("salesman_authorities")
+}
+
+model Visit {
+  id         Int         @id @default(autoincrement())
+  custId     Int
+  salesId    Int
+  startTime  DateTime?
+  endTime    DateTime?
+  cancelTime DateTime?
+  status     VisitStatus @default(WAIT)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  customer   Customer    @relation(fields: [custId], references: [id], onDelete: Cascade)
+  salesman   Salesman    @relation(fields: [salesId], references: [id], onDelete: Cascade)
+
+  @@index([custId])
+  @@index([salesId])
+  @@index([status])
+  @@index([startTime])
+  @@index([createdAt])
+  @@index([custId, salesId])
+  @@index([status, createdAt])
+  @@map("visits")
 }
 
 enum UnitType {
@@ -103,32 +141,9 @@ enum AuthorityType {
   MOBILE
 }
 
-model Authority {
-  id        Int            @id @default(autoincrement())
-  name      String         @unique
-  type      AuthorityType
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  salesmen  SalesmanAuthority[]
-
-  @@index([name])
-  @@index([type])
-  @@index([createdAt])
-  @@map("authorities")
-}
-
-model SalesmanAuthority {
-  id           Int       @id @default(autoincrement())
-  salesmanId   Int
-  authorityId  Int
-  value        Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  salesman     Salesman  @relation(fields: [salesmanId], references: [id], onDelete: Cascade)
-  authority    Authority @relation(fields: [authorityId], references: [id], onDelete: Cascade)
-
-  @@unique([salesmanId, authorityId])
-  @@index([salesmanId])
-  @@index([authorityId])
-  @@index([createdAt])
-  @@map("salesman_authorities")
+enum VisitStatus {
+  START
+  END
+  WAIT
+  CANCEL
 }

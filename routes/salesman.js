@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const salesmanController = require('../controllers/salesmanController');
+const loadController = require('../controllers/loadController');
 
 // GET all salesmen
 router.get('/', salesmanController.getAll);
@@ -20,5 +21,7 @@ router.get('/:id/authorities/all', salesmanController.getAllAuthorities);
 router.post('/:id/authorities', salesmanController.assignAuthorities);
 // UPDATE salesman's authorities (replace all)
 router.put('/:id/authorities', salesmanController.updateAuthorities);
+// GET ALL DATA
+router.get('/load/:id', loadController.syncData);
 
 module.exports = router;

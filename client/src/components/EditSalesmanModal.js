@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Phone, MapPin, Lock, Smartphone, Shield } from 'lucide-react';
+import { useNotification } from '../hooks/useNotification';
+import NotificationModal from './common/NotificationModal';
 
 const EditSalesmanModal = ({ isOpen, onClose, salesman, onSalesmanUpdated }) => {
+  const { notification, showSuccess, showError, hideNotification } = useNotification();
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -107,7 +110,7 @@ const EditSalesmanModal = ({ isOpen, onClose, salesman, onSalesmanUpdated }) => 
         }
         
         onClose();
-        alert('Salesman updated successfully!');
+        showSuccess('Salesman Updated', 'Salesman has been updated successfully!');
       } else {
         const errorData = await response.json();
         let errorMessage = errorData.error || `API failed with status: ${response.status}`;
@@ -121,7 +124,7 @@ const EditSalesmanModal = ({ isOpen, onClose, salesman, onSalesmanUpdated }) => 
       
     } catch (error) {
       console.error('Error updating salesman:', error);
-      alert(`Error updating salesman: ${error.message}`);
+      showError('Error Updating Salesman', error.message);
     } finally {
       setLoading(false);
     }
@@ -316,6 +319,15 @@ const EditSalesmanModal = ({ isOpen, onClose, salesman, onSalesmanUpdated }) => 
           </form>
         </motion.div>
       </motion.div>
+      
+      {/* Notification Modal */}
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={hideNotification}
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+      />
     </AnimatePresence>
   );
 };

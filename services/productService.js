@@ -5,14 +5,12 @@ class ProductService {
     async getAllProducts() {
         const prisma = getPrismaClient();
         return await prisma.product.findMany({
-            where: { isActive: true },
             include: {
-                productUnits: {
-                    where: { isActive: true },
-                    orderBy: { unitSize: 'asc' }
+                units: {
+                    orderBy: { uom: 'asc' }
                 }
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: { prodId: 'desc' }
         });
     }
 
@@ -20,11 +18,10 @@ class ProductService {
     async getProductById(id) {
         const prisma = getPrismaClient();
         return await prisma.product.findUnique({
-            where: { id: Number(id) },
+            where: { prodId: Number(id) },
             include: {
-                productUnits: {
-                    where: { isActive: true },
-                    orderBy: { unitSize: 'asc' }
+                units: {
+                    orderBy: { uom: 'asc' }
                 }
             }
         });
@@ -33,47 +30,85 @@ class ProductService {
     // Create a new product with units
     async createProduct(data) {
         const prisma = getPrismaClient();
-        const { productUnits, ...productData } = data;
+        const { units, ...productData } = data;
         
-        return await prisma.product.create({
-            data: {
-                ...productData,
-                productUnits: {
-                    create: productUnits || []
+        // Validate that baseUom exists in units
+        const baseUomExists = units && units.some(unit => unit.uom === productData.baseUom);
+        if (!baseUomExists) {
+            throw new Error(`Base UOM '${productData.baseUom}' must be included in the product units`);
+        }
+        
+        // Use a transaction to ensure data consistency
+        return await prisma.$transaction(async (tx) => {
+            // First create the product
+            const product = await tx.product.create({
+                data: {
+                    name: productData.name,
+                    category: productData.category,
+                    stock: productData.stock,
+                    nonSellableQty: productData.nonSellableQty,
+                    baseUom: productData.baseUom,
+                    basePrice: parseFloat(productData.basePrice) || 0
                 }
-            },
-            include: {
-                productUnits: true
+            });
+
+            // Then create the units
+            if (units && units.length > 0) {
+                await tx.productUOM.createMany({
+                    data: units.map(unit => ({
+                        prodId: product.prodId,
+                        uom: unit.uom,
+                        uomName: unit.uomName,
+                        barcode: unit.barcode,
+                        num: unit.num,
+                        denum: unit.denum
+                    }))
+                });
             }
+
+            // Return the complete product with units
+            return await tx.product.findUnique({
+                where: { prodId: product.prodId },
+                include: {
+                    units: {
+                        orderBy: { uom: 'asc' }
+                    }
+                }
+            });
         });
     }
 
     // Update a product by ID
     async updateProduct(id, data) {
         const prisma = getPrismaClient();
-        const { productUnits, ...productData } = data;
+        const { units, ...productData } = data;
+        
+        // Convert basePrice to float if it exists in productData
+        if (productData.basePrice !== undefined) {
+            productData.basePrice = parseFloat(productData.basePrice) || 0;
+        }
         
         // Update product
         const updatedProduct = await prisma.product.update({
-            where: { id: Number(id) },
+            where: { prodId: Number(id) },
             data: productData,
             include: {
-                productUnits: true
+                units: true
             }
         });
 
         // Update units if provided
-        if (productUnits) {
+        if (units) {
             // Delete existing units
-            await prisma.productUnit.deleteMany({
-                where: { productId: Number(id) }
+            await prisma.productUOM.deleteMany({
+                where: { prodId: Number(id) }
             });
 
             // Create new units
-            await prisma.productUnit.createMany({
-                data: productUnits.map(unit => ({
+            await prisma.productUOM.createMany({
+                data: units.map(unit => ({
                     ...unit,
-                    productId: Number(id)
+                    prodId: Number(id)
                 }))
             });
 
@@ -87,10 +122,9 @@ class ProductService {
     // Delete a product by ID
     async deleteProduct(id) {
         const prisma = getPrismaClient();
-        // Soft delete - mark as inactive
-        return await prisma.product.update({
-            where: { id: Number(id) },
-            data: { isActive: false }
+        // Hard delete since isActive field no longer exists
+        return await prisma.product.delete({
+            where: { prodId: Number(id) }
         });
     }
 
@@ -100,7 +134,7 @@ class ProductService {
         const skip = (page - 1) * limit;
         
         // Build where clause
-        let whereClause = { isActive: true };
+        let whereClause = {};
         
         if (category && category !== 'all') {
             whereClause.category = category;
@@ -109,8 +143,7 @@ class ProductService {
         if (searchQuery) {
             whereClause.OR = [
                 { name: { contains: searchQuery, mode: 'insensitive' } },
-                { description: { contains: searchQuery, mode: 'insensitive' } },
-                { brand: { contains: searchQuery, mode: 'insensitive' } }
+                { category: { contains: searchQuery, mode: 'insensitive' } }
             ];
         }
         
@@ -118,14 +151,13 @@ class ProductService {
             prisma.product.findMany({
                 where: whereClause,
                 include: {
-                    productUnits: {
-                        where: { isActive: true },
-                        orderBy: { unitSize: 'asc' }
+                    units: {
+                        orderBy: { uom: 'asc' }
                     }
                 },
                 skip,
                 take: limit,
-                orderBy: { createdAt: 'desc' }
+                orderBy: { prodId: 'desc' }
             }),
             prisma.product.count({
                 where: whereClause
@@ -153,22 +185,19 @@ class ProductService {
         const [products, total] = await Promise.all([
             prisma.product.findMany({
                 where: { 
-                    isActive: true,
                     category: category
                 },
                 include: {
-                    productUnits: {
-                        where: { isActive: true },
-                        orderBy: { unitSize: 'asc' }
+                    units: {
+                        orderBy: { uom: 'asc' }
                     }
                 },
                 skip,
                 take: limit,
-                orderBy: { createdAt: 'desc' }
+                orderBy: { prodId: 'desc' }
             }),
             prisma.product.count({
                 where: { 
-                    isActive: true,
                     category: category
                 }
             })
@@ -187,7 +216,7 @@ class ProductService {
         };
     }
 
-    // Search products by name or description
+    // Search products by name or category
     async searchProducts(query, page = 1, limit = 10) {
         const prisma = getPrismaClient();
         const skip = (page - 1) * limit;
@@ -195,30 +224,25 @@ class ProductService {
         const [products, total] = await Promise.all([
             prisma.product.findMany({
                 where: {
-                    isActive: true,
                     OR: [
                         { name: { contains: query, mode: 'insensitive' } },
-                        { description: { contains: query, mode: 'insensitive' } },
-                        { brand: { contains: query, mode: 'insensitive' } }
+                        { category: { contains: query, mode: 'insensitive' } }
                     ]
                 },
                 include: {
-                    productUnits: {
-                        where: { isActive: true },
-                        orderBy: { unitSize: 'asc' }
+                    units: {
+                        orderBy: { uom: 'asc' }
                     }
                 },
                 skip,
                 take: limit,
-                orderBy: { createdAt: 'desc' }
+                orderBy: { prodId: 'desc' }
             }),
             prisma.product.count({
                 where: {
-                    isActive: true,
                     OR: [
                         { name: { contains: query, mode: 'insensitive' } },
-                        { description: { contains: query, mode: 'insensitive' } },
-                        { brand: { contains: query, mode: 'insensitive' } }
+                        { category: { contains: query, mode: 'insensitive' } }
                     ]
                 }
             })
@@ -241,14 +265,14 @@ class ProductService {
     async getProductStats() {
         const prisma = getPrismaClient();
         const [totalProducts, categoryStats, unitTypeStats] = await Promise.all([
-            prisma.product.count({ where: { isActive: true } }),
+            prisma.product.count(),
             prisma.product.groupBy({
                 by: ['category'],
                 _count: { category: true }
             }),
-            prisma.productUnit.groupBy({
-                by: ['unitType'],
-                _count: { unitType: true }
+            prisma.productUOM.groupBy({
+                by: ['uom'],
+                _count: { uom: true }
             })
         ]);
 
