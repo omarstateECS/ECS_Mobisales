@@ -1,5 +1,5 @@
-const { getPrismaClient } = require('./lib/prisma');
-const visitService = require('./services/visitService');
+const { getPrismaClient } = require('../lib/prisma');
+const visitService = require('../services/visitService');
 
 async function addVisit() {
     for (let i = 8; i <= 100; i++) {
