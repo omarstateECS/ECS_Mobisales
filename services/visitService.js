@@ -1,6 +1,15 @@
 const { getPrismaClient } = require('../lib/prisma');
 
 class VisitService {
+    // Helper function to format timestamp without 'T' but parseable by mobile app
+    formatTimestamp(date) {
+        if (!date) return null;
+        // Convert to format that Dart can parse: YYYY-MM-DD HH:mm:ss (without milliseconds)
+        const localDate = new Date(date);
+        const isoString = localDate.toISOString();
+        // Format: "2025-10-01 09:36:46" (Dart can parse this format)
+        return isoString.replace('T', ' ').substring(0, 19);
+    }
     // Get all visits with optional filtering
     async getAllVisits(page = 1, limit = 50, salesmanId = null, customerId = null, status = null) {
         const prisma = getPrismaClient();
@@ -162,7 +171,7 @@ class VisitService {
         const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
-        return await prisma.visit.findMany({
+        const visits = await prisma.visit.findMany({
             where: {
                 salesId: parseInt(salesmanId),
                 createdAt: {
@@ -192,6 +201,14 @@ class VisitService {
             },
             orderBy: { createdAt: 'desc' }
         });
+
+        // Format timestamps to remove 'T' while keeping mobile app compatibility
+        return visits.map(visit => ({
+            ...visit,
+            startTime: visit.startTime ? this.formatTimestamp(visit.startTime) : null,
+            endTime: visit.endTime ? this.formatTimestamp(visit.endTime) : null,
+            cancelTime: visit.cancelTime ? this.formatTimestamp(visit.cancelTime) : null
+        }));
     }
 
     // Get visits by status

@@ -128,7 +128,7 @@ model Visit {
 }
 
 model InvoiceHeader {
-  invId          Int           @id @default(autoincrement())
+  invId          Int           
   custId         Int
   salesId        Int
   createdAt      DateTime      @default(now())
@@ -144,6 +144,8 @@ model InvoiceHeader {
   inv_ref        Int
   customer       Customer      @relation(fields: [custId], references: [id], onDelete: Cascade)
   salesman       Salesman      @relation(fields: [salesId], references: [id], onDelete: Cascade)
+
+  @@id([invId, salesId])
 }
 
 model Reasons {
@@ -178,7 +180,6 @@ model InvoiceItem {
   totAmt          Decimal
 
   @@id([invoiceHeaderId, invoiceItem], map: "invoice_items_pkey")
-  @@map("INV_items")
 }
 
 enum UnitType {

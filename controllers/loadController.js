@@ -1,7 +1,7 @@
-const customerService = require('../services/customerService');
 const salesmanService = require('../services/salesmanService');
 const visitService = require('../services/visitService');
 const productService = require('../services/productService');
+const reasonService = require('../services/reasonService');
 
 module.exports = {
     async syncData(req, res) {
@@ -12,14 +12,16 @@ module.exports = {
           return res.status(400).json({ error: 'Salesman ID is required' });
         }
   
-        const [visits, products] = await Promise.all([
+        const [visits, products, reasons] = await Promise.all([
           visitService.getTodayVisits(salesmanId),
-          productService.getAllProducts()
+          productService.getAllProducts(),
+          reasonService.getAllReasons()
         ]);
   
         return res.json({
           visits,
-          products
+          products,
+          reasons 
         });
       } catch (error) {
         console.error('Sync Error:', error);

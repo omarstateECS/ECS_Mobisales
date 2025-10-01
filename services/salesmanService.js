@@ -2,6 +2,7 @@ const { getPrismaClient } = require('../lib/prisma');
 const visitService = require('./visitService');
 const productService = require('./productService');
 const customerService = require('./customerService');
+const invoiceService = require('./invoiceService');
 
 
 class SalesmanService {
@@ -187,7 +188,7 @@ class SalesmanService {
 
     async checkIn(checkInData) {
         const prisma = getPrismaClient();
-        const { salesmanId, deviceId, salesman, visits } = checkInData;
+        const { salesmanId, deviceId, salesman, visits, invoices } = checkInData;
         const foundSalesman = await prisma.salesman.findUnique({ where: { id: Number(salesmanId) } });
         if (!foundSalesman) {
             throw new Error('Salesman not found');
@@ -204,7 +205,7 @@ class SalesmanService {
             return utcDate;
         };
         
-        // Handle journey creation and updates
+        // JOURNIES
         let journey;
         
         if (!salesman.endJourney) {
@@ -248,16 +249,44 @@ class SalesmanService {
                 });
             }
         }      
-        
-        // Update visits
-        for (const visit of visits) {
-            await visitService.updateVisit(visit.id, {
-                start_time: parseTimestamp(visit.startTime),
-                end_time: parseTimestamp(visit.endTime),
-                cancel_time: !visit.cancelTime ? null : parseTimestamp(visit.cancelTime),
-                status: visit.status
-            });
+
+        // INVOICES - Expect array of invoices
+        if (invoices && invoices.length > 0) {
+            try {
+                for (const invoice of invoices) {
+                    await invoiceService.createInvoice(invoice);
+                    console.log(`✅ Created invoice ID: ${invoice.id}`);
+                }
+            } catch (error) {
+                console.error('❌ Error creating invoice:', error.message);
+                // Don't throw error to allow other operations to continue
+            }
         }
+
+        // VISITS
+        if (visits && visits.length > 0) {
+            // Update visits
+            for (const visit of visits) {
+                if (visit.startTime && !visit.endTime) {
+                    await visitService.updateVisit(visit.id, {
+                        start_time: parseTimestamp(visit.startTime),
+                        status: "START"
+                    });
+                } else if (visit.endTime) {
+                    await visitService.updateVisit(visit.id, {
+                        end_time: parseTimestamp(visit.endTime),
+                        status: "END"
+                    });
+                } else if (visit.startTime && visit.endTime) {
+                    await visitService.updateVisit(visit.id, {
+                        start_time: parseTimestamp(visit.startTime),
+                        end_time: parseTimestamp(visit.endTime),
+                        status: "END"
+                    });
+                }
+            }
+        }
+        
         return journey;
     }
 }
