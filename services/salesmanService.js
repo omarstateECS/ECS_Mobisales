@@ -14,6 +14,12 @@ class SalesmanService {
                     include: {
                         authority: true
                     }
+                },
+                journies: {
+                    orderBy: {
+                        createdAt: 'desc'
+                    },
+                    take: 1  // Get only the latest journey
                 }
             }
         });
@@ -203,54 +209,6 @@ class SalesmanService {
                 const local = new Date(timestamp);
                 return new Date(local.getTime() - (3 * 60 * 60 * 1000)); // Convert UTC+3 to UTC
             };
-    
-            // === JOURNEY LOGIC ===
-            let journey;
-            
-            if(salesman != null){
-            if (!salesman.endJourney) {
-                journey = await tx.journies.create({
-                    data: {
-                        salesId: Number(salesmanId),
-                        startJourney: salesman.startJourney ? parseTimestamp(salesman.startJourney) : new Date(),
-                        endJourney: null,
-                    },
-                });
-            } else {
-                const parsedStartJourney = parseTimestamp(salesman.startJourney);
-    
-                journey = await tx.journies.findFirst({
-                    where: {
-                        salesId: Number(salesmanId),
-                        startJourney: parsedStartJourney,
-                        endJourney: null,
-                    },
-                    orderBy: { createdAt: 'desc' },
-                });
-    
-                if (!journey) {
-                    journey = await tx.journies.create({
-                        data: {
-                            salesId: Number(salesmanId),
-                            startJourney: parsedStartJourney,
-                            endJourney: parseTimestamp(salesman.endJourney),
-                        },
-                    });
-                } else {
-                    journey = await tx.journies.update({
-                        where: {
-                            journeyId_salesId: {
-                                journeyId: journey.journeyId,
-                                salesId: Number(salesmanId)
-                            }
-                        },
-                        data: {
-                            endJourney: parseTimestamp(salesman.endJourney),
-                        },
-                    });
-                }
-            }
-        }
     
             // === INVOICES ===
             const createdInvoices = [];

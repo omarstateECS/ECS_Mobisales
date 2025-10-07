@@ -148,7 +148,26 @@ const PlanRoutesPage = ({ handleNavigation }) => {
     return matchesSearch;
   });
 
-  const selectedSalesmanData = salesmen.find(s => s.id === selectedSalesman);
+  // Helper function to check if salesman is selectable
+  const isSalesmanSelectable = (salesman) => {
+    // Check if available is true
+    if (!salesman.available) return { selectable: false, reason: 'Currently Unavailable' };
+    
+    // Check if status is ACTIVE
+    if (salesman.status !== 'ACTIVE') return { selectable: false, reason: `Status: ${salesman.status}` };
+    
+    // Check if salesman has an active journey (startJourney is not null and endJourney is null)
+    if (salesman.journies && salesman.journies.length > 0) {
+      const latestJourney = salesman.journies[0];
+      if (latestJourney.startJourney && !latestJourney.endJourney) {
+        return { selectable: false, reason: 'Currently in a Journey' };
+      }
+    }
+    
+    return { selectable: true, reason: null };
+  };
+
+  const selectedSalesmanData = salesmen.find(s => s.salesId === selectedSalesman);
 
   return (
     <div className="space-y-6">
@@ -190,28 +209,46 @@ const PlanRoutesPage = ({ handleNavigation }) => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {salesmen.map(salesman => (
-            <div
-              key={salesman.id}
-              onClick={() => setSelectedSalesman(salesman.salesId)}
-              className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                selectedSalesman === salesman.salesId
-                  ? 'border-blue-500 bg-blue-500/10'
-                  : 'border-gray-700/50 bg-gray-800/30 hover:border-gray-600 hover:bg-gray-800/50'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-white">{salesman.name}</p>
-                  <p className="text-sm text-gray-400">{salesman.phone}</p>
-                  <p className="text-xs text-gray-500 mt-1">ID: {salesman.salesId}</p>
+          {salesmen.map(salesman => {
+            const { selectable, reason } = isSalesmanSelectable(salesman);
+            
+            return (
+              <div
+                key={salesman.salesId}
+                onClick={() => selectable && setSelectedSalesman(salesman.salesId)}
+                className={`p-4 rounded-xl border-2 transition-all ${
+                  !selectable
+                    ? 'border-gray-700/30 bg-gray-800/20 opacity-50 cursor-not-allowed'
+                    : selectedSalesman === salesman.salesId
+                    ? 'border-blue-500 bg-blue-500/10 cursor-pointer'
+                    : 'border-gray-700/50 bg-gray-800/30 hover:border-gray-600 hover:bg-gray-800/50 cursor-pointer'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className={`font-semibold ${
+                      selectable ? 'text-white' : 'text-gray-500'
+                    }`}>{salesman.name}</p>
+                    <p className={`text-sm ${
+                      selectable ? 'text-gray-400' : 'text-gray-600'
+                    }`}>{salesman.phone}</p>
+                    <p className={`text-xs mt-1 ${
+                      selectable ? 'text-gray-500' : 'text-gray-600'
+                    }`}>ID: {salesman.salesId}</p>
+                    {!selectable && reason && (
+                      <div className="mt-2 flex items-center space-x-1">
+                        <XCircle size={14} className="text-red-400" />
+                        <p className="text-xs text-red-400 font-medium">{reason}</p>
+                      </div>
+                    )}
+                  </div>
+                  {selectedSalesman === salesman.salesId && selectable && (
+                    <CheckCircle className="text-blue-400" size={20} />
+                  )}
                 </div>
-                {selectedSalesman === salesman.id && (
-                  <CheckCircle className="text-blue-400" size={20} />
-                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {selectedSalesmanData && (

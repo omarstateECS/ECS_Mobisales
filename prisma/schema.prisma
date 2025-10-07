@@ -65,8 +65,9 @@ model Salesman {
   status      SalesmanStatus      @default(INACTIVE)
   password    String
   deviceId    String
+  available   Boolean             @default(true)
+  lastJourneyId Int               @default(0)
   createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
   isInitial   Boolean             @default(true)
   invoices    InvoiceHeader[]
   journies    Journies[]
