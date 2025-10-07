@@ -22,7 +22,7 @@ class SalesmanService {
     async getSalesmanById(id) {
         const prisma = getPrismaClient();
         return await prisma.salesman.findUnique({
-            where: { id: Number(id) },
+            where: { salesId: Number(id) },
             include: {
                 authorities: {
                     include: {
@@ -57,7 +57,7 @@ class SalesmanService {
     async updateSalesman(id, data) {
         const prisma = getPrismaClient();
         return await prisma.salesman.update({
-            where: { id: Number(id) },
+            where: { salesId: Number(id) },
             data,
             include: {
                 authorities: {
@@ -72,7 +72,7 @@ class SalesmanService {
     async deleteSalesman(id) {
         const prisma = getPrismaClient();
         return await prisma.salesman.delete({
-            where: { id: Number(id) }
+            where: { salesId: Number(id) }
         });
     }
 
@@ -81,18 +81,18 @@ class SalesmanService {
         
         // Get all available authorities
         const allAuthorities = await prisma.authority.findMany({
-            select: { id: true }
+            select: { authorityId: true }
         });
 
         // For each authority, upsert the salesman_authority record
         for (const authority of allAuthorities) {
-            const isAssigned = authorityIds.includes(authority.id.toString()) || authorityIds.includes(authority.id);
+            const isAssigned = authorityIds.includes(authority.authorityId.toString()) || authorityIds.includes(authority.authorityId);
             
             await prisma.salesmanAuthority.upsert({
                 where: {
                     salesmanId_authorityId: {
                         salesmanId: Number(salesmanId),
-                        authorityId: authority.id
+                        authorityId: authority.authorityId
                     }
                 },
                 update: {
@@ -100,7 +100,7 @@ class SalesmanService {
                 },
                 create: {
                     salesmanId: Number(salesmanId),
-                    authorityId: authority.id,
+                    authorityId: authority.authorityId,
                     value: isAssigned
                 }
             });
@@ -108,7 +108,7 @@ class SalesmanService {
 
         // Return the updated salesman with authorities
         return await prisma.salesman.findUnique({
-            where: { id: Number(salesmanId) },
+            where: { salesId: Number(salesmanId) },
             include: {
                 authorities: {
                     where: {
@@ -126,7 +126,7 @@ class SalesmanService {
         const prisma = getPrismaClient();
         
         const salesmanWithAuthorities = await prisma.salesman.findUnique({
-            where: { id: Number(salesmanId) },
+            where: { salesId: Number(salesmanId) },
             include: {
                 authorities: {
                     where: {
@@ -151,7 +151,7 @@ class SalesmanService {
         const prisma = getPrismaClient();
         
         const salesmanWithAuthorities = await prisma.salesman.findUnique({
-            where: { id: Number(salesmanId) },
+            where: { salesId: Number(salesmanId) },
             include: {
                 authorities: {
                     include: {
@@ -184,110 +184,170 @@ class SalesmanService {
         return {
             totalSales
         };
-    }
+    } 
 
     async checkIn(checkInData) {
         const prisma = getPrismaClient();
-        const { salesmanId, deviceId, salesman, visits, invoices } = checkInData;
-        const foundSalesman = await prisma.salesman.findUnique({ where: { id: Number(salesmanId) } });
-        if (!foundSalesman) {
-            throw new Error('Salesman not found');
-        }
-        if (foundSalesman.deviceId !== deviceId) {
-            throw new Error('Unauthorized device');
-        }
-        // Helper function to parse timestamp and adjust for timezone
-        const parseTimestamp = (timestamp) => {
-            if (!timestamp) return null;
-            // Parse the timestamp as local time, then add 3 hours to get correct UTC
-            const localDate = new Date(timestamp);
-            const utcDate = new Date(localDate.getTime() + (3 * 60 * 60 * 1000)); // Add 3 hours
-            return utcDate;
-        };
-        
-        // JOURNIES
-        let journey;
-        
-        if (!salesman.endJourney) {
-            // Create new journey when only startJourney is provided
-            journey = await prisma.journies.create({
-                data: {
-                    salesId: Number(salesmanId),
-                    startJourney: salesman.startJourney ? parseTimestamp(salesman.startJourney) : new Date(),
-                    endJourney: null,
-                }
+        const { salesmanId, deviceId, salesman, visits, invoices, products } = checkInData;
+    
+        const result = await prisma.$transaction(async (tx) => {
+            const foundSalesman = await tx.salesman.findUnique({
+                where: { salesId: Number(salesmanId) },
             });
-        } else {
-            // When endJourney is provided, find the most recent journey for this salesman and update it
-            const parsedStartJourney = parseTimestamp(salesman.startJourney);
+    
+            if (!foundSalesman) throw new Error('Salesman not found');
+            if (foundSalesman.deviceId !== deviceId) throw new Error('Unauthorized device');
+    
+            const parseTimestamp = (timestamp) => {
+                if (!timestamp) return null;
+                const local = new Date(timestamp);
+                return new Date(local.getTime() - (3 * 60 * 60 * 1000)); // Convert UTC+3 to UTC
+            };
+    
+            // === JOURNEY LOGIC ===
+            let journey;
             
-            journey = await prisma.journies.findFirst({
-                where: {
-                    salesId: Number(salesmanId),
-                    startJourney: parsedStartJourney,
-                    endJourney: null  // Find journey that hasn't been ended yet
-                },
-                orderBy: { createdAt: 'desc' }
-            });
-            
-            if (!journey) {
-                // If no matching journey found, create a new one with both start and end times
-                journey = await prisma.journies.create({
+            if(salesman != null){
+            if (!salesman.endJourney) {
+                journey = await tx.journies.create({
                     data: {
                         salesId: Number(salesmanId),
-                        startJourney: parsedStartJourney,
-                        endJourney: parseTimestamp(salesman.endJourney),
-                    }
+                        startJourney: salesman.startJourney ? parseTimestamp(salesman.startJourney) : new Date(),
+                        endJourney: null,
+                    },
                 });
             } else {
-                // Update the existing journey with endJourney
-                journey = await prisma.journies.update({
-                    where: { id: journey.id },
-                    data: {
-                        endJourney: parseTimestamp(salesman.endJourney),
-                    }
+                const parsedStartJourney = parseTimestamp(salesman.startJourney);
+    
+                journey = await tx.journies.findFirst({
+                    where: {
+                        salesId: Number(salesmanId),
+                        startJourney: parsedStartJourney,
+                        endJourney: null,
+                    },
+                    orderBy: { createdAt: 'desc' },
                 });
-            }
-        }      
-
-        // INVOICES - Expect array of invoices
-        if (invoices && invoices.length > 0) {
-            try {
-                for (const invoice of invoices) {
-                    await invoiceService.createInvoice(invoice);
-                    console.log(`✅ Created invoice ID: ${invoice.id}`);
-                }
-            } catch (error) {
-                console.error('❌ Error creating invoice:', error.message);
-                // Don't throw error to allow other operations to continue
-            }
-        }
-
-        // VISITS
-        if (visits && visits.length > 0) {
-            // Update visits
-            for (const visit of visits) {
-                if (visit.startTime && !visit.endTime) {
-                    await visitService.updateVisit(visit.id, {
-                        start_time: parseTimestamp(visit.startTime),
-                        status: "START"
+    
+                if (!journey) {
+                    journey = await tx.journies.create({
+                        data: {
+                            salesId: Number(salesmanId),
+                            startJourney: parsedStartJourney,
+                            endJourney: parseTimestamp(salesman.endJourney),
+                        },
                     });
-                } else if (visit.endTime) {
-                    await visitService.updateVisit(visit.id, {
-                        end_time: parseTimestamp(visit.endTime),
-                        status: "END"
-                    });
-                } else if (visit.startTime && visit.endTime) {
-                    await visitService.updateVisit(visit.id, {
-                        start_time: parseTimestamp(visit.startTime),
-                        end_time: parseTimestamp(visit.endTime),
-                        status: "END"
+                } else {
+                    journey = await tx.journies.update({
+                        where: {
+                            journeyId_salesId: {
+                                journeyId: journey.journeyId,
+                                salesId: Number(salesmanId)
+                            }
+                        },
+                        data: {
+                            endJourney: parseTimestamp(salesman.endJourney),
+                        },
                     });
                 }
             }
         }
-        
-        return journey;
+    
+            // === INVOICES ===
+            const createdInvoices = [];
+            if (invoices) {
+                const invoiceArray = Array.isArray(invoices) ? invoices : [invoices];
+    
+                for (const invoice of invoiceArray) {
+                    try {
+                        if (invoice.reasonId !== 0) {
+                            invoice.items.forEach(item => item.reasonId = null);
+                        } else {
+                            invoice.reasonId = null;
+                            invoice.items.forEach(item => {
+                                if (item.reasonId === 0) item.reasonId = null;
+                            });
+                        }
+    
+                        const invoiceData = {
+                            ...invoice,
+                            invId: invoice.invId || invoice.id,
+                            salesId: invoice.salesId || salesmanId,
+                        };
+    
+                        const createdInvoice = await invoiceService.createInvoice(invoiceData, tx);
+                        createdInvoices.push({ invId: invoiceData.invId, status: 'success' });
+                    } catch (error) {
+                        // Throw error to rollback transaction
+                        throw new Error(`${error.message}`);
+                    }
+                }
+            }
+
+            // === PRODUCTS ===
+            const updatedProducts = [];
+            if (products && products.length > 0) {
+                for (const product of products) {
+                    try {
+                        const updateData = {
+                            stock: product.stock,
+                            nonSellableQty: product.nonSellableQty
+                        };
+                        await prisma.product.update({
+                            where: { prodId: Number(product.prodId) },
+                            data: updateData,
+                        });
+                        updatedProducts.push({ productId: product.id, status: 'success' });
+                    } catch (error) {
+                        // Throw error to rollback transaction
+                        throw new Error(`${error.message}`);
+                    }
+                }
+            }
+    
+            // === VISITS ===
+            const updatedVisits = [];
+
+            if (Array.isArray(visits) && visits.length > 0) {
+              for (const visit of visits) {
+                try {   
+                  const updateData = {};
+                  
+                  // Handle timestamps
+                  if (visit.startTime) updateData.startTime = parseTimestamp(visit.startTime);
+                  if (visit.endTime) updateData.endTime = parseTimestamp(visit.endTime);
+                  if (visit.cancelTime) updateData.cancelTime = parseTimestamp(visit.cancelTime);
+            
+                  // Determine visit status
+                  if (visit.cancelTime) {
+                    updateData.status = 'CANCEL';
+                  } else if (visit.endTime) {
+                    updateData.status = 'END';
+                  } else if (visit.startTime) {
+                    updateData.status = 'START';
+                  } else {
+                    throw new Error(`Invalid visit update: missing timestamps for visit ${visit.id}`);
+                  }
+            
+                  await visitService.updateVisit(visit.id, updateData, tx);
+            
+                  updatedVisits.push({ visitId: visit.id, status: 'success' });
+            
+                } catch (error) {
+                  throw new Error(`❌ Failed to update visit ${visit.id}: ${error.message}`);
+                }
+              }
+            }
+    
+            return {
+                message: '✅ Successfully checked in',
+                journeyId: journey ? journey.journeyId : null,
+                invoiceCount: invoices ? (Array.isArray(invoices) ? invoices.length : 1) : 0,
+                visitCount: visits ? visits.length : 0,
+                productCount: products ? products.length : 0,
+            };
+        });
+    
+        return result;
     }
 }
 

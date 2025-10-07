@@ -1,4 +1,5 @@
 const { getPrismaClient } = require('../lib/prisma');
+const Prisma = require('@prisma/client');
 
 class InvoiceService {
     async getAllInvoices(page = 1, limit = 50, query = '') {
@@ -44,8 +45,8 @@ class InvoiceService {
         });
     }
 
-    async createInvoice(data) {
-        const prisma = getPrismaClient();
+    async createInvoice(data, transaction = null) {
+        const prisma = transaction || getPrismaClient();
         
         // Extract items from the data
         const { items, ...headerData } = data;
@@ -64,23 +65,38 @@ class InvoiceService {
         }
         
         try {
-            // Use transaction to ensure both header and items are created together
-            const result = await prisma.$transaction(async (tx) => {
+            // If transaction is provided, use it directly; otherwise create a new transaction
+            const executeInvoiceCreation = async (tx) => {
+                // Check if invoice already exists
+                const existingInvoice = await tx.invoiceHeader.findUnique({
+                    where: {
+                        invId_salesId: {
+                            invId: parseInt(headerData.invId),
+                            salesId: parseInt(headerData.salesId)
+                        }
+                    }
+                });
+
+                if (existingInvoice) {
+                    throw new Error(`Invoice with ID ${headerData.invId} for salesman ${headerData.salesId} already exists`);
+                }
+
                 // Create invoice header
                 const invoiceHeader = await tx.invoiceHeader.create({
                     data: {
                         invId: parseInt(headerData.invId),
                         custId: parseInt(headerData.custId || headerData.customerId),
                         salesId: parseInt(headerData.salesId),
-                        inv_type: headerData.inv_type || headerData.int_type || 'SALE',
-                        reason_id: parseInt(headerData.reason_id),
-                        net_amt: parseFloat(headerData.net_amt || 0),
-                        tax_amt: parseFloat(headerData.tax_amt || 0),
-                        dis_amt: parseFloat(headerData.dis_amt || 0),
-                        total_amt: parseFloat(headerData.total_amt || 0),
-                        payment_method: headerData.payment_method || 'CASH',
+                        createdAt: headerData.createdAt ? new Date(headerData.createdAt) : new Date(),
+                        invType: headerData.invType || headerData.int_type || 'SALE',
+                        reasonId: parseInt(headerData.reasonId),
+                        netAmt: parseFloat(headerData.netAmt || 0),
+                        taxAmt: parseFloat(headerData.taxAmt || 0),
+                        disAmt: parseFloat(headerData.disAmt || 0),
+                        totalAmt: parseFloat(headerData.totalAmt || 0),
+                        paymentMethod: headerData.paymentMethod || 'CASH',
                         currency: headerData.currency || 'USD',
-                        inv_ref: parseInt(headerData.inv_ref || 0)
+                        invRef: parseInt(headerData.refInv || 0)
                     }
                 });
                 
@@ -90,15 +106,15 @@ class InvoiceService {
                         tx.invoiceItem.create({
                             data: {
                                 invoiceHeaderId: invoiceHeader.invId,
-                                invoiceItem: parseInt(item.invoiceItem || item.inveItem || index + 1),
+                                invItem: parseInt(item.invoiceItem || item.invItem || index + 1),
                                 productId: parseInt(item.productId || item.prodId),
                                 productUom: item.productUom || item.prodUom,
-                                qty: parseFloat(item.qty),
+                                qty: parseInt(item.qty),
                                 netAmt: parseFloat(item.netAmt || item.net_amt || 0),
                                 taxAmt: parseFloat(item.taxAmt || item.tax_amt || 0),
                                 disAmt: parseFloat(item.disAmt || item.dis_amt || 0),
                                 totAmt: parseFloat(item.totAmt || item.tot_amt || 0),
-                                reasonId: parseInt(item.reasonId || item.reason_id || headerData.reason_id)
+                                reasonId: parseInt(item.reasonId || item.reason_id)
                             }
                         })
                     )
@@ -109,7 +125,12 @@ class InvoiceService {
                     ...invoiceHeader,
                     items: invoiceItems
                 };
-            });
+            };
+            
+            // If transaction is provided, use it; otherwise create a new transaction
+            const result = transaction 
+                ? await executeInvoiceCreation(transaction)
+                : await prisma.$transaction(executeInvoiceCreation);
             
             return result;
             

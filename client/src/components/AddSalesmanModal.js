@@ -7,7 +7,8 @@ import NotificationModal from './common/NotificationModal';
 const AddSalesmanModal = ({
   isOpen,
   onClose,
-  onSalesmanAdded
+  onSalesmanAdded,
+  onSuccess
 }) => {
   const { notification, showSuccess, showError, hideNotification } = useNotification();
   const [formData, setFormData] = useState({
@@ -38,7 +39,7 @@ const AddSalesmanModal = ({
         
         if (salesmen && salesmen.length > 0) {
           // Find the highest ID and add 1
-          const maxId = Math.max(...salesmen.map(s => s.id));
+          const maxId = Math.max(...salesmen.map(s => s.salesId));
           nextId = maxId + 1;
         }
         
@@ -150,7 +151,10 @@ const AddSalesmanModal = ({
         // Close modal
         onClose();
         
-        showSuccess('Salesman Added', 'Salesman has been added successfully!');
+        // Trigger success notification in parent component
+        if (onSuccess) {
+          onSuccess('Salesman Added', 'Salesman has been added successfully!');
+        }
       } else {
         const errorData = await response.json();
         let errorMessage = errorData.error || `API failed with status: ${response.status}`;

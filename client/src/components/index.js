@@ -9,3 +9,4 @@ export { default as CustomersView } from './CustomersView';
 export { default as DashboardContent } from './DashboardContent';
 export { default as GoogleMapSelector } from './GoogleMapSelector';
 export { default as CustomerDetailsPage } from './CustomerDetailsPage';
+export { default as PlanRoutesPage } from './PlanRoutesPage';

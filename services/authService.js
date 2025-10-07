@@ -8,7 +8,7 @@ class AuthService {
         try {
             const salesman = await prisma.salesman.findUnique({
                 where: { 
-                    id: parseInt(id),
+                    salesId: parseInt(id),
                     status: 'ACTIVE'
                 },
                 include: {
@@ -19,57 +19,60 @@ class AuthService {
                     }
                 }
             });
-
+    
             if (!salesman || salesman.password !== password) {
                 throw new Error('Invalid id or password');
             }
-
+    
             // If deviceId is provided and salesman's deviceId is empty, register the device
             if (deviceId && (!salesman.deviceId || salesman.deviceId.trim() === '')) {
                 await prisma.salesman.update({
-                    where: { id: parseInt(id) },
+                    where: { salesId: parseInt(id) },
                     data: { deviceId: deviceId }
                 });
                 // Update the salesman object for the response
                 salesman.deviceId = deviceId;
             }
-
+    
             // Get ALL authorities from database
             const allAuthorities = await prisma.authority.findMany({
-                where: {
-                    type: 'MOBILE'
-                },
+                where: { type: 'MOBILE' },
                 orderBy: { name: 'asc' }
             });
-
+    
             // Create a map of salesman's authority assignments
             const salesmanAuthorityMap = new Map();
             salesman.authorities.forEach(sa => {
                 salesmanAuthorityMap.set(sa.authorityId, sa.value);
             });
-
+    
             // Extract ALL authorities as key-value pairs (authority name -> boolean)
             const authorities = {};
             allAuthorities.forEach(auth => {
-                // If salesman has this authority, use the value, otherwise default to false
                 authorities[auth.name] = salesmanAuthorityMap.get(auth.id) || false;
             });
-
-            // Return salesman data without password but with authorities
-            const { password: _, authorities: __, ...salesmanData } = salesman;
-            
+    
+            // ✅ Destructure safely and rename `salesId` to `id`
+            const {
+                salesId,
+                password: _,
+                authorities: __,
+                ...rest
+            } = salesman;
+    
+            const salesmanData = { id: salesId, ...rest };
+    
             return {
                 data: {
                     salesman: salesmanData,
-                    authorities: authorities
+                    authorities
                 }
             };
-
+    
         } catch (error) {
             throw new Error(error.message);
         }
     }
-
     async validateSession(token) {
         try {
             // Simple token validation (extract salesman ID from token)
@@ -92,9 +95,9 @@ class AuthService {
 
             // Find and return salesman
             const salesman = await prisma.salesman.findUnique({
-                where: { id: salesmanId },
+                where: { salesId: salesmanId },
                 select: {
-                    id: true,
+                    salesId: true,
                     name: true,
                     phone: true,
                     address: true,
@@ -124,7 +127,7 @@ class AuthService {
         try {
 
             const salesman = await prisma.salesman.findUnique({
-                where: { id: id },
+                where: { salesId: parseInt(id), },
             });
 
             if (!salesman) {
@@ -132,7 +135,7 @@ class AuthService {
             }
 
             await prisma.salesman.update({
-                where: { id: id },
+                where: { salesId: parseInt(id), },
                 data: { password: newPassword,
                     isInitial: false
                  },

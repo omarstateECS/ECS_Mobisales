@@ -34,12 +34,12 @@ const SalesmanGrid = ({ salesmen, loading, handleDeleteSalesman, deletingSalesma
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr grid-auto-rows-fr">
       {salesmen.map((salesman) => (
         <SalesmanCard
-          key={salesman.id}
+          key={salesman.salesId}
           salesman={salesman}
           onEdit={handleEditSalesman}
           onViewDetails={handleViewDetails}
           onDelete={handleDeleteSalesman}
-          isDeleting={deletingSalesmanId === salesman.id}
+          isDeleting={deletingSalesmanId === salesman.salesId}
         />
       ))}
     </div>

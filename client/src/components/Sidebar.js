@@ -10,7 +10,8 @@ import {
   Settings,
   User,
   X,
-  Package
+  Package,
+  MapPin
 } from 'lucide-react';
 
 const SidebarItem = ({ item, isChild = false, expandedMenus, toggleMenu }) => {
@@ -165,6 +166,11 @@ const Sidebar = ({
           label: 'Add New Salesman', 
           icon: Plus,
           onClick: openAddSalesmanModal
+        },
+        { 
+          label: 'Plan Routes', 
+          icon: MapPin,
+          onClick: () => handleNavigation('plan-routes')
         },
         { 
           label: 'Salesman Analytics', 

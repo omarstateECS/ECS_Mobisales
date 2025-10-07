@@ -9,7 +9,7 @@ datasource db {
 
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model Customer {
-  id        Int             @id @default(autoincrement())
+  customerId        Int             @id @default(autoincrement())
   name      String
   industry  String?
   address   String
@@ -25,7 +25,7 @@ model Customer {
   @@index([createdAt])
   @@index([latitude, longitude])
   @@index([name, industry])
-  @@index([createdAt, id])
+  @@index([createdAt, customerId])
   @@index([name, createdAt])
   @@map("customers")
 }
@@ -58,6 +58,7 @@ model ProductUOM {
 }
 
 model Salesman {
+  salesId          Int                 @id @default(autoincrement())
   name        String
   phone       String              @unique
   address     String
@@ -66,7 +67,6 @@ model Salesman {
   deviceId    String
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
-  id          Int                 @id @default(autoincrement())
   isInitial   Boolean             @default(true)
   invoices    InvoiceHeader[]
   journies    Journies[]
@@ -75,7 +75,7 @@ model Salesman {
 }
 
 model Authority {
-  id        Int                 @id @default(autoincrement())
+  authorityId        Int                 @id @default(autoincrement())
   name      String              @unique
   type      AuthorityType
   createdAt DateTime            @default(now())
@@ -94,8 +94,8 @@ model SalesmanAuthority {
   authorityId Int
   createdAt   DateTime  @default(now())
   value       Boolean   @default(true)
-  authority   Authority @relation(fields: [authorityId], references: [id], onDelete: Cascade)
-  salesman    Salesman  @relation(fields: [salesmanId], references: [id], onDelete: Cascade)
+  authority   Authority @relation(fields: [authorityId], references: [authorityId], onDelete: Cascade)
+  salesman    Salesman  @relation(fields: [salesmanId], references: [salesId], onDelete: Cascade)
 
   @@unique([salesmanId, authorityId])
   @@index([salesmanId])
@@ -105,17 +105,22 @@ model SalesmanAuthority {
 }
 
 model Visit {
-  id         Int         @id @default(autoincrement())
+  visitId         Int         @default(autoincrement())
   custId     Int
   salesId    Int
+  journeyId  Int
   startTime  DateTime?
   endTime    DateTime?
   cancelTime DateTime?
   status     VisitStatus @default(WAIT)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
-  customer   Customer    @relation(fields: [custId], references: [id], onDelete: Cascade)
-  salesman   Salesman    @relation(fields: [salesId], references: [id], onDelete: Cascade)
+  customer   Customer    @relation(fields: [custId], references: [customerId], onDelete: Cascade)
+  salesman   Salesman    @relation(fields: [salesId], references: [salesId], onDelete: Cascade)
+  journey    Journies    @relation("VisitToJourney", fields: [journeyId, salesId], references: [journeyId, salesId], onDelete: Cascade)
+
+
+  @@id([visitId, salesId, journeyId])
 
   @@index([custId])
   @@index([salesId])
@@ -131,56 +136,69 @@ model InvoiceHeader {
   invId          Int           
   custId         Int
   salesId        Int
-  createdAt      DateTime      @default(now())
+  journeyId      Int
+  createdAt      DateTime
   updatedAt      DateTime      @updatedAt
-  inv_type       InvoiceType
-  reason_id      Int
-  net_amt        Float
-  tax_amt        Float
-  dis_amt        Float
-  total_amt      Float
-  payment_method PaymentMethod
+  invType        InvoiceType
+  reasonId       Int?
+  netAmt         Float
+  taxAmt         Float
+  disAmt         Float
+  totalAmt       Float
+  paymentMethod  PaymentMethod
   currency       String
-  inv_ref        Int
-  customer       Customer      @relation(fields: [custId], references: [id], onDelete: Cascade)
-  salesman       Salesman      @relation(fields: [salesId], references: [id], onDelete: Cascade)
+  invRef         Int
+  customer       Customer      @relation(fields: [custId], references: [customerId], onDelete: Cascade)
+  salesman       Salesman      @relation(fields: [salesId], references: [salesId], onDelete: Cascade)
+  journey        Journies      @relation("InvoiceToJourney", fields: [journeyId, salesId], references: [journeyId, salesId], onDelete: Cascade)
+  reason         Reasons?      @relation("InvoiceHeaderReason", fields: [reasonId], references: [reasonId], onDelete: Cascade)
 
   @@id([invId, salesId])
 }
 
+model InvoiceItem {
+  qty             Int
+  disAmt          Float
+  invoiceHeaderId Int
+  invItem         Int
+  netAmt          Float
+  productId       Int
+  productUom      String
+  reasonId        Int?
+  taxAmt          Float
+  totAmt          Float
+  reason          Reasons?      @relation("InvoiceItemReason", fields: [reasonId], references: [reasonId], onDelete: Cascade)
+
+  @@id([invoiceHeaderId, invItem], map: "invoice_items_pkey")
+}
+
 model Reasons {
-  id          Int      @id @default(autoincrement())
-  description String
-  sellable    Boolean
-  isHeader    Boolean
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  reasonId             Int             @id @default(autoincrement())
+  description    String
+  sellable       Boolean
+  isHeader       Boolean
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  invoiceHeaders InvoiceHeader[] @relation("InvoiceHeaderReason")
+  invoiceItems   InvoiceItem[]   @relation("InvoiceItemReason")
 }
 
 model Journies {
-  id           Int       @id @default(autoincrement())
+  journeyId    Int       @default(autoincrement())
   salesId      Int
   startJourney DateTime?
   endJourney   DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-  salesman     Salesman  @relation(fields: [salesId], references: [id], onDelete: Cascade)
+  salesman     Salesman  @relation(fields: [salesId], references: [salesId], onDelete: Cascade)
+
+  visits       Visit[]         @relation("VisitToJourney")
+  invoiceHeaders InvoiceHeader[] @relation("InvoiceToJourney")
+
+
+  @@id([journeyId, salesId])
 }
 
-model InvoiceItem {
-  qty             Decimal
-  disAmt          Decimal
-  invoiceHeaderId Int
-  invoiceItem     Int
-  netAmt          Decimal
-  productId       Int
-  productUom      String
-  reasonId        Int
-  taxAmt          Decimal
-  totAmt          Decimal
-
-  @@id([invoiceHeaderId, invoiceItem], map: "invoice_items_pkey")
-}
 
 enum UnitType {
   PIECE

@@ -13,7 +13,7 @@ const CustomerCard = ({ customer, handleDeleteCustomer, deletingCustomerId, hand
             <h3 className="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors truncate">
               {customer.name}
             </h3>
-            <p className="text-sm text-gray-400">ID: #{customer.id}</p>
+            <p className="text-sm text-gray-400">ID: #{customer.customerId}</p>
           </div>
         </div>
         <div className="flex space-x-1 flex-shrink-0 ml-2">
@@ -35,12 +35,12 @@ const CustomerCard = ({ customer, handleDeleteCustomer, deletingCustomerId, hand
             <Settings size={16} />
           </button>
           <button 
-            onClick={() => handleDeleteCustomer(customer.id, customer.name)}
-            disabled={deletingCustomerId === customer.id}
+            onClick={() => handleDeleteCustomer(customer.customerId, customer.name)}
+            disabled={deletingCustomerId === customer.customerId}
             className="p-2 rounded-lg hover:bg-red-600/20 text-gray-400 hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             title="Delete customer"
           >
-            {deletingCustomerId === customer.id ? (
+            {deletingCustomerId === customer.customerId ? (
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-red-400/30 border-t-red-400"></div>
             ) : (
               <Trash2 size={16} />
@@ -122,7 +122,7 @@ const CustomerGrid = ({ customers, loading, handleDeleteCustomer, deletingCustom
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr grid-auto-rows-fr">
               {customers.map((customer) => (
           <CustomerCard
-            key={customer.id}
+            key={customer.customerId}
             customer={customer}
             handleDeleteCustomer={handleDeleteCustomer}
             deletingCustomerId={deletingCustomerId}

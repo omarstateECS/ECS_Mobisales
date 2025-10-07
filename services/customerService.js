@@ -48,7 +48,7 @@ class CustomerService {
         
         const customers = await prisma.customer.findMany({
             select: {
-                id: true,
+                customerId: true,
                 name: true,
                 industry: true,
                 address: true,
@@ -79,7 +79,7 @@ class CustomerService {
     async getCustomerById(id) {
         const prisma = getPrismaClient();
         return await prisma.customer.findUnique({
-            where: { id: Number(id) }
+            where: { customerId: Number(id) }
         });
     }
 
@@ -95,7 +95,7 @@ class CustomerService {
     async updateCustomer(id, data) {
         const prisma = getPrismaClient();
         return await prisma.customer.update({
-            where: { id: Number(id) },
+            where: { customerId: Number(id) },
             data
         });
     }
@@ -104,7 +104,7 @@ class CustomerService {
     async deleteCustomer(id) {
         const prisma = getPrismaClient();
         return await prisma.customer.delete({
-            where: { id: Number(id) }
+            where: { customerId: Number(id) }
         });
     }
 

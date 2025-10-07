@@ -43,7 +43,7 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
             <h3 className="text-lg font-semibold text-white group-hover:text-purple-400 transition-colors truncate">
               {product.name}
             </h3>
-            <p className="text-sm text-gray-400">ID: #{product.id}</p>
+            <p className="text-sm text-gray-400">ID: #{product.prodId}</p>
           </div>
         </div>
         <div className="flex space-x-1 flex-shrink-0 ml-2">
@@ -65,12 +65,12 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
             <Settings size={16} />
           </button>
           <button 
-            onClick={() => handleDeleteProduct(product.id, product.name)}
-            disabled={deletingProductId === product.id}
+            onClick={() => handleDeleteProduct(product.prodId, product.name)}
+            disabled={deletingProductId === product.prodId}
             className="p-2 rounded-lg hover:bg-red-600/20 text-gray-400 hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             title="Delete product"
           >
-            {deletingProductId === product.id ? (
+            {deletingProductId === product.prodId ? (
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-red-400/30 border-t-red-400"></div>
             ) : (
               <Trash2 size={16} />
@@ -275,7 +275,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
         
         try {
             await axios.delete(`/api/products/${productId}`);
-            setProducts(prev => prev.filter(product => product.id !== productId));
+            setProducts(prev => prev.filter(product => product.prodId !== productId));
             setTotalProducts(prev => prev - 1);
             setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
             showSuccess('Product Deleted', 'Product has been deleted successfully!');
@@ -423,7 +423,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                  >
                      {products.map((product, index) => (
                          <motion.div
-                             key={product.id}
+                             key={product.prodId}
                              variants={{
                                  hidden: { opacity: 0, y: 20 },
                                  visible: { opacity: 1, y: 0 }

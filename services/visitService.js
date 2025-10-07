@@ -120,9 +120,82 @@ class VisitService {
         });
     }
 
-    // Update a visit by ID
-    async updateVisit(id, data) {
+    // Bulk create visits for route planning
+    async bulkCreateVisits(salesmanId, customerIds) {
         const prisma = getPrismaClient();
+        
+        console.log('🔍 bulkCreateVisits called with:', { salesmanId, customerIds });
+        
+        // Validate salesman exists
+        const salesman = await prisma.salesman.findUnique({
+            where: { salesId: parseInt(salesmanId) }
+        });
+        
+        if (!salesman) {
+            throw new Error('Salesman not found');
+        }
+
+        // Validate all customers exist
+        const customers = await prisma.customer.findMany({
+            where: {
+                customerId: {
+                    in: customerIds.map(id => parseInt(id))
+                }
+            }
+        });
+
+        if (customers.length !== customerIds.length) {
+            throw new Error('One or more customers not found');
+        }
+
+        // Check for existing visits with status WAIT for this salesman
+        const existingVisits = await prisma.visit.findMany({
+            where: {
+                salesId: parseInt(salesmanId),
+                custId: {
+                    in: customerIds.map(id => parseInt(id))
+                },
+                status: 'WAIT'
+            },
+            select: {
+                custId: true
+            }
+        });
+
+        const existingCustomerIds = existingVisits.map(v => v.custId);
+        const newCustomerIds = customerIds.filter(id => !existingCustomerIds.includes(parseInt(id)));
+
+        if (newCustomerIds.length === 0) {
+            throw new Error('All selected customers already have pending visits for this salesman');
+        }
+
+        // Create visits for new customers
+        const visitData = newCustomerIds.map((custId) => ({
+            custId: parseInt(custId),
+            salesId: parseInt(salesmanId),
+            status: 'WAIT',
+            startTime: null,
+            endTime: null,
+            cancelTime: null
+        }));
+
+        // Use createMany for bulk insert
+        const result = await prisma.visit.createMany({
+            data: visitData
+        });
+
+        return {
+            count: result.count,
+            salesmanId: parseInt(salesmanId),
+            customerIds: newCustomerIds.map(id => parseInt(id)),
+            skipped: existingCustomerIds.length,
+            skippedCustomerIds: existingCustomerIds
+        };
+    }
+
+    // Update a visit by ID
+    async updateVisit(id, data, transaction = null) {
+        const prisma = transaction || getPrismaClient();
         
         const updateData = {};
         if (data.status) updateData.status = data.status;

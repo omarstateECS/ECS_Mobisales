@@ -53,6 +53,41 @@ class VisitController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    async bulkCreate(req, res) {
+        try {
+            const { salesmanId, customerIds } = req.body;
+
+            // Validate input
+            if (!salesmanId) {
+                return res.status(400).json({ 
+                    success: false,
+                    message: 'salesmanId is required' 
+                });
+            }
+
+            if (!customerIds || !Array.isArray(customerIds) || customerIds.length === 0) {
+                return res.status(400).json({ 
+                    success: false,
+                    message: 'customerIds must be a non-empty array' 
+                });
+            }
+
+            const result = await visitService.bulkCreateVisits(salesmanId, customerIds);
+            
+            res.status(201).json({
+                success: true,
+                message: `Successfully created ${result.count} visits`,
+                data: result
+            });
+        } catch (error) {
+            console.error('Error in bulk create visits:', error);
+            res.status(500).json({ 
+                success: false,
+                message: error.message || 'Failed to create visits'
+            });
+        }
+    }
 }
 
 module.exports = new VisitController();

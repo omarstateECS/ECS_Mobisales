@@ -148,23 +148,12 @@ class SalesmanController {
     }
 
     async checkIn(req, res) {
-        try {
-          console.log("🧾 === CHECK-IN REQUEST DEBUG ===");
-          console.log("🧾 Request method:", req.method);
-          console.log("🧾 Request URL:", req.url);
-          console.log("🧾 Content-Type:", req.get('Content-Type'));
-          console.log("🧾 All headers:", req.headers);
-          console.log("🧾 Body type:", typeof req.body);
-          console.log("🧾 Body content:", req.body);
-          console.log("🧾 Body keys:", req.body ? Object.keys(req.body) : 'No body');
-          console.log("🧾 === END DEBUG ===");
-          
+        try {      
           const checkInData = req.body;
           
           // Validate request body
           if (!checkInData || Object.keys(checkInData).length === 0) {
             return res.status(400).json({
-              success: false,
               message: 'Request body is empty or invalid. Please send JSON data with Content-Type: application/json'
             });
           }
@@ -184,21 +173,37 @@ class SalesmanController {
             });
           }
       
-          const journey = await salesmanService.checkIn(checkInData);
+          const result = await salesmanService.checkIn(checkInData);
       
           res.status(200).json({
             success: true,
-            data: journey,
-            message: 'Salesman checked in successfully'
+            data: result,
+            message: 'Check-in successful'
           });
         } catch (error) {
-          console.error('Error checking in:', error);
-          res.status(500).json({ 
+          console.error('❌ Error in checkIn:', error.message);
+          
+          // Determine status code based on error message
+          let statusCode = 500;
+          
+          if (error.message.includes('not found')) {
+            statusCode = 404;
+          } else if (error.message.includes('Unauthorized') || 
+                     error.message.includes('required') ||
+                     error.message.includes('Invalid') ||
+                     error.message.includes('already exists') ||
+                     error.message.includes('Failed to create') ||
+                     error.message.includes('Failed to update')) {
+            statusCode = 400;
+          }
+          
+          res.status(statusCode).json({
             success: false,
-            message: error.message || 'Internal server error' 
+            message: error.message || 'Internal server error',
+            error: process.env.NODE_ENV === 'development' ? error.stack : undefined
           });
         }
-      }
+    }  
 
     async getStats(req, res) {  
         try {

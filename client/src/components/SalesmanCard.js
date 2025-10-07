@@ -54,7 +54,7 @@ const SalesmanCard = ({
             <h3 className="text-lg font-semibold text-white truncate">
               {salesman.name}
             </h3>
-            <p className="text-sm text-gray-400">ID: {salesman.id}</p>
+            <p className="text-sm text-gray-400">ID: {salesman.salesId}</p>
           </div>
         </div>
         <div className={`px-2 py-1 rounded-lg text-xs font-medium border ${getStatusColor(salesman.status)}`}>
@@ -108,10 +108,10 @@ const SalesmanCard = ({
           className="p-2 rounded-lg hover:bg-green-600/20 text-gray-400 hover:text-green-400 transition-colors flex-shrink-0"
           title="Edit Salesman"
         >
-          <Edit size={16} />
+          <Edit size={16} /> 
         </button>
         <button
-          onClick={() => onDelete(salesman.id, salesman.name)}
+          onClick={() => onDelete(salesman.salesId, salesman.name)}
           disabled={isDeleting}
           className="p-2 rounded-lg hover:bg-red-600/20 text-gray-400 hover:text-red-400 transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
           title="Delete Salesman"

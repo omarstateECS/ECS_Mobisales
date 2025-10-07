@@ -4,7 +4,7 @@ import { X, User, Phone, MapPin, Lock, Smartphone, Shield } from 'lucide-react';
 import { useNotification } from '../hooks/useNotification';
 import NotificationModal from './common/NotificationModal';
 
-const EditSalesmanModal = ({ isOpen, onClose, salesman, onSalesmanUpdated }) => {
+const EditSalesmanModal = ({ isOpen, onClose, salesman, onSalesmanUpdated, onSuccess }) => {
   const { notification, showSuccess, showError, hideNotification } = useNotification();
   const [formData, setFormData] = useState({
     name: '',
@@ -65,12 +65,8 @@ const EditSalesmanModal = ({ isOpen, onClose, salesman, onSalesmanUpdated }) => 
 
     if (!formData.password.trim()) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-
-    if (!formData.deviceId.trim()) {
-      newErrors.deviceId = 'Device ID is required';
+    } else if (formData.password.length < 2) {
+      newErrors.password = 'Password must be at least 2 characters';
     }
 
     setErrors(newErrors);
@@ -90,11 +86,10 @@ const EditSalesmanModal = ({ isOpen, onClose, salesman, onSalesmanUpdated }) => 
         phone: formData.phone.trim(),
         address: formData.address.trim(),
         password: formData.password,
-        deviceId: formData.deviceId.trim(),
         status: formData.status
       };
 
-      const response = await fetch(`http://localhost:3000/api/salesmen/${salesman.id}`, {
+      const response = await fetch(`http://localhost:3000/api/salesmen/${salesman.salesId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -105,12 +100,18 @@ const EditSalesmanModal = ({ isOpen, onClose, salesman, onSalesmanUpdated }) => 
       if (response.ok) {
         const updatedSalesman = await response.json();
         
+        // Update data
         if (onSalesmanUpdated) {
           onSalesmanUpdated(updatedSalesman);
         }
         
+        // Close modal
         onClose();
-        showSuccess('Salesman Updated', 'Salesman has been updated successfully!');
+        
+        // Trigger success notification in parent component
+        if (onSuccess) {
+          onSuccess('Salesman Updated', 'Salesman has been updated successfully!');
+        }
       } else {
         const errorData = await response.json();
         let errorMessage = errorData.error || `API failed with status: ${response.status}`;

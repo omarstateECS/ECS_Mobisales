@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, User, MapPin, Phone, Calendar, Shield, Globe, Edit, UserCheck } from 'lucide-react';
 import ManageAuthoritiesModal from './ManageAuthoritiesModal';
 
-const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh }) => {
+const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNavigation }) => {
   const [showAuthoritiesModal, setShowAuthoritiesModal] = useState(false);
   const [salesmanData, setSalesmanData] = useState(salesman);
 
@@ -108,7 +108,7 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh }) => {
               </div>
               <div className="text-right">
                 <div className="text-sm text-gray-400">Salesman ID</div>
-                <div className="text-lg font-semibold text-white">#{salesmanData.id}</div>
+                <div className="text-lg font-semibold text-white">#{salesmanData.salesId}</div>
               </div>
             </div>
           </div>
@@ -296,9 +296,12 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh }) => {
                   <span>Edit Salesman</span>
                 </button>
                 
-                <button className="w-full px-4 py-3 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-xl font-medium transition-colors border border-blue-600/30 flex items-center justify-center space-x-2">
+                <button 
+                  onClick={() => handleNavigation && handleNavigation('plan-routes')}
+                  className="w-full px-4 py-3 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-xl font-medium transition-colors border border-blue-600/30 flex items-center justify-center space-x-2"
+                >
                   <Globe className="w-5 h-5" />
-                  <span>View Routes</span>
+                  <span>Plan Routes</span>
                 </button>
                 
                 <button 

@@ -6,6 +6,7 @@ import DashboardContent from './components/DashboardContent';
 import CustomersView from './components/CustomersView';
 import ProductsView from './components/ProductsView';
 import SalesmenView from './components/SalesmenView';
+import PlanRoutesPage from './components/PlanRoutesPage';
 import AddCustomerModal from './components/AddCustomerModal';
 import EditCustomerModal from './components/EditCustomerModal';
 import CustomerDetailsPage from './components/CustomerDetailsPage';
@@ -223,7 +224,7 @@ const Dashboard = () => {
 
       if (response.ok) {
         // Remove the salesman from the local state
-        setSalesmen(prev => prev.filter(salesman => salesman.id !== salesmanId));
+        setSalesmen(prev => prev.filter(salesman => salesman.salesId !== salesmanId));
         setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
         showSuccess('Salesman Deleted', 'Salesman has been deleted successfully!');
       } else {
@@ -387,7 +388,7 @@ const Dashboard = () => {
       });
       
       if (response.ok) {
-        setCustomers(prev => prev.filter(customer => customer.id !== customerId));
+        setCustomers(prev => prev.filter(customer => customer.customerId !== customerId));
         setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
         showSuccess('Customer Deleted', 'Customer has been deleted successfully!');
       } else {
@@ -488,8 +489,8 @@ const Dashboard = () => {
     if (!selectedSalesman?.id) return;
     
     try {
-      console.log('🔄 Refreshing selected salesman data for ID:', selectedSalesman.id);
-      const response = await fetch(`http://localhost:3000/api/salesmen/${selectedSalesman.id}`);
+      console.log('🔄 Refreshing selected salesman data for ID:', selectedSalesman.salesId);
+      const response = await fetch(`http://localhost:3000/api/salesmen/${selectedSalesman.salesId}`);
       if (response.ok) {
         const updatedSalesman = await response.json();
         console.log('✅ Updated salesman data received:', updatedSalesman);
@@ -564,7 +565,7 @@ const Dashboard = () => {
     };
     
     try {
-      const response = await fetch(`http://localhost:3000/api/customers/${editingCustomer.id}`, {
+      const response = await fetch(`http://localhost:3000/api/customers/${editingCustomer.customerId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -575,10 +576,10 @@ const Dashboard = () => {
       if (response.ok) {
         const apiCustomer = await response.json();
         setCustomers(prev => prev.map(customer => 
-          customer.id === editingCustomer.id ? apiCustomer : customer
+          customer.customerId === editingCustomer.customerId ? apiCustomer : customer
         ));
         
-        if (selectedCustomer && selectedCustomer.id === editingCustomer.id) {
+        if (selectedCustomer && selectedCustomer.customerId === editingCustomer.customerId) {
           setSelectedCustomer(apiCustomer);
         }
         
@@ -680,6 +681,7 @@ const Dashboard = () => {
             onBack={handleBackFromSalesmanDetails}
             onEdit={handleEditSalesmanFromDetails}
             onRefresh={refreshSelectedSalesman}
+            handleNavigation={handleNavigation}
           />
         </motion.div>
       );
@@ -748,6 +750,21 @@ const Dashboard = () => {
           </motion.div>
         );
       
+      case 'plan-routes':
+        return (
+          <motion.div
+            key="plan-routes"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <PlanRoutesPage
+              handleNavigation={handleNavigation}
+            />
+          </motion.div>
+        );
+      
       default:
         return (
           <motion.div
@@ -810,6 +827,7 @@ const Dashboard = () => {
           isOpen={showAddSalesmanModal}
           onClose={() => setShowAddSalesmanModal(false)}
           onSalesmanAdded={handleSalesmanAdded}
+          onSuccess={(title, message) => showSuccess(title, message)}
         />
         <EditSalesmanModal
           isOpen={showEditSalesmanModal}
@@ -819,6 +837,7 @@ const Dashboard = () => {
           }}
           salesman={editingSalesman}
           onSalesmanUpdated={handleSalesmanUpdated}
+          onSuccess={(title, message) => showSuccess(title, message)}
         />
 
       {/* Sidebar */}
