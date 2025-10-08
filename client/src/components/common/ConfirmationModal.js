@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, X, Trash2 } from 'lucide-react';
+import { AlertTriangle, Trash2 } from 'lucide-react';
 
 const ConfirmationModal = ({ 
   isOpen, 
@@ -13,115 +13,131 @@ const ConfirmationModal = ({
   type = 'danger', // 'danger', 'warning', 'info'
   loading = false
 }) => {
-  const getColors = () => {
+  const getStyles = () => {
     switch (type) {
       case 'danger':
         return {
-          border: 'border-red-500/50',
-          bg: 'bg-red-500/10',
-          accent: 'bg-red-500',
+          cardGradient: 'from-red-400 via-rose-400 to-pink-500',
+          iconBg: 'bg-white/20',
           confirmBtn: 'bg-red-600 hover:bg-red-700',
-          icon: 'text-red-400'
+          cancelBtn: 'bg-gray-700/50 hover:bg-gray-600/50'
         };
       case 'warning':
         return {
-          border: 'border-yellow-500/50',
-          bg: 'bg-yellow-500/10',
-          accent: 'bg-yellow-500',
-          confirmBtn: 'bg-yellow-600 hover:bg-yellow-700',
-          icon: 'text-yellow-400'
+          cardGradient: 'from-orange-400 via-amber-400 to-yellow-500',
+          iconBg: 'bg-white/20',
+          confirmBtn: 'bg-orange-600 hover:bg-orange-700',
+          cancelBtn: 'bg-gray-700/50 hover:bg-gray-600/50'
         };
       default:
         return {
-          border: 'border-blue-500/50',
-          bg: 'bg-blue-500/10',
-          accent: 'bg-blue-500',
+          cardGradient: 'from-blue-400 via-cyan-400 to-sky-500',
+          iconBg: 'bg-white/20',
           confirmBtn: 'bg-blue-600 hover:bg-blue-700',
-          icon: 'text-blue-400'
+          cancelBtn: 'bg-gray-700/50 hover:bg-gray-600/50'
         };
     }
   };
 
-  const colors = getColors();
-
-  if (!isOpen) return null;
+  const styles = getStyles();
 
   return (
-    <AnimatePresence>
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[10000] flex items-center justify-center p-4"
-        onClick={onClose}
-      >
+    <AnimatePresence mode="wait">
+      {isOpen && (
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          transition={{ type: "spring", duration: 0.3 }}
-          className={`bg-gray-800/95 backdrop-blur-xl border ${colors.border} rounded-2xl w-full max-w-md overflow-hidden shadow-2xl`}
-          onClick={(e) => e.stopPropagation()}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4"
+          onClick={onClose}
         >
-          {/* Accent bar */}
-          <div className={`h-1 ${colors.accent}`}></div>
-          
-          {/* Content */}
-          <div className="p-6">
-            <div className="flex items-start space-x-4">
-              <div className={`p-2 rounded-xl ${colors.bg} flex-shrink-0`}>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.7, y: 100 }}
+            transition={{ 
+              type: "spring", 
+              duration: 0.5,
+              bounce: 0.3
+            }}
+            className={`bg-gradient-to-br ${styles.cardGradient} rounded-3xl w-full max-w-md overflow-hidden shadow-2xl`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Content */}
+            <div className="p-8">
+              {/* Icon */}
+              <motion.div 
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ 
+                  delay: 0.2,
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 15
+                }}
+                className={`inline-flex items-center justify-center w-20 h-20 ${styles.iconBg} backdrop-blur-xl rounded-full mb-6 border border-white/30`}
+              >
                 {type === 'danger' ? (
-                  <Trash2 className={`w-6 h-6 ${colors.icon}`} />
+                  <Trash2 className="w-12 h-12 text-white stroke-[2.5]" />
                 ) : (
-                  <AlertTriangle className={`w-6 h-6 ${colors.icon}`} />
+                  <AlertTriangle className="w-12 h-12 text-white stroke-[2.5]" />
                 )}
-              </div>
+              </motion.div>
               
-              <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  {title}
-                </h3>
-                <p className="text-gray-300 text-sm leading-relaxed">
-                  {message}
-                </p>
-              </div>
+              {/* Title */}
+              <motion.h3 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-2xl font-bold text-white mb-4"
+              >
+                {title}
+              </motion.h3>
               
-              <button
-                onClick={onClose}
-                disabled={loading}
-                className="p-1 rounded-lg hover:bg-gray-700/50 text-gray-400 hover:text-white transition-colors flex-shrink-0 disabled:opacity-50"
+              {/* Message */}
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-white/90 text-sm leading-relaxed mb-8"
               >
-                <X size={18} />
-              </button>
+                {message}
+              </motion.p>
+              
+              {/* Action buttons */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="flex items-center justify-end space-x-3"
+              >
+                <button
+                  onClick={onClose}
+                  disabled={loading}
+                  className={`${styles.cancelBtn} backdrop-blur-xl text-white font-semibold px-6 py-3 rounded-xl border border-white/20 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {cancelText}
+                </button>
+                <button
+                  onClick={onConfirm}
+                  disabled={loading}
+                  className={`${styles.confirmBtn} text-white font-semibold px-6 py-3 rounded-xl border border-white/20 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2`}
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div>
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <span>{confirmText}</span>
+                  )}
+                </button>
+              </motion.div>
             </div>
-            
-            {/* Action buttons */}
-            <div className="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-700/50">
-              <button
-                onClick={onClose}
-                disabled={loading}
-                className="px-4 py-2 bg-gray-700/50 hover:bg-gray-700 text-gray-300 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {cancelText}
-              </button>
-              <button
-                onClick={onConfirm}
-                disabled={loading}
-                className={`px-4 py-2 ${colors.confirmBtn} text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2`}
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div>
-                    <span>Processing...</span>
-                  </>
-                ) : (
-                  <span>{confirmText}</span>
-                )}
-              </button>
-            </div>
-          </div>
+          </motion.div>
         </motion.div>
-      </motion.div>
+      )}
     </AnimatePresence>
   );
 };

@@ -185,7 +185,7 @@ model Reasons {
 }
 
 model Journies {
-  journeyId    Int       @default(autoincrement())
+  journeyId    Int
   salesId      Int
   startJourney DateTime?
   endJourney   DateTime?

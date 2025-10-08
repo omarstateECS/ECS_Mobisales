@@ -164,7 +164,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
         loading: false
     });
     
-    const { notification, showSuccess, showError, hideNotification } = useNotification();
+    const { notification, showSuccess, showDelete, showError, hideNotification } = useNotification();
 
     useEffect(() => {
         fetchProducts();
@@ -278,7 +278,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
             setProducts(prev => prev.filter(product => product.prodId !== productId));
             setTotalProducts(prev => prev - 1);
             setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
-            showSuccess('Product Deleted', 'Product has been deleted successfully!');
+            showDelete('Product has been deleted successfully!');
         } catch (error) {
             console.error('Error deleting product:', error);
             setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });

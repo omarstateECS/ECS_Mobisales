@@ -36,6 +36,10 @@ export const useNotification = () => {
     showNotification({ type: 'success', title, message, autoCloseDelay: 1500 });
   }, [showNotification]);
 
+  const showDelete = useCallback((message, title = 'Deleted') => {
+    showNotification({ type: 'delete', title, message, autoCloseDelay: 1500 });
+  }, [showNotification]);
+
   const showError = useCallback((message, title = 'Error') => {
     showNotification({ type: 'error', title, message, autoClose: false });
   }, [showNotification]);
@@ -53,6 +57,7 @@ export const useNotification = () => {
     showNotification,
     hideNotification,
     showSuccess,
+    showDelete,
     showError,
     showWarning,
     showInfo

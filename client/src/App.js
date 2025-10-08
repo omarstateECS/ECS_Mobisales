@@ -19,7 +19,7 @@ import NotificationModal from './components/common/NotificationModal';
 import { useNotification } from './hooks/useNotification';
 
 const Dashboard = () => {
-  const { notification, showSuccess, showError, showWarning, hideNotification } = useNotification();
+  const { notification, showSuccess, showDelete, showError, showWarning, hideNotification } = useNotification();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState({
     customers: false,
@@ -226,7 +226,7 @@ const Dashboard = () => {
         // Remove the salesman from the local state
         setSalesmen(prev => prev.filter(salesman => salesman.salesId !== salesmanId));
         setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
-        showSuccess('Salesman Deleted', 'Salesman has been deleted successfully!');
+        showDelete('Salesman has been deleted successfully!');
       } else {
         const errorData = await response.json();
         throw new Error(errorData.error || `Failed to delete salesman`);
@@ -390,7 +390,7 @@ const Dashboard = () => {
       if (response.ok) {
         setCustomers(prev => prev.filter(customer => customer.customerId !== customerId));
         setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
-        showSuccess('Customer Deleted', 'Customer has been deleted successfully!');
+        showDelete('Customer has been deleted successfully!');
       } else {
         throw new Error(`Failed to delete customer: ${response.status}`);
       }

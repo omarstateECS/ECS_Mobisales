@@ -194,7 +194,7 @@ class SalesmanService {
 
     async checkIn(checkInData) {
         const prisma = getPrismaClient();
-        const { salesmanId, deviceId, salesman, visits, invoices, products } = checkInData;
+        const { salesmanId, deviceId, journeyId, salesman, visits, invoices, products } = checkInData;
     
         const result = await prisma.$transaction(async (tx) => {
             const foundSalesman = await tx.salesman.findUnique({
@@ -209,6 +209,49 @@ class SalesmanService {
                 const local = new Date(timestamp);
                 return new Date(local.getTime() - (3 * 60 * 60 * 1000)); // Convert UTC+3 to UTC
             };
+
+            // === JOURNEY ===
+            let journey = null;
+            if (journeyId && salesman) {
+                const journeyUpdateData = {};
+                
+                if (salesman.startJourney) {
+                    journeyUpdateData.startJourney = parseTimestamp(salesman.startJourney);
+                }
+                if (salesman.endJourney) {
+                    journeyUpdateData.endJourney = parseTimestamp(salesman.endJourney);
+                }
+
+                if (Object.keys(journeyUpdateData).length > 0) {
+                    journey = await tx.journies.update({
+                        where: {
+                            journeyId_salesId: {
+                                journeyId: Number(journeyId),
+                                salesId: Number(salesmanId)
+                            }
+                        },
+                        data: journeyUpdateData
+                    });
+
+                    // Update salesman availability based on journey status
+                    const salesmanUpdateData = {};
+                    if (salesman.startJourney) {
+                        // Journey started → set available to FALSE
+                        salesmanUpdateData.available = false;
+                    }
+                    if (salesman.endJourney) {
+                        // Journey ended → set available to TRUE
+                        salesmanUpdateData.available = true;
+                    }
+
+                    if (Object.keys(salesmanUpdateData).length > 0) {
+                        await tx.salesman.update({
+                            where: { salesId: Number(salesmanId) },
+                            data: salesmanUpdateData
+                        });
+                    }
+                }
+            }
     
             // === INVOICES ===
             const createdInvoices = [];
@@ -283,15 +326,22 @@ class SalesmanService {
                   } else if (visit.startTime) {
                     updateData.status = 'START';
                   } else {
-                    throw new Error(`Invalid visit update: missing timestamps for visit ${visit.id}`);
+                    throw new Error(`Invalid visit update: missing timestamps for visit ${visit.visitId || visit.id}`);
                   }
             
-                  await visitService.updateVisit(visit.id, updateData, tx);
+                  // Use composite key for visit update
+                  const visitIdentifier = {
+                    visitId: visit.visitId || visit.id,
+                    salesId: visit.salesId || salesmanId,
+                    journeyId: visit.journeyId || journeyId
+                  };
             
-                  updatedVisits.push({ visitId: visit.id, status: 'success' });
+                  await visitService.updateVisit(visitIdentifier, updateData, tx);
+            
+                  updatedVisits.push({ visitId: visit.visitId || visit.id, status: 'success' });
             
                 } catch (error) {
-                  throw new Error(`❌ Failed to update visit ${visit.id}: ${error.message}`);
+                  throw new Error(`❌ Failed to update visit ${visit.visitId || visit.id}: ${error.message}`);
                 }
               }
             }

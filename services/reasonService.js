@@ -6,7 +6,7 @@ class ReasonService {
         const prisma = getPrismaClient();
         return await prisma.reasons.findMany({
             select: {
-                id: true,
+                reasonId: true,
                 description: true,
                 sellable: true,
                 isHeader: true,

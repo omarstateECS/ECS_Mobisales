@@ -53,7 +53,7 @@ const ManageAuthoritiesModal = ({ isOpen, onClose, salesman, onAuthoritiesUpdate
 
   const fetchSalesmanAuthorities = async () => {
     try {
-      const response = await axios.get(`/api/salesmen/${salesman.id}/authorities/all`);
+      const response = await axios.get(`/api/salesmen/${salesman.salesId}/authorities/all`);
       console.log('🔍 Salesman authorities API response:', response.data);
       
       // Handle the API response structure
@@ -70,7 +70,7 @@ const ManageAuthoritiesModal = ({ isOpen, onClose, salesman, onAuthoritiesUpdate
         // Debug: Log each authority to see the structure
         authoritiesData.forEach((auth, index) => {
           console.log(`🔍 Authority ${index}:`, {
-            id: auth.id,
+            authorityId: auth.id,
             name: auth.name,
             assigned: auth.assigned,
             value: auth.value
@@ -81,7 +81,7 @@ const ManageAuthoritiesModal = ({ isOpen, onClose, salesman, onAuthoritiesUpdate
         const assignedAuthorities = authoritiesData.filter(auth => auth.assigned === true);
         console.log('🔍 Assigned authorities:', assignedAuthorities);
         
-        const authorityIds = new Set(assignedAuthorities.map(auth => auth.id));
+        const authorityIds = new Set(assignedAuthorities.map(auth => auth.authorityId));
         console.log('🔍 Selected authority IDs:', Array.from(authorityIds));
         
         setSelectedAuthorities(authorityIds);
@@ -118,14 +118,14 @@ const ManageAuthoritiesModal = ({ isOpen, onClose, salesman, onAuthoritiesUpdate
       setError('');
       
       const authorityIds = Array.from(selectedAuthorities);
-      console.log('💾 Saving authorities for salesman:', salesman.id);
+      console.log('💾 Saving authorities for salesman:', salesman.salesId);
       console.log('💾 Selected authority IDs:', authorityIds);
       console.log('💾 Selected authorities details:', 
-        authorities.filter(auth => authorityIds.includes(auth.id))
+        authorities.filter(auth => authorityIds.includes(auth.authorityId))
       );
       
       console.log('🚀 Making API call...');
-      const response = await axios.put(`/api/salesmen/${salesman.id}/authorities`, {
+      const response = await axios.put(`/api/salesmen/${salesman.salesId}/authorities`, {
         authorityIds
       });
 
@@ -136,7 +136,7 @@ const ManageAuthoritiesModal = ({ isOpen, onClose, salesman, onAuthoritiesUpdate
       // regardless of the response.data.success field
       console.log('🔄 Calling onAuthoritiesUpdated callback...');
       if (onAuthoritiesUpdated) {
-        await onAuthoritiesUpdated(salesman.id, authorityIds);
+        await onAuthoritiesUpdated(salesman.salesId, authorityIds);
         console.log('🔄 Callback completed!');
       } else {
         console.error('⚠️ onAuthoritiesUpdated callback is not defined!');
@@ -255,18 +255,18 @@ const ManageAuthoritiesModal = ({ isOpen, onClose, salesman, onAuthoritiesUpdate
                   <div className="grid grid-cols-1 gap-3">
                     {authorities.map((authority) => (
                       <div
-                        key={authority.id}
+                        key={authority.authorityId}
                         className={`p-4 rounded-xl border transition-all cursor-pointer ${
-                          selectedAuthorities.has(authority.id)
+                          selectedAuthorities.has(authority.authorityId)
                             ? 'bg-purple-600/20 border-purple-600/50 hover:bg-purple-600/30'
                             : 'bg-gray-700/30 border-gray-600/30 hover:bg-gray-700/50'
                         }`}
-                        onClick={() => handleAuthorityToggle(authority.id)}
+                        onClick={() => handleAuthorityToggle(authority.authorityId)}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
                             <div className={`p-2 rounded-lg ${
-                              selectedAuthorities.has(authority.id)
+                              selectedAuthorities.has(authority.authorityId)
                                 ? 'bg-purple-600/30'
                                 : 'bg-gray-600/30'
                             }`}>
@@ -279,17 +279,17 @@ const ManageAuthoritiesModal = ({ isOpen, onClose, salesman, onAuthoritiesUpdate
                                   {authority.type}
                                 </span>
                                 <span className="text-xs text-gray-500">
-                                  ID: {authority.id}
+                                  ID: {authority.authorityId}
                                 </span>
                               </div>
                             </div>
                           </div>
                           <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                            selectedAuthorities.has(authority.id)
+                            selectedAuthorities.has(authority.authorityId)
                               ? 'bg-purple-600 border-purple-600'
                               : 'border-gray-600'
                           }`}>
-                            {selectedAuthorities.has(authority.id) && (
+                            {selectedAuthorities.has(authority.authorityId) && (
                               <Check className="w-4 h-4 text-white" />
                             )}
                           </div>

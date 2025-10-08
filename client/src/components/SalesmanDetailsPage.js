@@ -59,23 +59,24 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
     console.log('🔄 Authorities updated, refreshing data...');
     console.log('🔄 Salesman ID:', salesmanId, 'Authority IDs:', authorityIds);
     
-    // Use the parent component's refresh function to update the selected salesman
+    try {
+      // Fetch the updated salesman data directly
+      const response = await fetch(`http://localhost:3000/api/salesmen/${salesmanId}`);
+      if (response.ok) {
+        const updatedSalesman = await response.json();
+        setSalesmanData(updatedSalesman);
+        console.log('✅ Salesman data refreshed with updated authorities');
+      } else {
+        console.error('Failed to fetch updated salesman data');
+      }
+    } catch (error) {
+      console.error('Error refreshing salesman data:', error);
+    }
+    
+    // Also call parent refresh if available to update the list
     if (onRefresh) {
       await onRefresh();
       console.log('✅ Parent refresh completed!');
-    } else {
-      console.warn('⚠️ No onRefresh function provided, falling back to local fetch');
-      // Fallback to local fetch if no parent refresh function
-      try {
-        const response = await fetch(`/api/salesmen/${salesmanId}`);
-        if (response.ok) {
-          const updatedSalesman = await response.json();
-          setSalesmanData(updatedSalesman);
-          console.log('✅ Local salesman data refreshed');
-        }
-      } catch (error) {
-        console.error('Error in fallback refresh:', error);
-      }
     }
   };
 

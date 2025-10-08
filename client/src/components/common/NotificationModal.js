@@ -1,15 +1,16 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Info, Trash2 } from 'lucide-react';
 
 const NotificationModal = ({ 
   isOpen, 
   onClose, 
-  type = 'info', // 'success', 'error', 'warning', 'info'
+  type = 'info', // 'success', 'delete', 'error', 'warning', 'info'
   title, 
   message,
   autoClose = true,
-  autoCloseDelay = 3000
+  autoCloseDelay = 3000,
+  buttonText = 'Continue'
 }) => {
   React.useEffect(() => {
     if (isOpen && autoClose) {
@@ -22,100 +23,143 @@ const NotificationModal = ({
   }, [isOpen, autoClose, autoCloseDelay, onClose]);
 
   const getIcon = () => {
+    const iconClasses = "w-12 h-12 stroke-[2.5]";
     switch (type) {
       case 'success':
-        return <CheckCircle className="w-6 h-6 text-green-400" />;
+        return <CheckCircle className={`${iconClasses} text-white`} />;
+      case 'delete':
+        return <Trash2 className={`${iconClasses} text-white`} />;
       case 'error':
-        return <XCircle className="w-6 h-6 text-red-400" />;
+        return <XCircle className={`${iconClasses} text-white`} />;
       case 'warning':
-        return <AlertTriangle className="w-6 h-6 text-yellow-400" />;
+        return <AlertTriangle className={`${iconClasses} text-white`} />;
       default:
-        return <Info className="w-6 h-6 text-blue-400" />;
+        return <Info className={`${iconClasses} text-white`} />;
     }
   };
 
-  const getColors = () => {
+  const getStyles = () => {
     switch (type) {
       case 'success':
         return {
-          border: 'border-green-500/50',
-          bg: 'bg-green-500/10',
-          accent: 'bg-green-500'
+          cardGradient: 'from-emerald-400 via-green-400 to-teal-500',
+          cardBg: 'bg-white/10',
+          buttonBg: 'bg-white/20 hover:bg-white/30',
+          iconBg: 'bg-white/20'
+        };
+      case 'delete':
+        return {
+          cardGradient: 'from-red-400 via-rose-400 to-pink-500',
+          cardBg: 'bg-white/10',
+          buttonBg: 'bg-white/20 hover:bg-white/30',
+          iconBg: 'bg-white/20'
         };
       case 'error':
         return {
-          border: 'border-red-500/50',
-          bg: 'bg-red-500/10',
-          accent: 'bg-red-500'
+          cardGradient: 'from-red-400 via-rose-400 to-pink-500',
+          cardBg: 'bg-white/10',
+          buttonBg: 'bg-white/20 hover:bg-white/30',
+          iconBg: 'bg-white/20'
         };
       case 'warning':
         return {
-          border: 'border-yellow-500/50',
-          bg: 'bg-yellow-500/10',
-          accent: 'bg-yellow-500'
+          cardGradient: 'from-orange-400 via-amber-400 to-yellow-500',
+          cardBg: 'bg-white/10',
+          buttonBg: 'bg-white/20 hover:bg-white/30',
+          iconBg: 'bg-white/20'
         };
       default:
         return {
-          border: 'border-blue-500/50',
-          bg: 'bg-blue-500/10',
-          accent: 'bg-blue-500'
+          cardGradient: 'from-blue-400 via-cyan-400 to-sky-500',
+          cardBg: 'bg-white/10',
+          buttonBg: 'bg-white/20 hover:bg-white/30',
+          iconBg: 'bg-white/20'
         };
     }
   };
 
-  const colors = getColors();
+  const getButtonText = () => {
+    switch (type) {
+      case 'success':
+        return buttonText;
+      case 'delete':
+        return 'Continue';
+      case 'error':
+        return 'Try again';
+      case 'warning':
+        return 'Okay';
+      default:
+        return 'Update';
+    }
+  };
 
-  if (!isOpen) return null;
+  const styles = getStyles();
 
   return (
-    <AnimatePresence>
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[10000] flex items-center justify-center p-4"
-        onClick={onClose}
-      >
+    <AnimatePresence mode="wait">
+      {isOpen && (
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          transition={{ type: "spring", duration: 0.3 }}
-          className={`bg-gray-800/95 backdrop-blur-xl border ${colors.border} rounded-2xl w-full max-w-md overflow-hidden shadow-2xl`}
-          onClick={(e) => e.stopPropagation()}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4"
+          onClick={onClose}
         >
-          {/* Accent bar */}
-          <div className={`h-1 ${colors.accent}`}></div>
-          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.7, y: 100 }}
+            transition={{ 
+              type: "spring", 
+              duration: 0.5,
+              bounce: 0.3
+            }}
+            className={`bg-gradient-to-br ${styles.cardGradient} rounded-3xl w-full max-w-md overflow-hidden shadow-2xl`}
+            onClick={(e) => e.stopPropagation()}
+          >
           {/* Content */}
-          <div className="p-6">
-            <div className="flex items-start space-x-4">
-              <div className={`p-2 rounded-xl ${colors.bg} flex-shrink-0`}>
-                {getIcon()}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                {title && (
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    {title}
-                  </h3>
-                )}
-                <p className="text-gray-300 text-sm leading-relaxed">
-                  {message}
-                </p>
-              </div>
-              
-              <button
-                onClick={onClose}
-                className="p-1 rounded-lg hover:bg-gray-700/50 text-gray-400 hover:text-white transition-colors flex-shrink-0"
-              >
-                <X size={18} />
-              </button>
-            </div>
+          <div className="p-8 text-center">
+            {/* Icon */}
+            <motion.div 
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ 
+                delay: 0.2,
+                type: "spring",
+                stiffness: 200,
+                damping: 15
+              }}
+              className={`inline-flex items-center justify-center w-20 h-20 ${styles.iconBg} backdrop-blur-xl rounded-full mb-6 border border-white/30`}
+            >
+              {getIcon()}
+            </motion.div>
             
+            {/* Title */}
+            {title && (
+              <motion.h3 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-2xl font-bold text-white mb-4"
+              >
+                {title}
+              </motion.h3>
+            )}
+            
+            {/* Message */}
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-white/90 text-sm leading-relaxed px-4"
+            >
+              {message}
+            </motion.p>
           </div>
         </motion.div>
       </motion.div>
+      )}
     </AnimatePresence>
   );
 };

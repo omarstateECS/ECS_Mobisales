@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const bcrypt = require('bcrypt');
+const journeyService = require('./journeyService');
 
 
 class AuthService {
@@ -39,6 +40,9 @@ class AuthService {
                 where: { type: 'MOBILE' },
                 orderBy: { name: 'asc' }
             });
+
+            // Get the most recent journey for the salesman
+            const journey = await journeyService.checkLastJourney(salesman.lastJourneyId, salesman.salesId);
     
             // Create a map of salesman's authority assignments
             const salesmanAuthorityMap = new Map();
@@ -49,7 +53,7 @@ class AuthService {
             // Extract ALL authorities as key-value pairs (authority name -> boolean)
             const authorities = {};
             allAuthorities.forEach(auth => {
-                authorities[auth.name] = salesmanAuthorityMap.get(auth.id) || false;
+                authorities[auth.name] = salesmanAuthorityMap.get(auth.authorityId) || false;
             });
     
             // ✅ Destructure safely and rename `salesId` to `id`
@@ -64,6 +68,7 @@ class AuthService {
     
             return {
                 data: {
+                    journeyId: journey?.journeyId, 
                     salesman: salesmanData,
                     authorities
                 }

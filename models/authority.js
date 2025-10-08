@@ -32,7 +32,7 @@ class Authority {
   static async findById(id) {
     try {
       const authority = await prisma.authority.findUnique({
-        where: { id: parseInt(id) }
+        where: { authorityId: parseInt(id) }
       });
       return authority;
     } catch (error) {
@@ -43,7 +43,7 @@ class Authority {
   static async update(id, data) {
     try {
       const authority = await prisma.authority.update({
-        where: { id: parseInt(id) },
+        where: { authorityId: parseInt(id) },
         data: {
           name: data.name,
           type: data.type
@@ -58,7 +58,7 @@ class Authority {
   static async delete(id) {
     try {
       const authority = await prisma.authority.delete({
-        where: { id: parseInt(id) }
+        where: { authorityId: parseInt(id) }
       });
       return authority;
     } catch (error) {
@@ -88,7 +88,7 @@ class Authority {
             include: {
               salesman: {
                 select: {
-                  id: true,
+                  salesId: true,
                   name: true
                 }
               }

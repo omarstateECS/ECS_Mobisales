@@ -25,7 +25,7 @@ class VisitService {
             include: {
                 customer: {
                     select: {
-                        id: true,
+                        customerId: true,
                         name: true,
                         address: true,
                         phone: true,
@@ -34,7 +34,7 @@ class VisitService {
                 },
                 salesman: {
                     select: {
-                        id: true,
+                        salesId: true,
                         name: true,
                         phone: true
                     }
@@ -56,15 +56,25 @@ class VisitService {
         };
     }
 
-    // Get a single visit by ID
-    async getVisitById(id) {
+    // Get a single visit by composite key or ID
+    async getVisitById(visitIdentifier) {
         const prisma = getPrismaClient();
+        
+        // Support both composite key object and legacy single ID
+        const whereClause = visitIdentifier.visitId ? {
+            visitId_salesId_journeyId: {
+                visitId: parseInt(visitIdentifier.visitId),
+                salesId: parseInt(visitIdentifier.salesId),
+                journeyId: parseInt(visitIdentifier.journeyId)
+            }
+        } : { visitId: parseInt(visitIdentifier) };
+        
         return await prisma.visit.findUnique({
-            where: { id: parseInt(id) },
+            where: whereClause,
             include: {
                 customer: {
                     select: {
-                        id: true,
+                        customerId: true,
                         name: true,
                         address: true,
                         phone: true,
@@ -75,7 +85,7 @@ class VisitService {
                 },
                 salesman: {
                     select: {
-                        id: true,
+                        salesId: true,
                         name: true,
                         phone: true
                     }
@@ -121,10 +131,10 @@ class VisitService {
     }
 
     // Bulk create visits for route planning
-    async bulkCreateVisits(salesmanId, customerIds) {
+    async bulkCreateVisits(salesmanId, customerIds, journeyId) {
         const prisma = getPrismaClient();
         
-        console.log('🔍 bulkCreateVisits called with:', { salesmanId, customerIds });
+        console.log('🔍 bulkCreateVisits called with:', { salesmanId, customerIds, journeyId });
         
         // Validate salesman exists
         const salesman = await prisma.salesman.findUnique({
@@ -155,6 +165,7 @@ class VisitService {
                 custId: {
                     in: customerIds.map(id => parseInt(id))
                 },
+                journeyId: parseInt(journeyId),
                 status: 'WAIT'
             },
             select: {
@@ -173,6 +184,7 @@ class VisitService {
         const visitData = newCustomerIds.map((custId) => ({
             custId: parseInt(custId),
             salesId: parseInt(salesmanId),
+            journeyId: parseInt(journeyId),
             status: 'WAIT',
             startTime: null,
             endTime: null,
@@ -188,30 +200,43 @@ class VisitService {
             count: result.count,
             salesmanId: parseInt(salesmanId),
             customerIds: newCustomerIds.map(id => parseInt(id)),
+            journeyId: parseInt(journeyId),
             skipped: existingCustomerIds.length,
             skippedCustomerIds: existingCustomerIds
         };
     }
 
-    // Update a visit by ID
-    async updateVisit(id, data, transaction = null) {
+    // Update a visit by composite key (visitId, salesId, journeyId)
+    async updateVisit(visitIdentifier, data, transaction = null) {
         const prisma = transaction || getPrismaClient();
         
         const updateData = {};
         if (data.status) updateData.status = data.status;
+        if (data.startTime) updateData.startTime = data.startTime;
+        if (data.endTime) updateData.endTime = data.endTime;
+        if (data.cancelTime) updateData.cancelTime = data.cancelTime;
         if (data.start_time) updateData.startTime = new Date(data.start_time);
         if (data.end_time) updateData.endTime = new Date(data.end_time);
         if (data.cancel_time) updateData.cancelTime = new Date(data.cancel_time);
         if (data.custId || data.customer_id) updateData.custId = parseInt(data.custId || data.customer_id);
         if (data.salesId || data.salesman_id) updateData.salesId = parseInt(data.salesId || data.salesman_id);
 
+        // Support both composite key object and legacy single ID
+        const whereClause = visitIdentifier.visitId ? {
+            visitId_salesId_journeyId: {
+                visitId: parseInt(visitIdentifier.visitId),
+                salesId: parseInt(visitIdentifier.salesId),
+                journeyId: parseInt(visitIdentifier.journeyId)
+            }
+        } : { visitId: parseInt(visitIdentifier) };
+
         return await prisma.visit.update({
-            where: { id: parseInt(id) },
+            where: whereClause,
             data: updateData,
             include: {
                 customer: {
                     select: {
-                        id: true,
+                        customerId: true,
                         name: true,
                         address: true,
                         phone: true,
@@ -220,7 +245,7 @@ class VisitService {
                 },
                 salesman: {
                     select: {
-                        id: true,
+                        salesId: true,
                         name: true,
                         phone: true
                     }
@@ -229,11 +254,21 @@ class VisitService {
         });
     }
 
-    // Delete a visit by ID
-    async deleteVisit(id) {
+    // Delete a visit by composite key
+    async deleteVisit(visitIdentifier) {
         const prisma = getPrismaClient();
+        
+        // Support both composite key object and legacy single ID
+        const whereClause = visitIdentifier.visitId ? {
+            visitId_salesId_journeyId: {
+                visitId: parseInt(visitIdentifier.visitId),
+                salesId: parseInt(visitIdentifier.salesId),
+                journeyId: parseInt(visitIdentifier.journeyId)
+            }
+        } : { visitId: parseInt(visitIdentifier) };
+        
         return await prisma.visit.delete({
-            where: { id: parseInt(id) }
+            where: whereClause
         });
     }
 
@@ -253,16 +288,17 @@ class VisitService {
                 }
             },
             select: {
-                id: true,
+                visitId: true,
                 custId: true,
                 salesId: true,
+                journeyId: true,
                 startTime: true,
                 endTime: true,
                 cancelTime: true,
                 status: true,
                 customer: {
                     select: {
-                        id: true,
+                        customerId: true,
                         name: true,
                         address: true,
                         phone: true,
@@ -275,13 +311,24 @@ class VisitService {
             orderBy: { createdAt: 'desc' }
         });
 
-        // Format timestamps to remove 'T' while keeping mobile app compatibility
-        return visits.map(visit => ({
-            ...visit,
-            startTime: visit.startTime ? this.formatTimestamp(visit.startTime) : null,
-            endTime: visit.endTime ? this.formatTimestamp(visit.endTime) : null,
-            cancelTime: visit.cancelTime ? this.formatTimestamp(visit.cancelTime) : null
-        }));
+        // Format timestamps and restructure for mobile app compatibility
+        return visits.map(visit => {
+            // Extract customer ID from nested customer object or use custId as fallback
+            const customerId = visit.customer?.customerId || visit.custId;
+            
+            return {
+                visitId: visit.visitId,
+                custId: visit.custId,
+                customerId: customerId,  // Explicit customerId for mobile app
+                salesId: visit.salesId,
+                journeyId: visit.journeyId,
+                status: visit.status,
+                startTime: visit.startTime ? this.formatTimestamp(visit.startTime) : null,
+                endTime: visit.endTime ? this.formatTimestamp(visit.endTime) : null,
+                cancelTime: visit.cancelTime ? this.formatTimestamp(visit.cancelTime) : null,
+                customer: visit.customer  // Include full customer object
+            };
+        });
     }
 
     // Get visits by status
@@ -296,7 +343,7 @@ class VisitService {
             include: {
                 customer: {
                     select: {
-                        id: true,
+                        customerId: true,
                         name: true,
                         address: true,
                         phone: true,
@@ -305,7 +352,7 @@ class VisitService {
                 },
                 salesman: {
                     select: {
-                        id: true,
+                        salesId: true,
                         name: true,
                         phone: true
                     }
