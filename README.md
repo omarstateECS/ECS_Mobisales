@@ -1,6 +1,6 @@
 # 🛒 Mobisales Dashboard
 
-A modern web dashboard to manage **customers**, assign **sales representatives**, and visualize **supermarkets** on a map. Built with **Node.js**, **React**, and **MongoDB**.
+A modern web dashboard to manage **customers**, assign **sales representatives**, and visualize **customers** on a map. Built with **Node.js**, **React**, and **PostrgeSql**.
 
 ---
 
