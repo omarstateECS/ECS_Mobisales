@@ -78,12 +78,12 @@ async function addReturnReasons() {
         
         // Display all reasons
         const allReasons = await prisma.reasons.findMany({
-            orderBy: { id: 'asc' }
+            orderBy: { reasonId: 'asc' }
         });
         
         console.log('\n📋 All reasons in database:');
         allReasons.forEach(reason => {
-            console.log(`${reason.id}: ${reason.description} (Sellable: ${reason.sellable}, Header: ${reason.isHeader})`);
+            console.log(`${reason.reasonId}: ${reason.description} (Sellable: ${reason.sellable}, Header: ${reason.isHeader})`);
         });
         
     } catch (error) {

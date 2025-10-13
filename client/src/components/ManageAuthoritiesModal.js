@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Shield, Check, AlertCircle, Loader, Globe, Smartphone } from 'lucide-react';
+import { X, Shield, Check, AlertCircle, Loader, Globe, Smartphone, CheckSquare, Square } from 'lucide-react';
 import axios from 'axios';
 
 const ManageAuthoritiesModal = ({ isOpen, onClose, salesman, onAuthoritiesUpdated }) => {
@@ -105,6 +105,15 @@ const ManageAuthoritiesModal = ({ isOpen, onClose, salesman, onAuthoritiesUpdate
       newSelected.add(authorityId);
     }
     setSelectedAuthorities(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    const allAuthorityIds = new Set(authorities.map(auth => auth.authorityId));
+    setSelectedAuthorities(allAuthorityIds);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedAuthorities(new Set());
   };
 
   const handleSave = async () => {
@@ -236,8 +245,30 @@ const ManageAuthoritiesModal = ({ isOpen, onClose, salesman, onAuthoritiesUpdate
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-white">Available Authorities</h3>
-                  <div className="text-sm text-gray-400">
-                    {selectedAuthorities.size} of {authorities.length} selected
+                  <div className="flex items-center space-x-3">
+                    <div className="text-sm text-gray-400">
+                      {selectedAuthorities.size} of {authorities.length} selected
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={handleSelectAll}
+                        disabled={selectedAuthorities.size === authorities.length}
+                        className="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-600/30 text-purple-400 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1.5"
+                        title="Select all authorities"
+                      >
+                        <CheckSquare className="w-3.5 h-3.5" />
+                        <span>All</span>
+                      </button>
+                      <button
+                        onClick={handleDeselectAll}
+                        disabled={selectedAuthorities.size === 0}
+                        className="px-3 py-1.5 bg-gray-700/30 hover:bg-gray-700/50 border border-gray-600/30 text-gray-400 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1.5"
+                        title="Deselect all authorities"
+                      >
+                        <Square className="w-3.5 h-3.5" />
+                        <span>None</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 

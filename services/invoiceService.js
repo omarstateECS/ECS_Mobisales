@@ -59,6 +59,10 @@ class InvoiceService {
         if (!headerData.salesId) {
             throw new Error('Salesman ID is required');
         }
+
+        if (!headerData.journeyId) {
+            throw new Error('Journey ID is required');
+        }
         
         if (!items || !Array.isArray(items) || items.length === 0) {
             throw new Error('Invoice items are required');
@@ -71,7 +75,7 @@ class InvoiceService {
                 const existingInvoice = await tx.invoiceHeader.findUnique({
                     where: {
                         invId_salesId: {
-                            invId: parseInt(headerData.invId),
+                            invId: String(headerData.invId),
                             salesId: parseInt(headerData.salesId)
                         }
                     }
@@ -84,19 +88,20 @@ class InvoiceService {
                 // Create invoice header
                 const invoiceHeader = await tx.invoiceHeader.create({
                     data: {
-                        invId: parseInt(headerData.invId),
+                        invId: String(headerData.invId),
                         custId: parseInt(headerData.custId || headerData.customerId),
                         salesId: parseInt(headerData.salesId),
+                        journeyId: parseInt(headerData.journeyId),
                         createdAt: headerData.createdAt ? new Date(headerData.createdAt) : new Date(),
                         invType: headerData.invType || headerData.int_type || 'SALE',
-                        reasonId: parseInt(headerData.reasonId),
+                        reasonId: headerData.reasonId ? parseInt(headerData.reasonId) : null,
                         netAmt: parseFloat(headerData.netAmt || 0),
                         taxAmt: parseFloat(headerData.taxAmt || 0),
                         disAmt: parseFloat(headerData.disAmt || 0),
                         totalAmt: parseFloat(headerData.totalAmt || 0),
                         paymentMethod: headerData.paymentMethod || 'CASH',
-                        currency: headerData.currency || 'USD',
-                        invRef: parseInt(headerData.refInv || 0)
+                        currency: headerData.currency || 'EGP',
+                        invRef: String(headerData.refInv || headerData.invRef || 0)
                     }
                 });
                 
@@ -114,7 +119,7 @@ class InvoiceService {
                                 taxAmt: parseFloat(item.taxAmt || item.tax_amt || 0),
                                 disAmt: parseFloat(item.disAmt || item.dis_amt || 0),
                                 totAmt: parseFloat(item.totAmt || item.tot_amt || 0),
-                                reasonId: parseInt(item.reasonId || item.reason_id)
+                                reasonId: (item.reasonId || item.reason_id) ? parseInt(item.reasonId || item.reason_id) : null
                             }
                         })
                     )
@@ -165,6 +170,14 @@ class InvoiceService {
             ...invoiceHeader,
             items: invoiceItems
         };
+    }
+
+    async getLastInvoice(salesId) {
+        const prisma = getPrismaClient();
+        return await prisma.invoiceHeader.findFirst({
+            where: { salesId: Number(salesId) },
+            orderBy: { createdAt: 'desc' }
+        });
     }
 }
 

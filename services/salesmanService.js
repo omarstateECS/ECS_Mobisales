@@ -42,6 +42,15 @@ class SalesmanService {
     async createSalesman(data) {
         const prisma = getPrismaClient();
         
+        // Check if phone number already exists BEFORE attempting insert
+        const existingSalesman = await prisma.salesman.findUnique({
+            where: { phone: data.phone }
+        });
+        
+        if (existingSalesman) {
+            throw new Error('A salesman with this phone number already exists');
+        }
+        
         // Set deviceId to empty string if not provided (will be set during first mobile login)
         const salesmanData = {
             ...data,
@@ -273,6 +282,7 @@ class SalesmanService {
                             ...invoice,
                             invId: invoice.invId || invoice.id,
                             salesId: invoice.salesId || salesmanId,
+                            journeyId: journeyId
                         };
     
                         const createdInvoice = await invoiceService.createInvoice(invoiceData, tx);

@@ -24,12 +24,26 @@ class SalesmanController {
 
     async create(req, res) {
         const { error } = SalesmanValidation(req.body);
-        if (error) return res.status(400).json({ error: error.details[0].message });
+        if (error) {
+            console.log('❌ Validation error:', error.details[0].message);
+            return res.status(400).json({ 
+                success: false,
+                error: error.details[0].message 
+            });
+        }
         try { 
             const salesman = await salesmanService.createSalesman(req.body);
-            res.status(201).json(salesman);
+            console.log('✅ Salesman created successfully:', salesman.salesId);
+            res.status(201).json({
+                success: true,
+                data: salesman
+            });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            console.error('❌ Error creating salesman:', error.message);
+            res.status(500).json({ 
+                success: false,
+                error: error.message 
+            });
         }
     }
 

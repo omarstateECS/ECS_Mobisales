@@ -134,7 +134,7 @@ model Visit {
 }
 
 model InvoiceHeader {
-  invId          Int           
+  invId          String        
   custId         Int
   salesId        Int
   journeyId      Int
@@ -148,7 +148,7 @@ model InvoiceHeader {
   totalAmt       Float
   paymentMethod  PaymentMethod
   currency       String
-  invRef         Int
+  invRef         String
   customer       Customer      @relation(fields: [custId], references: [customerId], onDelete: Cascade)
   salesman       Salesman      @relation(fields: [salesId], references: [salesId], onDelete: Cascade)
   journey        Journies      @relation("InvoiceToJourney", fields: [journeyId, salesId], references: [journeyId, salesId], onDelete: Cascade)
@@ -160,7 +160,7 @@ model InvoiceHeader {
 model InvoiceItem {
   qty             Int
   disAmt          Float
-  invoiceHeaderId Int
+  invoiceHeaderId String
   invItem         Int
   netAmt          Float
   productId       Int

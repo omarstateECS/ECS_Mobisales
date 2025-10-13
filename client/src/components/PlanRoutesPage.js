@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Search, MapPin, User, Calendar, CheckCircle, XCircle, Trash2, ArrowDown, Navigation } from 'lucide-react';
+import NotificationModal from './common/NotificationModal';
+import { useNotification } from '../hooks/useNotification';
 
-const PlanRoutesPage = ({ handleNavigation }) => {
+const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
+  const { notification, showSuccess, showError, hideNotification } = useNotification();
   const [salesmen, setSalesmen] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [selectedSalesman, setSelectedSalesman] = useState(null);
   const [selectedCustomers, setSelectedCustomers] = useState([]); // Array of customer IDs in order
   const [searchTerm, setSearchTerm] = useState('');
+  const [salesmanSearchTerm, setSalesmanSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
 
-  // Fetch salesmen on component mount
+  // Fetch salesmen on component mount and when salesmenRefreshKey changes
   useEffect(() => {
     fetchSalesmen();
     fetchCustomers();
-  }, []);
+  }, [salesmenRefreshKey]);
 
   const fetchSalesmen = async () => {
     try {
@@ -26,7 +29,7 @@ const PlanRoutesPage = ({ handleNavigation }) => {
       }
     } catch (error) {
       console.error('Error fetching salesmen:', error);
-      showMessage('error', 'Failed to load salesmen');
+      showError('Failed to load salesmen');
     }
   };
 
@@ -40,16 +43,12 @@ const PlanRoutesPage = ({ handleNavigation }) => {
       }
     } catch (error) {
       console.error('Error fetching customers:', error);
-      showMessage('error', 'Failed to load customers');
+      showError('Failed to load customers');
     } finally {
       setLoading(false);
     }
   };
 
-  const showMessage = (type, text) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage({ type: '', text: '' }), 5000);
-  };
 
   const toggleCustomerSelection = (customerId) => {
     setSelectedCustomers(prev => {
@@ -86,7 +85,7 @@ const PlanRoutesPage = ({ handleNavigation }) => {
   };
 
   const selectAllCustomers = () => {
-    const filteredIds = filteredCustomers.map(c => c.id);
+    const filteredIds = filteredCustomers.map(c => c.customerId);
     setSelectedCustomers(filteredIds);
   };
 
@@ -96,12 +95,12 @@ const PlanRoutesPage = ({ handleNavigation }) => {
 
   const handleCreateVisits = async () => {
     if (!selectedSalesman) {
-      showMessage('error', 'Please select a salesman');
+      showError('Please select a salesman');
       return;
     }
 
     if (selectedCustomers.length === 0) {
-      showMessage('error', 'Please select at least one customer');
+      showError('Please select at least one customer');
       return;
     }
 
@@ -124,16 +123,16 @@ const PlanRoutesPage = ({ handleNavigation }) => {
         if (data.data.skipped > 0) {
           message += ` (${data.data.skipped} duplicate${data.data.skipped !== 1 ? 's' : ''} skipped)`;
         }
-        showMessage('success', message);
+        showSuccess(message, 'Visits Created');
         setSelectedCustomers([]);
         setSelectedSalesman(null);
       } else {
         const error = await response.json();
-        showMessage('error', error.message || 'Failed to create visits');
+        showError(error.message || 'Failed to create visits');
       }
     } catch (error) {
       console.error('Error creating visits:', error);
-      showMessage('error', 'Failed to create visits');
+      showError('Failed to create visits');
     } finally {
       setCreating(false);
     }
@@ -145,6 +144,15 @@ const PlanRoutesPage = ({ handleNavigation }) => {
       customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.phone?.includes(searchTerm);
+    return matchesSearch;
+  });
+
+  // Filter salesmen based on search
+  const filteredSalesmen = salesmen.filter(salesman => {
+    const matchesSearch = !salesmanSearchTerm || 
+      salesman.name?.toLowerCase().includes(salesmanSearchTerm.toLowerCase()) ||
+      salesman.phone?.includes(salesmanSearchTerm) ||
+      salesman.salesId?.toString().includes(salesmanSearchTerm);
     return matchesSearch;
   });
 
@@ -187,43 +195,66 @@ const PlanRoutesPage = ({ handleNavigation }) => {
         </div>
       </div>
 
-      {/* Message Alert */}
-      {message.text && (
-        <div className={`p-4 rounded-xl border ${
-          message.type === 'success' 
-            ? 'bg-green-500/10 border-green-500/50 text-green-400' 
-            : 'bg-red-500/10 border-red-500/50 text-red-400'
-        }`}>
-          <div className="flex items-center space-x-2">
-            {message.type === 'success' ? <CheckCircle size={20} /> : <XCircle size={20} />}
-            <span>{message.text}</span>
-          </div>
-        </div>
-      )}
 
       {/* Salesman Selection */}
       <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6">
-        <div className="flex items-center space-x-3 mb-4">
-          <User className="text-blue-400" size={20} />
-          <h3 className="text-lg font-semibold text-white">Select Sales Representative</h3>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <User className="text-blue-400" size={20} />
+            <h3 className="text-lg font-semibold text-white">Select Sales Representative</h3>
+          </div>
+          <div className="text-sm text-gray-400">
+            {filteredSalesmen.length} of {salesmen.length} salesmen
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Search by name, phone, or ID..."
+            value={salesmanSearchTerm}
+            onChange={(e) => setSalesmanSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-gray-900/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
+          />
+          {salesmanSearchTerm && (
+            <button
+              onClick={() => setSalesmanSearchTerm('')}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+            >
+              <XCircle size={18} />
+            </button>
+          )}
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {salesmen.map(salesman => {
-            const { selectable, reason } = isSalesmanSelectable(salesman);
-            
-            return (
-              <div
-                key={salesman.salesId}
-                onClick={() => selectable && setSelectedSalesman(salesman.salesId)}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  !selectable
-                    ? 'border-gray-700/30 bg-gray-800/20 opacity-50 cursor-not-allowed'
-                    : selectedSalesman === salesman.salesId
-                    ? 'border-blue-500 bg-blue-500/10 cursor-pointer'
-                    : 'border-gray-700/50 bg-gray-800/30 hover:border-gray-600 hover:bg-gray-800/50 cursor-pointer'
-                }`}
-              >
+        {filteredSalesmen.length === 0 ? (
+          <div className="col-span-full text-center py-12">
+            <User className="mx-auto text-gray-600 mb-3" size={48} />
+            <p className="text-gray-400 text-lg mb-2">No salesmen found</p>
+            <p className="text-gray-500 text-sm">
+              {salesmanSearchTerm 
+                ? 'Try adjusting your search terms'
+                : 'No salesmen available at the moment'}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredSalesmen.map(salesman => {
+              const { selectable, reason } = isSalesmanSelectable(salesman);
+              
+              return (
+                <div
+                  key={salesman.salesId}
+                  onClick={() => selectable && setSelectedSalesman(salesman.salesId)}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    !selectable
+                      ? 'border-gray-700/30 bg-gray-800/20 opacity-50 cursor-not-allowed'
+                      : selectedSalesman === salesman.salesId
+                      ? 'border-blue-500 bg-blue-500/10 cursor-pointer'
+                      : 'border-gray-700/50 bg-gray-800/30 hover:border-gray-600 hover:bg-gray-800/50 cursor-pointer'
+                  }`}
+                >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <p className={`font-semibold ${
@@ -249,7 +280,8 @@ const PlanRoutesPage = ({ handleNavigation }) => {
               </div>
             );
           })}
-        </div>
+          </div>
+        )}
 
         {selectedSalesmanData && (
           <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
@@ -270,7 +302,7 @@ const PlanRoutesPage = ({ handleNavigation }) => {
           
           <div className="space-y-3">
             {selectedCustomers.map((customerId, index) => {
-              const customer = customers.find(c => c.id === customerId);
+              const customer = customers.find(c => c.customerId === customerId);
               if (!customer) return null;
               
               return (
@@ -458,6 +490,15 @@ const PlanRoutesPage = ({ handleNavigation }) => {
           <span>{creating ? 'Creating Visits...' : `Create ${selectedCustomers.length} Visit${selectedCustomers.length !== 1 ? 's' : ''}`}</span>
         </button>
       </div>
+
+      {/* Notification Modal */}
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={hideNotification}
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+      />
     </div>
   );
 };

@@ -39,10 +39,7 @@ class AuthService {
             const allAuthorities = await prisma.authority.findMany({
                 where: { type: 'MOBILE' },
                 orderBy: { name: 'asc' }
-            });
-
-            // Get the most recent journey for the salesman
-            const journey = await journeyService.checkLastJourney(salesman.lastJourneyId, salesman.salesId);
+            });        
     
             // Create a map of salesman's authority assignments
             const salesmanAuthorityMap = new Map();
@@ -68,7 +65,6 @@ class AuthService {
     
             return {
                 data: {
-                    journeyId: journey?.journeyId, 
                     salesman: salesmanData,
                     authorities
                 }

@@ -272,20 +272,24 @@ class VisitService {
         });
     }
 
-    // Get today's visits for a specific salesman
+    // Get today's visits for a specific salesman (only for their lastJourneyId)
     async getTodayVisits(salesmanId) {
         const prisma = getPrismaClient();
-        const today = new Date();
-        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+        
+        // First, get the salesman's lastJourneyId
+        const salesman = await prisma.salesman.findUnique({
+            where: { salesId: parseInt(salesmanId) },
+            select: { lastJourneyId: true }
+        });
+
+        if (!salesman || salesman.lastJourneyId === 0) {
+            return []; // No journey started yet
+        }
 
         const visits = await prisma.visit.findMany({
             where: {
                 salesId: parseInt(salesmanId),
-                createdAt: {
-                    gte: startOfDay,
-                    lt: endOfDay
-                }
+                journeyId: salesman.lastJourneyId
             },
             select: {
                 visitId: true,

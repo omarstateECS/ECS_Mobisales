@@ -645,6 +645,11 @@ const Dashboard = () => {
   const handleNavigation = (view) => {
     setCurrentView(view);
     setSidebarOpen(false);
+    // Close any open detail pages when navigating
+    setShowCustomerDetails(false);
+    setShowSalesmanDetails(false);
+    setSelectedCustomer(null);
+    setSelectedSalesman(null);
   };
 
   // Render different views based on currentView state
@@ -761,6 +766,7 @@ const Dashboard = () => {
           >
             <PlanRoutesPage
               handleNavigation={handleNavigation}
+              salesmenRefreshKey={salesmenRefreshKey}
             />
           </motion.div>
         );

@@ -24,6 +24,19 @@ class JourneyService {
         });
     }
 
+    async getLatestJourney(salesmanId) {
+        const prisma = getPrismaClient();
+        
+        return await prisma.journies.findFirst({
+            where: {
+                salesId: parseInt(salesmanId)
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+    }
+
     async createJourney(salesmanId) {
         const prisma = getPrismaClient();
         

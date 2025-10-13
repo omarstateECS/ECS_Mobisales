@@ -22,13 +22,20 @@ const AddSalesmanModal = ({
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [hasLoadedId, setHasLoadedId] = useState(false);
 
-  // Fetch next available ID when modal opens
+  // Fetch next available ID when modal opens (only if form is empty)
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !hasLoadedId) {
       fetchNextSalesmanId();
+      setHasLoadedId(true);
     }
-  }, [isOpen]);
+    
+    // Reset the flag when modal closes
+    if (!isOpen) {
+      setHasLoadedId(false);
+    }
+  }, [isOpen, hasLoadedId]);
 
   const fetchNextSalesmanId = async () => {
     try {
@@ -129,7 +136,8 @@ const AddSalesmanModal = ({
       });
       
       if (response.ok) {
-        const newSalesman = await response.json();
+        const result = await response.json();
+        const newSalesman = result.data || result; // Handle both formats
         console.log('Salesman created successfully:', newSalesman);
         
         // Reset form
@@ -142,6 +150,8 @@ const AddSalesmanModal = ({
           status: 'INACTIVE'
         });
         setErrors({});
+        setLoading(false);
+        setHasLoadedId(false); // Reset so next open will fetch new ID
         
         // Call the callback to refresh the list
         if (onSalesmanAdded) {
@@ -156,11 +166,31 @@ const AddSalesmanModal = ({
           onSuccess('Salesman Added', 'Salesman has been added successfully!');
         }
       } else {
-        const errorData = await response.json();
-        let errorMessage = errorData.error || `API failed with status: ${response.status}`;
+        // Try to parse error response
+        let errorMessage = `Failed to add salesman (Status: ${response.status})`;
+        
+        try {
+          const errorData = await response.json();
+          // Handle different error response formats
+          if (typeof errorData === 'string') {
+            errorMessage = errorData;
+          } else if (errorData.error) {
+            errorMessage = errorData.error;
+          } else if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch (parseError) {
+          // If response is not JSON, try to get text
+          try {
+            errorMessage = await response.text();
+          } catch (textError) {
+            // Keep default error message
+          }
+        }
         
         // Handle specific error cases
-        if (errorMessage.includes('Unique constraint') && errorMessage.includes('phone')) {
+        if (errorMessage.includes('phone number already exists') || 
+            (errorMessage.includes('Unique constraint') && errorMessage.includes('phone'))) {
           errorMessage = 'A salesman with this phone number already exists. Please use a different phone number.';
         }
         
@@ -169,15 +199,18 @@ const AddSalesmanModal = ({
       
     } catch (error) {
       console.error('Error adding salesman:', error);
-      showError('Error Adding Salesman', error.message);
-    } finally {
       setLoading(false);
+      // Don't close modal on error, show error message
+      showError('Error Adding Salesman', error.message);
+      // Don't reset form or close modal - let user fix the error
+      return;
     }
   };
 
   const handleClose = () => {
     if (!loading) {
       setFormData({
+        id: '',
         name: '',
         phone: '',
         address: '',
@@ -185,6 +218,7 @@ const AddSalesmanModal = ({
         status: 'INACTIVE'
       });
       setErrors({});
+      setHasLoadedId(false); // Reset so next open will fetch new ID
       onClose();
     }
   };
@@ -242,10 +276,10 @@ const AddSalesmanModal = ({
               <input
                 type="text"
                 name="id"
-                value=""
+                value={formData.id}
                 readOnly
-                placeholder="Will be auto-generated..."
-                className="w-full px-4 py-3 bg-gray-700/30 border border-gray-600/30 rounded-xl text-gray-500 placeholder-gray-600 cursor-not-allowed opacity-60"
+                placeholder="Loading..."
+                className="w-full px-4 py-3 bg-gray-700/30 border border-gray-600/30 rounded-xl text-gray-400 placeholder-gray-600 cursor-not-allowed"
               />
               <p className="mt-1 text-xs text-gray-500">This ID will be automatically assigned when the salesman is created</p>
             </div>
@@ -374,6 +408,15 @@ const AddSalesmanModal = ({
             </div>
           </form>
         </motion.div>
+
+        {/* Notification Modal */}
+        <NotificationModal
+          isOpen={notification.isOpen}
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          onClose={hideNotification}
+        />
       </motion.div>
     </AnimatePresence>
   );
