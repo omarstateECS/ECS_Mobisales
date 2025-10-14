@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Search, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import SalesmanGrid from './SalesmanGrid';
+import { useTheme } from '../contexts/ThemeContext';
 
 const SalesmenView = ({
   handleNavigation,
@@ -13,6 +14,7 @@ const SalesmenView = ({
   handleEditSalesman,
   handleViewDetails
 }) => {
+  const { theme } = useTheme();
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
@@ -91,8 +93,8 @@ const SalesmenView = ({
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h2 className="text-2xl font-bold text-white">All Salesmen</h2>
-            <p className="text-gray-400">Manage your sales team</p>
+            <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>All Salesmen</h2>
+            <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Manage your sales team</p>
           </div>
         </div>
         <button 
@@ -104,18 +106,26 @@ const SalesmenView = ({
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4">
+      <div className={`backdrop-blur-sm rounded-2xl p-4 ${
+        theme === 'dark'
+          ? 'bg-gray-800/40 border border-gray-700/50'
+          : 'bg-white border border-gray-200'
+      }`}>
         <div className="flex flex-col gap-4">
           {/* Search and Basic Filters */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
               <input
                 type="text"
                 placeholder="Search salesmen by name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all"
+                className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-400'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-500'
+                }`}
               />
             </div>
             <button 
@@ -133,7 +143,11 @@ const SalesmenView = ({
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all"
+              className={`px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all ${
+                theme === 'dark'
+                  ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                  : 'bg-gray-50 border border-gray-200 text-gray-900'
+              }`}
             >
               <option value="">All Statuses</option>
               <option value="ACTIVE">Active</option>
@@ -143,7 +157,11 @@ const SalesmenView = ({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all"
+              className={`px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all ${
+                theme === 'dark'
+                  ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                  : 'bg-gray-50 border border-gray-200 text-gray-900'
+              }`}
             >
               <option value="name">Sort by Name</option>
               <option value="status">Sort by Status</option>
@@ -151,14 +169,18 @@ const SalesmenView = ({
             </select>
             <button 
               onClick={handleRefreshSalesmen}
-              className="px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-white rounded-xl font-medium transition-all duration-200 border border-gray-700/50 hover:border-gray-600"
+              className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+                theme === 'dark'
+                  ? 'bg-gray-800/50 hover:bg-gray-800 text-white border border-gray-700/50 hover:border-gray-600'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200 hover:border-gray-300'
+              }`}
             >
               {loading ? 'Loading...' : 'Refresh'}
             </button>
           </div>
           
           {/* Results Summary */}
-          <div className="flex items-center justify-between text-sm text-gray-400">
+          <div className={`flex items-center justify-between text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
             <div>
               {committedSearch && committedSearch.trim() ? (
                 <>
@@ -180,7 +202,11 @@ const SalesmenView = ({
               <select
                 value={itemsPerPage}
                 onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
-                className="px-2 py-1 bg-gray-800/50 border border-gray-700/50 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-green-500/50"
+                className={`px-2 py-1 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500/50 ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900'
+                }`}
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>

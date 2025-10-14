@@ -1,0 +1,228 @@
+/* Theme-aware component styles */
+
+/* Header */
+header {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+header h2, header p {
+  color: var(--text-primary) !important;
+}
+
+/* Sidebar */
+aside, .sidebar {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Cards and Containers */
+.card, .stat-card, .dashboard-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* Buttons */
+.btn-secondary {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-hover);
+}
+
+/* Inputs */
+input, textarea, select {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-tertiary) !important;
+}
+
+/* Modals */
+.modal-overlay {
+  background-color: var(--modal-overlay) !important;
+}
+
+.modal-dialog, .modal-content {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Tables */
+table {
+  background-color: var(--bg-secondary);
+}
+
+thead {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+tbody tr {
+  border-color: var(--border-color);
+}
+
+tbody tr:hover {
+  background-color: var(--bg-hover);
+}
+
+/* Text colors */
+.text-primary {
+  color: var(--text-primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-tertiary {
+  color: var(--text-tertiary) !important;
+}
+
+/* Backgrounds */
+.bg-primary {
+  background-color: var(--bg-primary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--bg-secondary) !important;
+}
+
+.bg-tertiary {
+  background-color: var(--bg-tertiary) !important;
+}
+
+/* Borders */
+.border-color {
+  border-color: var(--border-color) !important;
+}
+
+/* Override Tailwind dark colors with theme variables */
+[data-theme="light"] .bg-gray-900,
+[data-theme="light"] .bg-gray-800,
+[data-theme="light"] .bg-gray-700,
+[data-theme="light"] .bg-gray-600,
+[data-theme="light"] .bg-slate-900,
+[data-theme="light"] .bg-slate-800,
+[data-theme="light"] .bg-gray-900\/95,
+[data-theme="light"] .bg-gray-800\/90,
+[data-theme="light"] .bg-gray-800\/80,
+[data-theme="light"] .bg-gray-700\/80 {
+  background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="light"] .text-white {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .text-gray-400,
+[data-theme="light"] .text-gray-300,
+[data-theme="light"] .text-gray-500 {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .text-gray-600 {
+  color: var(--text-tertiary) !important;
+}
+
+[data-theme="light"] .border-gray-700,
+[data-theme="light"] .border-gray-600,
+[data-theme="light"] .border-gray-800 {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="light"] .hover\:bg-gray-800:hover,
+[data-theme="light"] .hover\:bg-gray-700:hover,
+[data-theme="light"] .hover\:bg-gray-700\/50:hover {
+  background-color: var(--bg-hover) !important;
+}
+
+/* Specific component overrides for light mode */
+[data-theme="light"] .bg-gray-900\/80,
+[data-theme="light"] .bg-gray-900\/90 {
+  background-color: #ffffff !important;
+}
+
+[data-theme="light"] .bg-gray-800\/50,
+[data-theme="light"] .bg-gray-800\/95 {
+  background-color: #ffffff !important;
+}
+
+[data-theme="light"] .bg-gray-700\/30,
+[data-theme="light"] .bg-gray-700\/50,
+[data-theme="light"] .bg-gray-600\/50 {
+  background-color: #f8fafc !important;
+}
+
+/* Gradient overlays in light mode */
+[data-theme="light"] .hover\:from-blue-600\/20,
+[data-theme="light"] .hover\:to-purple-600\/20 {
+  background: var(--bg-hover) !important;
+}
+
+/* Card backgrounds in light mode - removed global override to allow component-level gradients */
+
+/* Action buttons in light mode */
+[data-theme="light"] button.bg-gray-800,
+[data-theme="light"] button.bg-gray-700,
+[data-theme="light"] .bg-gray-800\/90,
+[data-theme="light"] .bg-gray-700\/50 {
+  background-color: #f8fafc !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="light"] button.bg-gray-800:hover,
+[data-theme="light"] button.bg-gray-700:hover,
+[data-theme="light"] .bg-gray-800\/90:hover,
+[data-theme="light"] .bg-gray-700\/50:hover {
+  background-color: var(--bg-hover) !important;
+  border-color: #94a3b8 !important;
+}
+
+/* Recent customers section and Quick Actions */
+[data-theme="light"] .bg-gray-800\/90,
+[data-theme="light"] .bg-gray-800\/95 {
+  background-color: #ffffff !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .bg-gray-800\/90 h3,
+[data-theme="light"] .bg-gray-800\/95 h3 {
+  color: var(--text-primary) !important;
+}
+
+/* Sidebar menu items */
+[data-theme="light"] .bg-gray-900\/95,
+[data-theme="light"] .bg-gray-800\/80 {
+  background-color: #f1f5f9 !important;
+  border: 1px solid transparent !important;
+}
+
+[data-theme="light"] .bg-gray-900\/95:hover,
+[data-theme="light"] .bg-gray-800\/80:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* Fix percentage badges */
+[data-theme="light"] .text-green-400,
+[data-theme="light"] .text-red-400 {
+  font-weight: 600;
+}
+
+/* Ensure smooth transitions */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Preserve accent colors - these maintain their original Tailwind colors in both themes */
+.bg-gradient-to-r {
+  transition: none;
+}

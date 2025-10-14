@@ -52,12 +52,16 @@ class SalesmanService {
         }
         
         // Set deviceId to empty string if not provided (will be set during first mobile login)
+        // Don't include password yet - we'll set it to the actual ID after creation
+        const { password, ...salesmanDataWithoutPassword } = data;
         const salesmanData = {
-            ...data,
-            deviceId: data.deviceId || ''
+            ...salesmanDataWithoutPassword,
+            deviceId: data.deviceId || '',
+            password: 'temp' // Temporary password
         };
         
-        return await prisma.salesman.create({ 
+        // Create the salesman
+        const newSalesman = await prisma.salesman.create({ 
             data: salesmanData,
             include: {
                 authorities: {
@@ -67,6 +71,21 @@ class SalesmanService {
                 }
             }
         });
+        
+        // Update password to match the actual assigned ID
+        const updatedSalesman = await prisma.salesman.update({
+            where: { salesId: newSalesman.salesId },
+            data: { password: newSalesman.salesId.toString() },
+            include: {
+                authorities: {
+                    include: {
+                        authority: true
+                    }
+                }
+            }
+        });
+        
+        return updatedSalesman;
     }
 
     async updateSalesman(id, data) {
@@ -327,6 +346,7 @@ class SalesmanService {
                   if (visit.startTime) updateData.startTime = parseTimestamp(visit.startTime);
                   if (visit.endTime) updateData.endTime = parseTimestamp(visit.endTime);
                   if (visit.cancelTime) updateData.cancelTime = parseTimestamp(visit.cancelTime);
+                  if (visit.cancelTime) updateDate.cancelTime
             
                   // Determine visit status
                   if (visit.cancelTime) {

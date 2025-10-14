@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Search, MapPin, User, Calendar, CheckCircle, XCircle, Trash2, ArrowDown, Navigation } from 'lucide-react';
 import NotificationModal from './common/NotificationModal';
 import { useNotification } from '../hooks/useNotification';
+  import { useTheme } from '../contexts/ThemeContext';
 
 const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
+  const { theme } = useTheme();
   const { notification, showSuccess, showError, hideNotification } = useNotification();
   const [salesmen, setSalesmen] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -189,34 +191,42 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h2 className="text-2xl font-bold text-white">Plan Routes</h2>
-            <p className="text-gray-400">Assign customers to sales representatives</p>
+            <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Plan Routes</h2>
+            <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Assign customers to sales representatives</p>
           </div>
         </div>
       </div>
 
 
       {/* Salesman Selection */}
-      <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6">
+      <div className={`backdrop-blur-sm rounded-2xl p-6 ${
+        theme === 'dark'
+          ? 'bg-gray-800/40 border border-gray-700/50'
+          : 'bg-white border border-gray-200'
+      }`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
             <User className="text-blue-400" size={20} />
-            <h3 className="text-lg font-semibold text-white">Select Sales Representative</h3>
+            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Select Sales Representative</h3>
           </div>
-          <div className="text-sm text-gray-400">
+          <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
             {filteredSalesmen.length} of {salesmen.length} salesmen
           </div>
         </div>
 
         {/* Search Bar */}
         <div className="relative mb-4">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={20} />
           <input
             type="text"
             placeholder="Search by name, phone, or ID..."
             value={salesmanSearchTerm}
             onChange={(e) => setSalesmanSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-gray-900/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
+            className={`w-full pl-12 pr-4 py-3 rounded-xl focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all ${
+              theme === 'dark'
+                ? 'bg-gray-900/50 border border-gray-700/50 text-white placeholder-gray-500'
+                : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-500'
+            }`}
           />
           {salesmanSearchTerm && (
             <button
@@ -249,22 +259,26 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
                   onClick={() => selectable && setSelectedSalesman(salesman.salesId)}
                   className={`p-4 rounded-xl border-2 transition-all ${
                     !selectable
-                      ? 'border-gray-700/30 bg-gray-800/20 opacity-50 cursor-not-allowed'
+                      ? theme === 'dark'
+                        ? 'border-gray-700/30 bg-gray-800/20 opacity-50 cursor-not-allowed'
+                        : 'border-gray-300/30 bg-gray-100/20 opacity-50 cursor-not-allowed'
                       : selectedSalesman === salesman.salesId
                       ? 'border-blue-500 bg-blue-500/10 cursor-pointer'
-                      : 'border-gray-700/50 bg-gray-800/30 hover:border-gray-600 hover:bg-gray-800/50 cursor-pointer'
+                      : theme === 'dark'
+                        ? 'border-gray-700/50 bg-gray-800/30 hover:border-gray-600 hover:bg-gray-800/50 cursor-pointer'
+                        : 'border-gray-200 bg-white hover:border-blue-200 hover:bg-blue-50/50 cursor-pointer'
                   }`}
                 >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <p className={`font-semibold ${
-                      selectable ? 'text-white' : 'text-gray-500'
+                      selectable ? (theme === 'dark' ? 'text-white' : 'text-gray-900') : 'text-gray-500'
                     }`}>{salesman.name}</p>
                     <p className={`text-sm ${
-                      selectable ? 'text-gray-400' : 'text-gray-600'
+                      selectable ? (theme === 'dark' ? 'text-gray-400' : 'text-gray-600') : 'text-gray-500'
                     }`}>{salesman.phone}</p>
                     <p className={`text-xs mt-1 ${
-                      selectable ? 'text-gray-500' : 'text-gray-600'
+                      selectable ? (theme === 'dark' ? 'text-gray-500' : 'text-gray-600') : 'text-gray-500'
                     }`}>ID: {salesman.salesId}</p>
                     {!selectable && reason && (
                       <div className="mt-2 flex items-center space-x-1">
@@ -309,7 +323,11 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
                 <div key={customerId}>
                   <div className="relative">
                     {/* Route Stop Card */}
-                    <div className="flex items-center space-x-4 p-4 bg-gray-800/50 border border-gray-700/50 rounded-xl hover:border-purple-500/50 transition-all group">
+                    <div className={`flex items-center space-x-4 p-4 rounded-xl hover:border-purple-500/50 transition-all group ${
+                      theme === 'dark'
+                        ? 'bg-gray-800/50 border border-gray-700/50'
+                        : 'bg-white border border-gray-200'
+                    }`}>
                       {/* Order Number */}
                       <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center font-bold text-white shadow-lg">
                         {index + 1}
@@ -317,10 +335,10 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
                       
                       {/* Customer Info */}
                       <div className="flex-1">
-                        <p className="font-semibold text-white">{customer.name}</p>
-                        <p className="text-sm text-gray-400">{customer.address}</p>
+                        <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{customer.name}</p>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{customer.address}</p>
                         {customer.phone && (
-                          <p className="text-xs text-gray-500 mt-1">{customer.phone}</p>
+                          <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>{customer.phone}</p>
                         )}
                       </div>
                       
@@ -387,11 +405,15 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
       )}
 
       {/* Customer Selection */}
-      <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6">
+      <div className={`backdrop-blur-sm rounded-2xl p-6 ${
+        theme === 'dark'
+          ? 'bg-gray-800/40 border border-gray-700/50'
+          : 'bg-white border border-gray-200'
+      }`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
             <MapPin className="text-purple-400" size={20} />
-            <h3 className="text-lg font-semibold text-white">Select Customers to Visit</h3>
+            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Select Customers to Visit</h3>
           </div>
           <div className="flex items-center space-x-2">
             <button
@@ -412,13 +434,17 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
         {/* Search Bar */}
         <div className="mb-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
             <input
               type="text"
               placeholder="Search customers by name, address, or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+              className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all ${
+                theme === 'dark'
+                  ? 'bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-400'
+                  : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-500'
+              }`}
             />
           </div>
         </div>
@@ -444,17 +470,21 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
                 className={`p-4 rounded-xl border cursor-pointer transition-all ${
                   selectedCustomers.includes(customer.customerId)
                     ? 'border-purple-500 bg-purple-500/10'
-                    : 'border-gray-700/50 bg-gray-800/30 hover:border-gray-600 hover:bg-gray-800/50'
+                    : theme === 'dark'
+                      ? 'border-gray-700/50 bg-gray-800/30 hover:border-gray-600 hover:bg-gray-800/50'
+                      : 'border-gray-200 bg-white hover:border-purple-200 hover:bg-purple-50/30'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="font-semibold text-white">{customer.name}</p>
-                    <p className="text-sm text-gray-400">{customer.address}</p>
+                    <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{customer.name}</p>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{customer.address}</p>
                     <div className="flex items-center space-x-4 mt-1">
-                      <p className="text-xs text-gray-500">{customer.phone}</p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>{customer.phone}</p>
                       {customer.industry && (
-                        <span className="text-xs px-2 py-1 bg-gray-700/50 rounded text-gray-400">
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          theme === 'dark' ? 'bg-gray-700/50 text-gray-400' : 'bg-gray-100 text-gray-600'
+                        }`}>
                           {customer.industry}
                         </span>
                       )}

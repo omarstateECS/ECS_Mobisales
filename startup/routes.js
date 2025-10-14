@@ -6,6 +6,7 @@ const salesmenRoute = require('../routes/salesman');
 const authorityRoute = require('../routes/authority');
 const visitsRoute = require('../routes/visit');
 const authRoute = require('../routes/auth');
+const settingsRoute = require('../routes/settings');
 
 module.exports = function(app) { 
     app.use(express.json());
@@ -15,4 +16,5 @@ module.exports = function(app) {
     app.use('/api/salesmen', salesmenRoute);
     app.use('/api/authorities', authorityRoute);
     app.use('/api/visits', visitsRoute);
+    app.use('/api/settings', settingsRoute);
 };

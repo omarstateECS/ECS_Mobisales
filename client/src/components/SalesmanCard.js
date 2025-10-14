@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { User, Phone, MapPin, Smartphone, Edit, Eye, Trash2 } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 const SalesmanCard = ({ 
   salesman, 
@@ -9,6 +10,7 @@ const SalesmanCard = ({
   onDelete, 
   isDeleting 
 }) => {
+  const { theme } = useTheme();
   const getStatusColor = (status) => {
     switch (status) {
       case 'ACTIVE':
@@ -42,7 +44,11 @@ const SalesmanCard = ({
       exit={{ opacity: 0, y: -20 }}
       whileHover={{ y: -5 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 hover:border-gray-600/50 transition-all duration-300 salesman-card h-[420px] flex flex-col"
+      className={`backdrop-blur-sm rounded-2xl p-6 transition-all duration-300 salesman-card h-[420px] flex flex-col ${
+        theme === 'dark'
+          ? 'bg-gray-800/50 border border-gray-700/50 hover:border-gray-600/50'
+          : 'bg-white border border-gray-200 hover:border-blue-200 hover:shadow-lg'
+      }`}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
@@ -51,10 +57,10 @@ const SalesmanCard = ({
             <User size={20} className="text-green-400" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-semibold text-white truncate">
+            <h3 className={`text-lg font-semibold truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               {salesman.name}
             </h3>
-            <p className="text-sm text-gray-400">ID: {salesman.salesId}</p>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>ID: {salesman.salesId}</p>
           </div>
         </div>
         <div className={`px-2 py-1 rounded-lg text-xs font-medium border ${getStatusColor(salesman.status)}`}>
@@ -66,36 +72,36 @@ const SalesmanCard = ({
       <div className="flex-1 space-y-3">
         {/* Phone */}
         <div className="flex items-center space-x-3">
-          <Phone size={16} className="text-gray-400 flex-shrink-0" />
-          <span className="text-gray-300 text-sm truncate">
+          <Phone size={16} className={`flex-shrink-0 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+          <span className={`text-sm truncate ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
             {salesman.phone}
           </span>
         </div>
 
         {/* Address */}
         <div className="flex items-start space-x-3">
-          <MapPin size={16} className="text-gray-400 flex-shrink-0 mt-0.5" />
-          <span className="text-gray-300 text-sm line-clamp-2">
+          <MapPin size={16} className={`flex-shrink-0 mt-0.5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+          <span className={`text-sm line-clamp-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
             {salesman.address || 'No address provided'}
           </span>
         </div>
 
         {/* Device ID */}
         <div className="flex items-center space-x-3">
-          <Smartphone size={16} className="text-gray-400 flex-shrink-0" />
-          <span className="text-gray-300 text-sm truncate">
+          <Smartphone size={16} className={`flex-shrink-0 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+          <span className={`text-sm truncate ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
             {salesman.deviceId || 'No device ID'}
           </span>
         </div>
 
         {/* Created Date */}
-        <div className="text-xs text-gray-500">
+        <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>
           Created: {new Date(salesman.createdAt).toLocaleDateString()}
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-end space-x-2 mt-4 pt-4 border-t border-gray-700/50">
+      <div className={`flex items-center justify-end space-x-2 mt-4 pt-4 border-t ${theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200'}`}>
         <button
           onClick={() => onViewDetails(salesman)}
           className="p-2 rounded-lg hover:bg-blue-600/20 text-gray-400 hover:text-blue-400 transition-colors flex-shrink-0"

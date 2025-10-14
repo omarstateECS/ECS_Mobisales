@@ -178,6 +178,12 @@ const Sidebar = ({
           onClick: () => handleNavigation('salesman-analytics')
         }
       ]
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: Settings,
+      onClick: () => handleNavigation('settings')
     }
   ];
 

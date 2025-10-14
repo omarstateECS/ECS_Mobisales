@@ -4,6 +4,7 @@ const productService = require('../services/productService');
 const reasonService = require('../services/reasonService');
 const invoiceService = require('../services/invoiceService');
 const journeyService = require('../services/journeyService');
+const settingsService = require('../services/settingsService');
 
 module.exports = {
     async syncData(req, res) {
@@ -14,12 +15,13 @@ module.exports = {
           return res.status(400).json({ error: 'Salesman ID is required' });
         }
   
-        const [visits, products, reasons, lastInvoice, latestJourney] = await Promise.all([
+        const [visits, products, reasons, lastInvoice, latestJourney, settings] = await Promise.all([
           visitService.getTodayVisits(salesmanId),
           productService.getAllProducts(),
           reasonService.getAllReasons(),
           invoiceService.getLastInvoice(salesmanId),
-          journeyService.getLatestJourney(salesmanId)
+          journeyService.getLatestJourney(salesmanId),
+          settingsService.getSettings()
         ]);
 
         // Generate startIdInvoice pattern: last 5 digits of salesId + 5-digit invoice sequence
@@ -41,7 +43,11 @@ module.exports = {
           products,
           reasons,
           startIdInvoice,
-          journeyId: latestJourney?.journeyId || null
+          journeyId: latestJourney?.journeyId || null,
+          settings: {
+            customInvoice: settings?.customInvoice || false,
+            visitSequence: settings?.visitSequence || false
+          }
         });
       } catch (error) {
         console.error('Sync Error:', error);

@@ -7,6 +7,7 @@ import CustomersView from './components/CustomersView';
 import ProductsView from './components/ProductsView';
 import SalesmenView from './components/SalesmenView';
 import PlanRoutesPage from './components/PlanRoutesPage';
+import SettingsPage from './components/SettingsPage';
 import AddCustomerModal from './components/AddCustomerModal';
 import EditCustomerModal from './components/EditCustomerModal';
 import CustomerDetailsPage from './components/CustomerDetailsPage';
@@ -17,8 +18,11 @@ import SalesmanDetailsPage from './components/SalesmanDetailsPage';
 import ConfirmationModal from './components/common/ConfirmationModal';
 import NotificationModal from './components/common/NotificationModal';
 import { useNotification } from './hooks/useNotification';
+import { useTheme } from './contexts/ThemeContext';
+import './theme.css';
 
 const Dashboard = () => {
+  const { theme } = useTheme();
   const { notification, showSuccess, showDelete, showError, showWarning, hideNotification } = useNotification();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState({
@@ -771,6 +775,19 @@ const Dashboard = () => {
           </motion.div>
         );
       
+      case 'settings':
+        return (
+          <motion.div
+            key="settings"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <SettingsPage />
+          </motion.div>
+        );
+      
       default:
         return (
           <motion.div
@@ -793,7 +810,11 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-slate-900">
+    <div className={`min-h-screen ${
+      theme === 'dark' 
+        ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-slate-900' 
+        : 'bg-gray-50'
+    }`}>
       {/* Add Customer Modal */}
       <AddCustomerModal
         showAddCustomerModal={showAddCustomerModal}

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { ArrowLeft, Plus, Search, Package, Eye, Settings, Trash2, Edit, ChevronLeft, ChevronRight, BarChart3, Tag } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 import axios from 'axios';
-import { Package, Tag, BarChart3, Eye, Settings, Trash2, Edit, Search, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import AddProductModal from './AddProductModal';
 import ConfirmationModal from './common/ConfirmationModal';
 import NotificationModal from './common/NotificationModal';

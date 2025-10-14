@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Store, Users, Route, Package, Plus, MapPin } from 'lucide-react';
 import StatsCard from './StatsCard';
+import { useTheme } from '../contexts/ThemeContext';
 
 const DashboardContent = ({
   customers,
@@ -9,6 +10,7 @@ const DashboardContent = ({
   fetchCustomers,
   handleNavigation
 }) => {
+  const { theme } = useTheme();
   const [dashboardStats, setDashboardStats] = useState({ totalCustomers: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
 
@@ -79,13 +81,19 @@ const DashboardContent = ({
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Welcome Card */}
-        <div className="lg:col-span-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm border border-blue-500/20 rounded-2xl p-8 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-2xl"></div>
+        <div className={`lg:col-span-2 backdrop-blur-sm rounded-2xl p-8 relative overflow-hidden ${
+          theme === 'dark'
+            ? 'bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/20'
+            : 'bg-gradient-to-br from-blue-100 to-blue-200 border border-blue-300 shadow-lg'
+        }`}>
+          <div className={`absolute inset-0 rounded-2xl ${
+            theme === 'dark' ? 'bg-gradient-to-r from-blue-600/10 to-purple-600/10' : ''
+          }`}></div>
           <div className="relative z-10">
-            <h3 className="text-2xl font-bold text-white mb-4">
+            <h3 className={`text-2xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Welcome to MobiSales Dashboard
             </h3>
-            <p className="text-gray-300 mb-6 leading-relaxed">
+            <p className={`mb-6 leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               Efficiently manage your sales representatives, assign routes to customer locations, 
               and track restocking operations all in one powerful dashboard. Get started by exploring 
               your customers, managing routes, or viewing analytics.
@@ -96,8 +104,12 @@ const DashboardContent = ({
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6">
-          <h3 className="text-xl font-bold text-white mb-6">Quick Actions</h3>
+        <div className={`backdrop-blur-sm rounded-2xl p-6 ${
+          theme === 'dark'
+            ? 'bg-gray-800/40 border border-gray-700/50'
+            : 'bg-gradient-to-br from-teal-50 to-cyan-50 border border-teal-200 shadow-lg'
+        }`}>
+          <h3 className={`text-xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Quick Actions</h3>
           <div className="space-y-4">
             {[
               { icon: Plus, label: 'Add Customer', color: 'from-emerald-500 to-emerald-600', onClick: openAddCustomerModal },
@@ -110,12 +122,18 @@ const DashboardContent = ({
                 <button
                   key={index}
                   onClick={action.onClick}
-                  className="w-full flex items-center space-x-3 p-4 rounded-xl bg-gray-800/30 hover:bg-gray-800/60 transition-all duration-200 group"
+                  className={`w-full flex items-center space-x-3 p-4 rounded-xl transition-all duration-200 group ${
+                    theme === 'dark'
+                      ? 'bg-gray-800/30 hover:bg-gray-800/60'
+                      : 'bg-gradient-to-r from-gray-50 to-white hover:from-gray-100 hover:to-gray-50 border border-gray-200/60 hover:border-gray-300 hover:shadow-md'
+                  }`}
                 >
                   <div className={`w-10 h-10 bg-gradient-to-r ${action.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
                     <Icon className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-gray-300 group-hover:text-white font-medium transition-colors">
+                  <span className={`font-medium transition-colors ${
+                    theme === 'dark' ? 'text-gray-300 group-hover:text-white' : 'text-gray-700 group-hover:text-gray-900'
+                  }`}>
                     {action.label}
                   </span>
                 </button>
@@ -126,9 +144,13 @@ const DashboardContent = ({
       </div>
 
       {/* Customer List */}
-      <div className="mt-8 bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6">
+      <div className={`mt-8 backdrop-blur-sm rounded-2xl p-6 ${
+        theme === 'dark'
+          ? 'bg-gray-800/40 border border-gray-700/50'
+          : 'bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 shadow-lg'
+      }`}>
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-white">
+          <h3 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
             Recent Customers ({customers.length})
           </h3>
           <button 
@@ -140,18 +162,22 @@ const DashboardContent = ({
         </div>
         {loading ? (
           <div className="text-center py-8">
-            <div className="text-gray-400">Loading customers...</div>
+            <div className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Loading customers...</div>
           </div>
         ) : customers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {customers.slice(0, 6).map((customer) => (
-              <div key={customer.id} className="p-4 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors cursor-pointer">
+              <div key={customer.id} className={`p-4 rounded-xl transition-all cursor-pointer ${
+                theme === 'dark'
+                  ? 'bg-gray-800/30 hover:bg-gray-800/50'
+                  : 'bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-purple-50 border border-amber-200/60 hover:border-blue-300 hover:shadow-md'
+              }`}>
                 <div className="flex items-center space-x-3 mb-2">
                   <Store className="w-5 h-5 text-blue-400" />
-                  <h4 className="font-medium text-white">{customer.name}</h4>
+                  <h4 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{customer.name}</h4>
                 </div>
                 {(customer.latitude && customer.longitude) && (
-                  <p className="text-sm text-gray-400 flex items-center space-x-1">
+                  <p className={`text-sm flex items-center space-x-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                     <MapPin size={12} />
                     <span>{customer.latitude}, {customer.longitude}</span>
                   </p>
@@ -166,8 +192,8 @@ const DashboardContent = ({
           </div>
         ) : (
           <div className="text-center py-8">
-            <Store className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400">No customers found</p>
+            <Store className={`w-12 h-12 mx-auto mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
+            <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>No customers found</p>
           </div>
         )}
       </div>

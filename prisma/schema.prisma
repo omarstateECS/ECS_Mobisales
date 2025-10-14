@@ -236,3 +236,14 @@ enum VisitStatus {
   WAIT
   CANCEL
 }
+
+model Settings {
+  settingId      Int      @id @default(autoincrement())
+  name           String   @unique
+  value          Boolean  @default(false)
+  textValue      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("settings")
+}
