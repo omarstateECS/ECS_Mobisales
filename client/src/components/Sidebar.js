@@ -11,7 +11,8 @@ import {
   User,
   X,
   Package,
-  MapPin
+  MapPin,
+  Route
 } from 'lucide-react';
 
 const SidebarItem = ({ item, isChild = false, expandedMenus, toggleMenu }) => {
@@ -178,6 +179,12 @@ const Sidebar = ({
           onClick: () => handleNavigation('salesman-analytics')
         }
       ]
+    },
+    {
+      id: 'tours',
+      label: 'Tours',
+      icon: Route,
+      onClick: () => handleNavigation('tours')
     },
     {
       id: 'settings',

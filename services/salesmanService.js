@@ -3,6 +3,7 @@ const visitService = require('./visitService');
 const productService = require('./productService');
 const customerService = require('./customerService');
 const invoiceService = require('./invoiceService');
+const actionService = require('./actionService');
 
 
 class SalesmanService {
@@ -214,15 +215,21 @@ class SalesmanService {
     async getStats() {
         const prisma = getPrismaClient();
         const totalSales = await prisma.salesman.count();
+        const activeSales = await prisma.salesman.count({
+            where: {
+                status: 'ACTIVE'
+            }
+        });
     
         return {
-            totalSales
+            totalSales,
+            activeSales
         };
     } 
 
     async checkIn(checkInData) {
         const prisma = getPrismaClient();
-        const { salesmanId, deviceId, journeyId, salesman, visits, invoices, products } = checkInData;
+        const { salesmanId, deviceId, journeyId, salesman, visits, invoices, products, actions } = checkInData;
     
         const result = await prisma.$transaction(async (tx) => {
             const foundSalesman = await tx.salesman.findUnique({
@@ -301,7 +308,8 @@ class SalesmanService {
                             ...invoice,
                             invId: invoice.invId || invoice.id,
                             salesId: invoice.salesId || salesmanId,
-                            journeyId: journeyId
+                            journeyId: journeyId,
+                            visitId: invoice.visitId
                         };
     
                         const createdInvoice = await invoiceService.createInvoice(invoiceData, tx);
@@ -340,39 +348,207 @@ class SalesmanService {
             if (Array.isArray(visits) && visits.length > 0) {
               for (const visit of visits) {
                 try {   
-                  const updateData = {};
+                  const visitData = {};
                   
                   // Handle timestamps
-                  if (visit.startTime) updateData.startTime = parseTimestamp(visit.startTime);
-                  if (visit.endTime) updateData.endTime = parseTimestamp(visit.endTime);
-                  if (visit.cancelTime) updateData.cancelTime = parseTimestamp(visit.cancelTime);
-                  if (visit.cancelTime) updateDate.cancelTime
+                  if (visit.startTime) visitData.startTime = parseTimestamp(visit.startTime);
+                  if (visit.endTime) visitData.endTime = parseTimestamp(visit.endTime);
+                  if (visit.cancelTime) visitData.cancelTime = parseTimestamp(visit.cancelTime);
             
                   // Determine visit status
                   if (visit.cancelTime) {
-                    updateData.status = 'CANCEL';
+                    visitData.status = 'CANCEL';
                   } else if (visit.endTime) {
-                    updateData.status = 'END';
+                    visitData.status = 'END';
                   } else if (visit.startTime) {
-                    updateData.status = 'START';
+                    visitData.status = 'START';
                   } else {
                     throw new Error(`Invalid visit update: missing timestamps for visit ${visit.visitId || visit.id}`);
                   }
             
-                  // Use composite key for visit update
-                  const visitIdentifier = {
-                    visitId: visit.visitId || visit.id,
-                    salesId: visit.salesId || salesmanId,
-                    journeyId: visit.journeyId || journeyId
-                  };
+                  // Use composite key for visit upsert (create or update)
+                  const visitId = visit.visitId || visit.id;
+                  const custId = visit.custId || visit.customerId;
+                  
+                  await tx.visit.upsert({
+                    where: {
+                      visitId_salesId_journeyId: {
+                        visitId: visitId,
+                        salesId: salesmanId,
+                        journeyId: journeyId
+                      }
+                    },
+                    update: visitData,
+                    create: {
+                      visitId: visitId,
+                      custId: custId,
+                      salesId: salesmanId,
+                      journeyId: journeyId,
+                      ...visitData
+                    }
+                  });
             
-                  await visitService.updateVisit(visitIdentifier, updateData, tx);
-            
-                  updatedVisits.push({ visitId: visit.visitId || visit.id, status: 'success' });
+                  updatedVisits.push({ visitId: visitId, status: 'success' });
             
                 } catch (error) {
-                  throw new Error(`❌ Failed to update visit ${visit.visitId || visit.id}: ${error.message}`);
+                  throw new Error(`❌ Failed to upsert visit ${visit.visitId || visit.id}: ${error.message}`);
                 }
+              }
+            }
+
+            // === ACTIONS ===
+            console.log('═══════════════════════════════════════');
+            console.log('🚀 ACTIONS SECTION STARTING');
+            console.log('Actions received:', actions ? actions.length : 'NULL');
+            console.log('Visits received:', visits ? visits.length : 'NULL');
+            if (visits && visits.length > 0) {
+              console.log('First visit:', visits[0]);
+              console.log('Last visit:', visits[visits.length - 1]);
+            }
+            console.log('═══════════════════════════════════════');
+            
+            let actionCount = 0;
+            if (Array.isArray(actions) && actions.length > 0) {
+              try {
+                // Prepare all actions for bulk insert
+                const actionDataArray = actions.map(action => ({
+                  id: action.id,
+                  journeyId: journeyId,
+                  visitId: action.visitId,
+                  salesId: salesmanId,
+                  actionId: action.actionId,
+                  createdAt: parseTimestamp(action.createdAt)
+                }));
+                
+                console.log('📋 Actions before modification:', actionDataArray.filter(a => a.actionId === 1 || a.actionId === 2));
+
+                // Handle journey-level actions (start/end journey)
+                console.log('🔍 Visits array:', visits ? visits.map(v => ({ visitId: v.visitId || v.id, createdAt: v.createdAt })) : 'null');
+                
+                // Find startJourney action (actionId = 1)
+                const startJourneyAction = actionDataArray.find(a => a.actionId === 1);
+                if (startJourneyAction && (startJourneyAction.visitId === 0 || !startJourneyAction.visitId)) {
+                  console.log('🔍 Start journey action found with visitId:', startJourneyAction.visitId);
+                  // Set to first visit in the visits array
+                  if (visits && visits.length > 0) {
+                    const firstVisitId = visits[0].visitId || visits[0].id;
+                    console.log('✅ Setting start journey visitId to:', firstVisitId);
+                    startJourneyAction.visitId = firstVisitId;
+                  } else {
+                    // No visits in request - query DB for existing visits
+                    console.log('⚠️ No visits in request, querying DB for existing visits');
+                    const existingVisitsForJourney = await tx.visit.findMany({
+                      where: {
+                        salesId: salesmanId,
+                        journeyId: journeyId
+                      },
+                      orderBy: { createdAt: 'asc' },
+                      take: 1,
+                      select: { visitId: true }
+                    });
+                    
+                    if (existingVisitsForJourney.length > 0) {
+                      startJourneyAction.visitId = existingVisitsForJourney[0].visitId;
+                      console.log('✅ Setting start journey visitId to first DB visit:', startJourneyAction.visitId);
+                    } else {
+                      console.warn('⚠️ No visits available for start journey action');
+                    }
+                  }
+                }
+
+                // Find endJourney action (actionId = 2)
+                const endJourneyAction = actionDataArray.find(a => a.actionId === 2);
+                if (endJourneyAction && (endJourneyAction.visitId === 0 || !endJourneyAction.visitId)) {
+                  console.log('🔍 End journey action found with visitId:', endJourneyAction.visitId);
+                  // Set to the last visit based on createdAt
+                  if (visits && visits.length > 0) {
+                    // Sort visits by createdAt to find the most recent one
+                    const sortedVisits = [...visits].sort((a, b) => {
+                      const dateA = new Date(a.createdAt || a.startTime || 0);
+                      const dateB = new Date(b.createdAt || b.startTime || 0);
+                      return dateB - dateA; // Descending order (most recent first)
+                    });
+                    const lastVisitId = sortedVisits[0].visitId || sortedVisits[0].id;
+                    console.log('✅ Setting end journey visitId to:', lastVisitId);
+                    endJourneyAction.visitId = lastVisitId;
+                  } else {
+                    // No visits in request - query DB for existing visits
+                    console.log('⚠️ No visits in request, querying DB for existing visits');
+                    const existingVisitsForJourney = await tx.visit.findMany({
+                      where: {
+                        salesId: salesmanId,
+                        journeyId: journeyId
+                      },
+                      orderBy: { createdAt: 'desc' },
+                      take: 1,
+                      select: { visitId: true }
+                    });
+                    
+                    if (existingVisitsForJourney.length > 0) {
+                      endJourneyAction.visitId = existingVisitsForJourney[0].visitId;
+                      console.log('✅ Setting end journey visitId to last DB visit:', endJourneyAction.visitId);
+                    } else {
+                      console.warn('⚠️ No visits available for end journey action');
+                    }
+                  }
+                }
+
+                console.log('📋 Actions AFTER modification:', actionDataArray.filter(a => a.actionId === 1 || a.actionId === 2));
+                console.log('═══════════════════════════════════════');
+
+                // Validate all visitIds exist before inserting
+                console.log('🔍 Action data before validation:', JSON.stringify(actionDataArray, null, 2));
+                
+                // Filter out actions that still have visitId 0 (couldn't be assigned to any visit)
+                const actionsWithValidVisitIds = actionDataArray.filter(action => {
+                  if (action.visitId === 0 || !action.visitId) {
+                    console.warn(`⚠️ Skipping action ${action.id} (actionId: ${action.actionId}) - visitId is 0 or null, no visits available`);
+                    return false;
+                  }
+                  return true;
+                });
+                
+                const uniqueVisitIds = [...new Set(actionsWithValidVisitIds.map(a => a.visitId))];
+                console.log('🔍 Unique visitIds to validate:', uniqueVisitIds);
+                
+                const existingVisits = await tx.visit.findMany({
+                  where: {
+                    salesId: salesmanId,
+                    journeyId: journeyId,
+                    visitId: { in: uniqueVisitIds }
+                  },
+                  select: { visitId: true, salesId: true, journeyId: true }
+                });
+                
+                console.log('✅ Existing visits in DB:', JSON.stringify(existingVisits, null, 2));
+                
+                const existingVisitIds = new Set(existingVisits.map(v => v.visitId));
+                
+                // Filter to only valid actions
+                const validActions = actionsWithValidVisitIds.filter(action => {
+                  const isValid = existingVisitIds.has(action.visitId);
+                  if (!isValid) {
+                    console.warn(`⚠️ Skipping action ${action.id} (actionId: ${action.actionId}) - visitId ${action.visitId} does not exist in DB`);
+                  }
+                  return isValid;
+                });
+                
+                console.log(`📊 Valid actions: ${validActions.length}/${actionDataArray.length}`);
+
+                if (validActions.length === 0) {
+                  console.warn('⚠️ No valid actions to insert');
+                  actionCount = 0;
+                } else {
+                  // Bulk insert all actions at once
+                  const result = await tx.actionDetails.createMany({
+                    data: validActions,
+                    skipDuplicates: true  // Skip if ID already exists
+                  });
+
+                  actionCount = result.count;
+                }
+              } catch (error) {
+                throw new Error(`❌ Failed to create actions: ${error.message}`);
               }
             }
     
@@ -381,11 +557,78 @@ class SalesmanService {
                 journeyId: journey ? journey.journeyId : null,
                 invoiceCount: invoices ? (Array.isArray(invoices) ? invoices.length : 1) : 0,
                 visitCount: visits ? visits.length : 0,
+                actionCount: actionCount,
                 productCount: products ? products.length : 0,
             };
         });
     
         return result;
+    }
+
+    async createVisit(visitData) {
+        const prisma = getPrismaClient();
+        
+        // Validate required customer fields
+        if (!visitData.name) {
+            throw new Error('❌ Customer name is required to create a visit');
+        }
+        
+        try {
+            const existingVisit = await prisma.visit.findUnique({
+                where: {
+                    visitId_salesId_journeyId: {
+                        visitId: visitData.visitId,
+                        salesId: visitData.salesId,
+                        journeyId: visitData.journeyId
+                    }
+                },
+                include: {
+                    customer: true
+                }
+            });
+
+            if (existingVisit) {
+                return {
+                    customerId: existingVisit.customer.customerId,
+                };
+            }
+
+            // CREATE THE NEW CUSTOMER FIRST
+            const customer = await prisma.customer.create({
+                data: {
+                    name: visitData.name,
+                    phone: visitData.phone,
+                    address: visitData.address,
+                    latitude: visitData.latitude,
+                    longitude: visitData.longitude,
+                    industry: visitData.industry,
+                }
+            });
+            
+            // CREATE THE NEW VISIT
+            const visit = await prisma.visit.create({
+                data: {
+                    visitId: visitData.visitId,
+                    salesman: {
+                        connect: { salesId: visitData.salesId }
+                    },
+                    journey: {
+                        connect: { 
+                            journeyId_salesId: {
+                                journeyId: visitData.journeyId,
+                                salesId: visitData.salesId
+                            }
+                        }
+                    },
+                    customer: {
+                        connect: { customerId: customer.customerId }
+                    }
+                }
+            });
+            return {customerId: customer.customerId};
+        } catch (error) {
+            throw new Error(`❌ Failed to create visit: ${error.message}`);
+        }
     }
 }
 

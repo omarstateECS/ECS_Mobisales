@@ -92,6 +92,7 @@ class InvoiceService {
                         custId: parseInt(headerData.custId || headerData.customerId),
                         salesId: parseInt(headerData.salesId),
                         journeyId: parseInt(headerData.journeyId),
+                        visitId: parseInt(headerData.visitId),
                         createdAt: headerData.createdAt ? new Date(headerData.createdAt) : new Date(),
                         invType: headerData.invType || headerData.int_type || 'SALE',
                         reasonId: headerData.reasonId ? parseInt(headerData.reasonId) : null,

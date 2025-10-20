@@ -119,7 +119,8 @@ model Visit {
   customer   Customer    @relation(fields: [custId], references: [customerId], onDelete: Cascade)
   salesman   Salesman    @relation(fields: [salesId], references: [salesId], onDelete: Cascade)
   journey    Journies    @relation("VisitToJourney", fields: [journeyId, salesId], references: [journeyId, salesId], onDelete: Cascade)
-
+  actionDetails actionDetails[]
+  invoices   InvoiceHeader[]
 
   @@id([visitId, salesId, journeyId])
 
@@ -138,6 +139,7 @@ model InvoiceHeader {
   custId         Int
   salesId        Int
   journeyId      Int
+  visitId        Int
   createdAt      DateTime
   updatedAt      DateTime      @updatedAt
   invType        InvoiceType
@@ -153,6 +155,7 @@ model InvoiceHeader {
   salesman       Salesman      @relation(fields: [salesId], references: [salesId], onDelete: Cascade)
   journey        Journies      @relation("InvoiceToJourney", fields: [journeyId, salesId], references: [journeyId, salesId], onDelete: Cascade)
   reason         Reasons?      @relation("InvoiceHeaderReason", fields: [reasonId], references: [reasonId], onDelete: Cascade)
+  visit          Visit         @relation(fields: [visitId, salesId, journeyId], references: [visitId, salesId, journeyId], onDelete: Cascade)
 
   @@id([invId, salesId])
 }
@@ -201,6 +204,43 @@ model Journies {
 }
 
 
+model Settings {
+  settingId      Int      @id @default(autoincrement())
+  name           String   @unique
+  value          Boolean  @default(false)
+  textValue      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model actionDetails {
+  id              Int 
+  journeyId       Int
+  visitId         Int
+  salesId         Int
+  actionId        Int
+  createdAt       DateTime @default(now())
+  
+  visit           Visit    @relation(fields: [visitId, salesId, journeyId], references: [visitId, salesId, journeyId], onDelete: Cascade)
+  action          actions  @relation(fields: [actionId], references: [actionId], onDelete: Cascade)
+
+  @@id([id, journeyId, visitId])
+  @@map("action_details")
+}
+
+model actions {
+  actionId        Int @id @default(autoincrement())
+  name            String
+  createdAt       DateTime @default(now())
+  actionDetails   actionDetails[]
+
+  @@map("actions")
+}
+
+
+
 enum UnitType {
   PIECE
   BOX
@@ -235,15 +275,4 @@ enum VisitStatus {
   END
   WAIT
   CANCEL
-}
-
-model Settings {
-  settingId      Int      @id @default(autoincrement())
-  name           String   @unique
-  value          Boolean  @default(false)
-  textValue      String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  @@map("settings")
 }

@@ -11,20 +11,28 @@ const DashboardContent = ({
   handleNavigation
 }) => {
   const { theme } = useTheme();
-  const [dashboardStats, setDashboardStats] = useState({ totalCustomers: 0 });
+  const [dashboardStats, setDashboardStats] = useState({ 
+    totalCustomers: 0,
+    activeSales: 0
+  });
   const [statsLoading, setStatsLoading] = useState(true);
 
   // Fetch dashboard stats independently
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/customers/stats');
-        if (response.ok) {
-          const data = await response.json();
-          setDashboardStats(data);
-        } else {
-          console.error('Failed to fetch dashboard stats');
-        }
+        const [customersResponse, salesmenResponse] = await Promise.all([
+          fetch('http://localhost:3000/api/customers/stats'),
+          fetch('http://localhost:3000/api/salesmen/stats')
+        ]);
+        
+        const customersData = customersResponse.ok ? await customersResponse.json() : { totalCustomers: 0 };
+        const salesmenData = salesmenResponse.ok ? await salesmenResponse.json() : { data: { activeSales: 0 } };
+        
+        setDashboardStats({
+          totalCustomers: customersData.totalCustomers,
+          activeSales: salesmenData.data.activeSales
+        });
       } catch (error) {
         console.error('Error fetching dashboard stats:', error);
       } finally {
@@ -45,7 +53,7 @@ const DashboardContent = ({
     },
     {
       title: 'Active Sales Reps',
-      value: '52',
+      value: statsLoading ? '...' : dashboardStats.activeSales.toString(),
       change: '+3%',
       changeType: 'increase',
       icon: Users,

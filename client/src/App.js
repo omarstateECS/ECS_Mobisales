@@ -15,6 +15,8 @@ import AddProductModal from './components/AddProductModal';
 import AddSalesmanModal from './components/AddSalesmanModal';
 import EditSalesmanModal from './components/EditSalesmanModal';
 import SalesmanDetailsPage from './components/SalesmanDetailsPage';
+import ToursView from './components/ToursView';
+import TourDetailsPage from './components/TourDetailsPage';
 import ConfirmationModal from './components/common/ConfirmationModal';
 import NotificationModal from './components/common/NotificationModal';
 import { useNotification } from './hooks/useNotification';
@@ -78,6 +80,10 @@ const Dashboard = () => {
   const [showSalesmanDetails, setShowSalesmanDetails] = useState(false);
   const [selectedSalesman, setSelectedSalesman] = useState(null);
 
+  // Tour details view states
+  const [showTourDetails, setShowTourDetails] = useState(false);
+  const [selectedTour, setSelectedTour] = useState(null);
+
   // Add Product Modal states
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [productsRefreshKey, setProductsRefreshKey] = useState(0);
@@ -110,7 +116,7 @@ const Dashboard = () => {
     setSalesmenRefreshKey(prev => prev + 1);
     // Optionally add the new salesman to the current list
     if (newSalesman) {
-      setSalesmen(prev => [newSalesman, ...prev]);
+      setSalesmen(prev => [...prev, newSalesman]);
     }
   };
 
@@ -118,14 +124,12 @@ const Dashboard = () => {
   const handleSalesmanUpdated = (updatedSalesman) => {
     setShowEditSalesmanModal(false);
     setEditingSalesman(null);
-    setSalesmenRefreshKey(prev => prev + 1);
     
     // Update the salesman in the current list
     if (updatedSalesman) {
-      setSalesmen(prev => prev.map(s => s.id === updatedSalesman.id ? updatedSalesman : s));
-      
+      setSalesmen(prev => prev.map(s => s.salesId === updatedSalesman.salesId ? updatedSalesman : s));
       // If we're currently viewing this salesman's details, update the selected salesman too
-      if (selectedSalesman && selectedSalesman.id === updatedSalesman.id) {
+      if (selectedSalesman && selectedSalesman.salesId === updatedSalesman.salesId) {
         console.log('🔄 Updating selected salesman after edit:', updatedSalesman);
         setSelectedSalesman(updatedSalesman);
       }
@@ -488,6 +492,17 @@ const Dashboard = () => {
     setSelectedSalesman(null);
   };
 
+  // Tour details functions
+  const handleViewTourDetails = (tour) => {
+    setSelectedTour(tour);
+    setShowTourDetails(true);
+  };
+
+  const handleBackFromTourDetails = () => {
+    setShowTourDetails(false);
+    setSelectedTour(null);
+  };
+
   // Function to refresh selected salesman data
   const refreshSelectedSalesman = async () => {
     if (!selectedSalesman?.id) return;
@@ -652,8 +667,10 @@ const Dashboard = () => {
     // Close any open detail pages when navigating
     setShowCustomerDetails(false);
     setShowSalesmanDetails(false);
+    setShowTourDetails(false);
     setSelectedCustomer(null);
     setSelectedSalesman(null);
+    setSelectedTour(null);
   };
 
   // Render different views based on currentView state
@@ -691,6 +708,23 @@ const Dashboard = () => {
             onEdit={handleEditSalesmanFromDetails}
             onRefresh={refreshSelectedSalesman}
             handleNavigation={handleNavigation}
+          />
+        </motion.div>
+      );
+    }
+
+    if (showTourDetails && selectedTour) {
+      return (
+        <motion.div
+          key="tour-details"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          <TourDetailsPage
+            journey={selectedTour}
+            onBack={handleBackFromTourDetails}
           />
         </motion.div>
       );
@@ -771,6 +805,22 @@ const Dashboard = () => {
             <PlanRoutesPage
               handleNavigation={handleNavigation}
               salesmenRefreshKey={salesmenRefreshKey}
+            />
+          </motion.div>
+        );
+      
+      case 'tours':
+        return (
+          <motion.div
+            key="tours"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <ToursView
+              handleNavigation={handleNavigation}
+              onViewTourDetails={handleViewTourDetails}
             />
           </motion.div>
         );

@@ -2,43 +2,43 @@ const { getPrismaClient } = require('../lib/prisma');
 
 const products = [
   // Beverages
-  { name: "Coca Cola 330ml", category: "Beverages", stock: 500, baseUom: "PCE", basePrice: 1.50, units: [
+  { name: "Coca Cola 330ml", category: "Beverages", stock: 500, baseUom: "PCE", basePrice: 12.00, units: [
     { uom: "PCE", uomName: "Piece", barcode: "CC330001", num: 1, denum: 1 },
     { uom: "BOX", uomName: "Box (24 pcs)", barcode: "CC330024", num: 24, denum: 1 }
   ]},
-  { name: "Pepsi 500ml", category: "Beverages", stock: 400, baseUom: "PCE", basePrice: 2.00, units: [
+  { name: "Pepsi 500ml", category: "Beverages", stock: 400, baseUom: "PCE", basePrice: 15.00, units: [
     { uom: "PCE", uomName: "Piece", barcode: "PP500001", num: 1, denum: 1 },
     { uom: "BOX", uomName: "Box (12 pcs)", barcode: "PP500012", num: 12, denum: 1 }
   ]},
-  { name: "Orange Juice 1L", category: "Beverages", stock: 200, baseUom: "LTR", basePrice: 3.50, units: [
+  { name: "Orange Juice 1L", category: "Beverages", stock: 200, baseUom: "LTR", basePrice: 25.00, units: [
     { uom: "LTR", uomName: "Liter", barcode: "OJ1000001", num: 1, denum: 1 },
     { uom: "CTN", uomName: "Carton (6 L)", barcode: "OJ1000006", num: 6, denum: 1 }
   ]},
-  { name: "Mineral Water 1.5L", category: "Beverages", stock: 800, baseUom: "LTR", basePrice: 1.00, units: [
+  { name: "Mineral Water 1.5L", category: "Beverages", stock: 800, baseUom: "LTR", basePrice: 20.00, units: [
     { uom: "LTR", uomName: "Liter", barcode: "MW1500001", num: 1, denum: 1 },
     { uom: "CTN", uomName: "Carton (12 bottles)", barcode: "MW1500012", num: 18, denum: 1 }
   ]},
   
   // Dairy Products
-  { name: "Fresh Milk 1L", category: "Dairy", stock: 150, baseUom: "LTR", basePrice: 2.50, units: [
+  { name: "Fresh Milk 1L", category: "Dairy", stock: 150, baseUom: "LTR", basePrice: 25.00, units: [
     { uom: "LTR", uomName: "Liter", barcode: "FM1000001", num: 1, denum: 1 },
     { uom: "CTN", uomName: "Carton (12 L)", barcode: "FM1000012", num: 12, denum: 1 }
   ]},
-  { name: "Cheese Slices 200g", category: "Dairy", stock: 100, baseUom: "KGM", basePrice: 4.00, units: [
+  { name: "Cheese Slices 200g", category: "Dairy", stock: 100, baseUom: "KGM", basePrice: 40.00, units: [
     { uom: "KGM", uomName: "Kilogram", barcode: "CS200001", num: 1, denum: 5 },
     { uom: "BOX", uomName: "Box (10 packs)", barcode: "CS200010", num: 2, denum: 1 }
   ]},
-  { name: "Yogurt 125g", category: "Dairy", stock: 300, baseUom: "KGM", basePrice: 1.20, units: [
+  { name: "Yogurt 125g", category: "Dairy", stock: 300, baseUom: "KGM", basePrice:  25.00, units: [
     { uom: "KGM", uomName: "Kilogram", barcode: "YG125001", num: 1, denum: 8 },
     { uom: "BOX", uomName: "Box (8 cups)", barcode: "YG125008", num: 1, denum: 1 }
   ]},
   
   // Snacks
-  { name: "Potato Chips 150g", category: "Snacks", stock: 250, baseUom: "KGM", basePrice: 2.50, units: [
+  { name: "Potato Chips 150g", category: "Snacks", stock: 250, baseUom: "KGM", basePrice: 5.00, units: [
     { uom: "KGM", uomName: "Kilogram", barcode: "PC150001", num: 3, denum: 20 },
     { uom: "BOX", uomName: "Box (12 bags)", barcode: "PC150012", num: 9, denum: 5 }
   ]},
-  { name: "Chocolate Bar 50g", category: "Snacks", stock: 400, baseUom: "KGM", basePrice: 1.80, units: [
+  { name: "Chocolate Bar 50g", category: "Snacks", stock: 400, baseUom: "KGM", basePrice: 15.00, units: [
     { uom: "KGM", uomName: "Kilogram", barcode: "CB050001", num: 1, denum: 20 },
     { uom: "BOX", uomName: "Box (24 bars)", barcode: "CB050024", num: 6, denum: 5 }
   ]},
@@ -48,7 +48,7 @@ const products = [
   ]},
   
   // Cleaning Products
-  { name: "Dish Soap 500ml", category: "Cleaning", stock: 120, baseUom: "LTR", basePrice: 2.80, units: [
+  { name: "Dish Soap 500ml", category: "Cleaning", stock: 120, baseUom: "LTR", basePrice: 25.00, units: [
     { uom: "LTR", uomName: "Liter", barcode: "DS500001", num: 1, denum: 2 },
     { uom: "CTN", uomName: "Carton (12 bottles)", barcode: "DS500012", num: 6, denum: 1 }
   ]},
@@ -58,11 +58,11 @@ const products = [
   ]},
   
   // Personal Care
-  { name: "Shampoo 400ml", category: "Personal Care", stock: 90, baseUom: "LTR", basePrice: 4.20, units: [
+  { name: "Shampoo 400ml", category: "Personal Care", stock: 90, baseUom: "LTR", basePrice: 120.00, units: [
     { uom: "LTR", uomName: "Liter", barcode: "SH400001", num: 2, denum: 5 },
     { uom: "BOX", uomName: "Box (12 bottles)", barcode: "SH400012", num: 24, denum: 5 }
   ]},
-  { name: "Toothpaste 100ml", category: "Personal Care", stock: 150, baseUom: "LTR", basePrice: 2.50, units: [
+  { name: "Toothpaste 100ml", category: "Personal Care", stock: 150, baseUom: "LTR", basePrice: 85.00, units: [
     { uom: "LTR", uomName: "Liter", barcode: "TP100001", num: 1, denum: 10 },
     { uom: "BOX", uomName: "Box (12 tubes)", barcode: "TP100012", num: 6, denum: 5 }
   ]}

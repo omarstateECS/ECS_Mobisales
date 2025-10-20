@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Search, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import SalesmanGrid from './SalesmanGrid';
+import SalesmanList from './SalesmanList';
+import ViewToggle from './ViewToggle';
 import { useTheme } from '../contexts/ThemeContext';
 
 const SalesmenView = ({
@@ -26,6 +28,7 @@ const SalesmenView = ({
   const [hasMorePages, setHasMorePages] = useState(true);
   const [totalSalesmen, setTotalSalesmen] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [viewMode, setViewMode] = useState('grid');
 
   // Get unique statuses for filter
   const statuses = [...new Set(salesmen.map(s => s.status).filter(Boolean))].sort();
@@ -97,12 +100,15 @@ const SalesmenView = ({
             <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Manage your sales team</p>
           </div>
         </div>
-        <button 
-          onClick={openAddSalesmanModal}
-          className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-green-500/25 flex items-center space-x-2">
-          <Plus size={16} />
-          <span>Add Salesman</span>
-        </button>
+        <div className="flex items-center space-x-4">
+          <ViewToggle view={viewMode} onViewChange={setViewMode} theme={theme} />
+          <button 
+            onClick={openAddSalesmanModal}
+            className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-green-500/25 flex items-center space-x-2">
+            <Plus size={16} />
+            <span>Add Salesman</span>
+          </button>
+        </div>
       </div>
 
       {/* Search and Filter Bar */}
@@ -218,16 +224,26 @@ const SalesmenView = ({
         </div>
       </div>
 
-      {/* Salesmen Grid */}
-      <SalesmanGrid
-        salesmen={currentSalesmen}
-        loading={loading}
-        handleDeleteSalesman={handleDeleteSalesman}
-        deletingSalesmanId={deletingSalesmanId}
-        openAddSalesmanModal={openAddSalesmanModal}
-        handleEditSalesman={handleEditSalesman}
-        handleViewDetails={handleViewDetails}
-      />
+      {/* Salesmen Grid/List */}
+      {viewMode === 'list' ? (
+        <SalesmanList
+          salesmen={currentSalesmen}
+          handleDeleteSalesman={handleDeleteSalesman}
+          deletingSalesmanId={deletingSalesmanId}
+          handleEditSalesman={handleEditSalesman}
+          handleViewDetails={handleViewDetails}
+        />
+      ) : (
+        <SalesmanGrid
+          salesmen={currentSalesmen}
+          loading={loading}
+          handleDeleteSalesman={handleDeleteSalesman}
+          deletingSalesmanId={deletingSalesmanId}
+          openAddSalesmanModal={openAddSalesmanModal}
+          handleEditSalesman={handleEditSalesman}
+          handleViewDetails={handleViewDetails}
+        />
+      )}
 
       {/* Fast Search Info */}
       {committedSearch && committedSearch.trim() && (

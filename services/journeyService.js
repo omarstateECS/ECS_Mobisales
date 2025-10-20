@@ -1,6 +1,169 @@
 const { getPrismaClient } = require('../lib/prisma');
 
 class JourneyService {
+    async getAllJourneys() {
+        const prisma = getPrismaClient();
+        return await prisma.journey.findMany();
+    }
+
+    async getAllJourneysWithPagination(page = 1, limit = 50, startDate, endDate) {
+        const prisma = getPrismaClient();
+        const skip = (page - 1) * limit;
+
+        // Build where clause for date filtering
+        const where = {};
+        if (startDate || endDate) {
+            where.createdAt = {};
+            if (startDate) {
+                where.createdAt.gte = new Date(startDate);
+            }
+            if (endDate) {
+                // Add one day to include the entire end date
+                const endDateTime = new Date(endDate);
+                endDateTime.setDate(endDateTime.getDate() + 1);
+                where.createdAt.lt = endDateTime;
+            }
+        }
+
+        const [journeys, total] = await Promise.all([
+            prisma.journies.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                include: {
+                    salesman: {
+                        select: {
+                            salesId: true,
+                            name: true,
+                            phone: true,
+                            status: true
+                        }
+                    },
+                    visits: {
+                        select: {
+                            visitId: true,
+                            status: true
+                        }
+                    },
+                    invoiceHeaders: {
+                        select: {
+                            invId: true,
+                            totalAmt: true
+                        }
+                    }
+                }
+            }),
+            prisma.journies.count({ where })
+        ]);
+
+        return {
+            journeys,
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+            hasMore: skip + journeys.length < total
+        };
+    }
+
+    async getJourneyById(journeyId, salesId) {
+        const prisma = getPrismaClient();
+        
+        return await prisma.journies.findUnique({
+            where: {
+                journeyId_salesId: {
+                    journeyId: parseInt(journeyId),
+                    salesId: parseInt(salesId)
+                }
+            },
+            include: {
+                salesman: {
+                    select: {
+                        salesId: true,
+                        name: true,
+                        phone: true,
+                        address: true,
+                        status: true
+                    }
+                },
+                visits: {
+                    include: {
+                        customer: {
+                            select: {
+                                customerId: true,
+                                name: true,
+                                address: true,
+                                phone: true
+                            }
+                        },
+                        actionDetails: {
+                            include: {
+                                action: true
+                            }
+                        }
+                    },
+                    orderBy: {
+                        createdAt: 'asc'
+                    }
+                },
+                invoiceHeaders: {
+                    include: {
+                        customer: {
+                            select: {
+                                customerId: true,
+                                name: true
+                            }
+                        }
+                    },
+                    orderBy: {
+                        createdAt: 'desc'
+                    }
+                }
+            }
+        });
+    }
+
+    async getJourneyStats(journeyId, salesId) {
+        const prisma = getPrismaClient();
+
+        const [visitStats, invoiceStats] = await Promise.all([
+            prisma.visit.groupBy({
+                by: ['status'],
+                where: {
+                    journeyId: parseInt(journeyId),
+                    salesId: parseInt(salesId)
+                },
+                _count: {
+                    visitId: true
+                }
+            }),
+            prisma.invoiceHeader.aggregate({
+                where: {
+                    journeyId: parseInt(journeyId),
+                    salesId: parseInt(salesId)
+                },
+                _sum: {
+                    totalAmt: true,
+                    netAmt: true,
+                    taxAmt: true,
+                    disAmt: true
+                },
+                _count: {
+                    invId: true
+                }
+            })
+        ]);
+
+        return {
+            visits: visitStats,
+            invoices: invoiceStats
+        };
+    }
+
+    
     async getJourneyBySalesmanId(salesmanId) {
         const prisma = getPrismaClient();
         return await prisma.journey.findUnique({

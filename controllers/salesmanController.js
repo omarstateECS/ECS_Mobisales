@@ -192,7 +192,7 @@ class SalesmanController {
           res.status(200).json({
             success: true,
             data: result,
-            message: 'Check-in successful'
+            message: 'Check-in successfull'
           });
         } catch (error) {
           console.error('❌ Error in checkIn:', error.message);
@@ -217,7 +217,23 @@ class SalesmanController {
             error: process.env.NODE_ENV === 'development' ? error.stack : undefined
           });
         }
-    }  
+    }
+    
+    async createVisit(req, res) {
+        const visitData = req.body;
+        
+        try {
+            const result = await salesmanService.createVisit(visitData);
+            res.status(201).json({
+                customerId: result.customerId
+            });
+        } catch (error) {
+            console.error('Error creating visit:', error);
+            res.status(500).json({ 
+                message: error.message || 'Internal server error' 
+            });
+        }
+    }
 
     async getStats(req, res) {  
         try {

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Search, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import CustomerGrid from './CustomerGrid';
+import CustomerList from './CustomerList';
+import ViewToggle from './ViewToggle';
 import { useTheme } from '../contexts/ThemeContext';
 
 const CustomersView = ({
@@ -24,6 +26,7 @@ const CustomersView = ({
   const [sortOrder] = useState('asc');
   const [committedSearch, setCommittedSearch] = useState('');
   const [hasMorePages, setHasMorePages] = useState(true);
+  const [viewMode, setViewMode] = useState('grid');
 
   // Get unique industries for filter
   const industries = [...new Set(customers.map(c => c.industry).filter(Boolean))].sort();
@@ -107,15 +110,16 @@ const CustomersView = ({
             <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Manage your customers</p>
           </div>
         </div>
-        <button 
-          onClick={openAddCustomerModal}
-          className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25 flex items-center space-x-2">
-          <Plus size={16} />
-          <span>Add Customer</span>
-        </button>
+        <div className="flex items-center space-x-4">
+          <ViewToggle view={viewMode} onViewChange={setViewMode} theme={theme} />
+          <button 
+            onClick={openAddCustomerModal}
+            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25 flex items-center space-x-2">
+            <Plus size={16} />
+            <span>Add Customer</span>
+          </button>
+        </div>
       </div>
-
-
 
       {/* Search and Filter Bar */}
       <div className={`backdrop-blur-sm rounded-2xl p-4 ${
@@ -128,11 +132,11 @@ const CustomersView = ({
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
-                             <input
-                 type="text"
-                 placeholder="Search customers by name..."
-                 value={searchTerm}
-                 onChange={(e) => setSearchTerm(e.target.value)}
+              <input
+                type="text"
+                placeholder="Search customers by name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
                   theme === 'dark'
                     ? 'bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-400'
@@ -218,16 +222,27 @@ const CustomersView = ({
         </div>
       </div>
 
-      {/* Customers Grid */}
-      <CustomerGrid
-        customers={currentCustomers}
-        loading={loading}
-        handleDeleteCustomer={handleDeleteCustomer}
-        deletingCustomerId={deletingCustomerId}
-        openAddCustomerModal={openAddCustomerModal}
-        handleEditCustomer={handleEditCustomer}
-        handleViewDetails={handleViewDetails}
-      />
+      {/* Customers Grid/List */}
+      {viewMode === 'list' ? (
+        <CustomerList
+          customers={currentCustomers}
+          handleDeleteCustomer={handleDeleteCustomer}
+          deletingCustomerId={deletingCustomerId}
+          handleEditCustomer={handleEditCustomer}
+          handleViewDetails={handleViewDetails}
+          theme={theme}
+        />
+      ) : (
+        <CustomerGrid
+          customers={currentCustomers}
+          loading={loading}
+          handleDeleteCustomer={handleDeleteCustomer}
+          deletingCustomerId={deletingCustomerId}
+          openAddCustomerModal={openAddCustomerModal}
+          handleEditCustomer={handleEditCustomer}
+          handleViewDetails={handleViewDetails}
+        />
+      )}
 
       {/* Pagination Controls */}
       {(currentPage > 1 || hasMorePages) && (

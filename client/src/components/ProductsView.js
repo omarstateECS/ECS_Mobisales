@@ -7,6 +7,8 @@ import AddProductModal from './AddProductModal';
 import ConfirmationModal from './common/ConfirmationModal';
 import NotificationModal from './common/NotificationModal';
 import { useNotification } from '../hooks/useNotification';
+import ViewToggle from './ViewToggle';
+import ProductsList from './ProductsList';
 
 // Set axios base URL
 axios.defaults.baseURL = 'http://localhost:3000';
@@ -157,6 +159,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [categories, setCategories] = useState([]);
     const [deletingProductId, setDeletingProductId] = useState(null);
+    const [viewMode, setViewMode] = useState('grid');
     const [confirmationModal, setConfirmationModal] = useState({
         isOpen: false,
         title: '',
@@ -313,6 +316,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                     <p className="text-gray-400">Manage your product catalog and inventory</p>
                 </div>
                 <div className="flex items-center space-x-4">
+                    <ViewToggle view={viewMode} onViewChange={setViewMode} />
                     <motion.button
                         onClick={openAddProductModal}
                         className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2"
@@ -387,7 +391,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                 </div>
             )}
 
-            {/* Products Grid */}
+            {/* Products Grid/List */}
             {loading ? (
                 <div className="text-center py-12">
                     <div className="text-gray-400">Loading products...</div>
@@ -407,6 +411,14 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                          Add First Product
                      </motion.button>
                  </div>
+            ) : viewMode === 'list' ? (
+                <ProductsList
+                    products={products}
+                    handleViewDetails={handleViewDetails}
+                    handleEditProduct={handleEditProduct}
+                    handleDeleteProduct={handleDeleteProduct}
+                    deletingProductId={deletingProductId}
+                />
             ) : (
                  <motion.div 
                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr grid-auto-rows-fr"
