@@ -17,14 +17,36 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
   const [endDate, setEndDate] = useState('');
   const [appliedStartDate, setAppliedStartDate] = useState('');
   const [appliedEndDate, setAppliedEndDate] = useState('');
+  
+  // Salesman filtering
+  const [salesmen, setSalesmen] = useState([]);
+  const [selectedSalesman, setSelectedSalesman] = useState('');
+  const [appliedSalesman, setAppliedSalesman] = useState('');
+
+  // Fetch salesmen
+  useEffect(() => {
+    const fetchSalesmen = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/salesmen');
+        if (response.ok) {
+          const data = await response.json();
+          setSalesmen(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching salesmen:', error);
+      }
+    };
+    fetchSalesmen();
+  }, []);
 
   // Fetch journeys
-  const fetchJourneys = async (page, limit, start, end) => {
+  const fetchJourneys = async (page, limit, start, end, salesmanId) => {
     setLoading(true);
     try {
       let url = `http://localhost:3000/api/journeys?page=${page}&limit=${limit}`;
       if (start) url += `&startDate=${start}`;
       if (end) url += `&endDate=${end}`;
+      if (salesmanId) url += `&salesmanId=${salesmanId}`;
 
       const response = await fetch(url);
       if (response.ok) {
@@ -46,8 +68,8 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
 
   // Initial fetch and when filters change
   useEffect(() => {
-    fetchJourneys(currentPage, itemsPerPage, appliedStartDate, appliedEndDate);
-  }, [currentPage, itemsPerPage, appliedStartDate, appliedEndDate]);
+    fetchJourneys(currentPage, itemsPerPage, appliedStartDate, appliedEndDate, appliedSalesman);
+  }, [currentPage, itemsPerPage, appliedStartDate, appliedEndDate, appliedSalesman]);
 
   // Handle page change
   const handlePageChange = (page) => {
@@ -65,6 +87,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
   const handleApplyFilters = () => {
     setAppliedStartDate(startDate);
     setAppliedEndDate(endDate);
+    setAppliedSalesman(selectedSalesman);
     setCurrentPage(1);
   };
 
@@ -72,8 +95,10 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
   const handleClearFilters = () => {
     setStartDate('');
     setEndDate('');
+    setSelectedSalesman('');
     setAppliedStartDate('');
     setAppliedEndDate('');
+    setAppliedSalesman('');
     setCurrentPage(1);
   };
 
@@ -131,13 +156,13 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
               Tours
             </h2>
             <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-              View all journey records
+              View all tour records
             </p>
           </div>
         </div>
         <div className={`px-4 py-2 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white'}`}>
           <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            Total: <span className="font-bold text-blue-500">{total}</span> journeys
+            Total: <span className="font-bold text-blue-500">{total}</span> tours
           </span>
         </div>
       </div>
@@ -149,6 +174,30 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
           : 'bg-white border border-gray-200'
       }`}>
         <div className="flex flex-col md:flex-row gap-4 items-end">
+          <div className="flex-1">
+            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              Salesman
+            </label>
+            <div className="relative">
+              <User className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
+              <select
+                value={selectedSalesman}
+                onChange={(e) => setSelectedSalesman(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900'
+                }`}
+              >
+                <option value="">All Salesmen</option>
+                {salesmen.map((salesman) => (
+                  <option key={salesman.salesId} value={salesman.salesId}>
+                    {salesman.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
           <div className="flex-1">
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               Start Date
@@ -217,7 +266,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
         }`}>
           <MapPin size={48} className="mx-auto mb-4 text-gray-400" />
           <p className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            No journeys found
+            No tours found
           </p>
         </div>
       ) : (
@@ -241,7 +290,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                     </div>
                     <div>
                       <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        Journey #{journey.journeyId}
+                        Tour #{journey.journeyId}
                       </h3>
                       <div className="flex items-center gap-2 text-sm">
                         <User size={14} className="text-gray-400" />

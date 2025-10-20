@@ -16,7 +16,7 @@ model Customer {
   latitude  Float
   longitude Float
   phone     String?
-  createdAt DateTime        @default(now())
+  createdAt String
   invoices  InvoiceHeader[]
   visits    Visit[]
 
@@ -67,7 +67,7 @@ model Salesman {
   deviceId    String
   available   Boolean             @default(true)
   lastJourneyId Int               @default(0)
-  createdAt   DateTime            @default(now())
+  createdAt   String
   isInitial   Boolean             @default(true)
   invoices    InvoiceHeader[]
   journies    Journies[]
@@ -79,8 +79,8 @@ model Authority {
   authorityId        Int                 @id @default(autoincrement())
   name      String              @unique
   type      AuthorityType
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
+  createdAt String
+  updatedAt String
   salesmen  SalesmanAuthority[]
 
   @@index([name])
@@ -93,7 +93,7 @@ model SalesmanAuthority {
   id          Int       @id @default(autoincrement())
   salesmanId  Int
   authorityId Int
-  createdAt   DateTime  @default(now())
+  createdAt   String
   value       Boolean   @default(true)
   authority   Authority @relation(fields: [authorityId], references: [authorityId], onDelete: Cascade)
   salesman    Salesman  @relation(fields: [salesmanId], references: [salesId], onDelete: Cascade)
@@ -110,12 +110,12 @@ model Visit {
   custId     Int
   salesId    Int
   journeyId  Int
-  startTime  DateTime?
-  endTime    DateTime?
-  cancelTime DateTime?
+  startTime  String?
+  endTime    String?
+  cancelTime String?
   status     VisitStatus @default(WAIT)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  createdAt  String
+  updatedAt  String
   customer   Customer    @relation(fields: [custId], references: [customerId], onDelete: Cascade)
   salesman   Salesman    @relation(fields: [salesId], references: [salesId], onDelete: Cascade)
   journey    Journies    @relation("VisitToJourney", fields: [journeyId, salesId], references: [journeyId, salesId], onDelete: Cascade)
@@ -140,8 +140,8 @@ model InvoiceHeader {
   salesId        Int
   journeyId      Int
   visitId        Int
-  createdAt      DateTime
-  updatedAt      DateTime      @updatedAt
+  createdAt      String
+  updatedAt      String
   invType        InvoiceType
   reasonId       Int?
   netAmt         Float
@@ -181,8 +181,8 @@ model Reasons {
   description    String
   sellable       Boolean
   isHeader       Boolean
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      String
+  updatedAt      String
   invoiceHeaders InvoiceHeader[] @relation("InvoiceHeaderReason")
   invoiceItems   InvoiceItem[]   @relation("InvoiceItemReason")
 }
@@ -190,10 +190,10 @@ model Reasons {
 model Journies {
   journeyId    Int
   salesId      Int
-  startJourney DateTime?
-  endJourney   DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  startJourney String?
+  endJourney   String?
+  createdAt    String
+  updatedAt    String
   salesman     Salesman  @relation(fields: [salesId], references: [salesId], onDelete: Cascade)
 
   visits       Visit[]         @relation("VisitToJourney")
@@ -209,8 +209,8 @@ model Settings {
   name           String   @unique
   value          Boolean  @default(false)
   textValue      String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      String
+  updatedAt      String
 
   @@map("settings")
 }
@@ -221,7 +221,7 @@ model actionDetails {
   visitId         Int
   salesId         Int
   actionId        Int
-  createdAt       DateTime @default(now())
+  createdAt       String
   
   visit           Visit    @relation(fields: [visitId, salesId, journeyId], references: [visitId, salesId, journeyId], onDelete: Cascade)
   action          actions  @relation(fields: [actionId], references: [actionId], onDelete: Cascade)
@@ -233,7 +233,7 @@ model actionDetails {
 model actions {
   actionId        Int @id @default(autoincrement())
   name            String
-  createdAt       DateTime @default(now())
+  createdAt       String
   actionDetails   actionDetails[]
 
   @@map("actions")

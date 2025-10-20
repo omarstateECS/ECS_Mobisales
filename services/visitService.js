@@ -1,14 +1,12 @@
 const { getPrismaClient } = require('../lib/prisma');
+const { getLocalTimestamp } = require('../lib/dateUtils');
 
 class VisitService {
-    // Helper function to format timestamp without 'T' but parseable by mobile app
+    // Helper function to format timestamp - now just returns the string as-is
     formatTimestamp(date) {
         if (!date) return null;
-        // Convert to format that Dart can parse: YYYY-MM-DD HH:mm:ss (without milliseconds)
-        const localDate = new Date(date);
-        const isoString = localDate.toISOString();
-        // Format: "2025-10-01 09:36:46" (Dart can parse this format)
-        return isoString.replace('T', ' ').substring(0, 19);
+        // Dates are now stored as strings, so just return them
+        return date;
     }
     // Get all visits with optional filtering
     async getAllVisits(page = 1, limit = 50, salesmanId = null, customerId = null, status = null) {
@@ -102,9 +100,11 @@ class VisitService {
             custId: parseInt(data.custId || data.customer_id),
             salesId: parseInt(data.salesId || data.salesman_id),
             status: data.status || 'WAIT',
-            startTime: data.start_time ? new Date(data.start_time) : null,
-            endTime: data.end_time ? new Date(data.end_time) : null,
-            cancelTime: data.cancel_time ? new Date(data.cancel_time) : null
+            startTime: data.start_time || null,
+            endTime: data.end_time || null,
+            cancelTime: data.cancel_time || null,
+            createdAt: data.createdAt || getLocalTimestamp(),
+            updatedAt: data.updatedAt || getLocalTimestamp()
         };
 
         return await prisma.visit.create({
@@ -181,6 +181,7 @@ class VisitService {
         }
 
         // Create visits for new customers
+        const timestamp = getLocalTimestamp();
         const visitData = newCustomerIds.map((custId) => ({
             custId: parseInt(custId),
             salesId: parseInt(salesmanId),
@@ -188,7 +189,9 @@ class VisitService {
             status: 'WAIT',
             startTime: null,
             endTime: null,
-            cancelTime: null
+            cancelTime: null,
+            createdAt: timestamp,
+            updatedAt: timestamp
         }));
 
         // Use createMany for bulk insert
@@ -215,9 +218,9 @@ class VisitService {
         if (data.startTime) updateData.startTime = data.startTime;
         if (data.endTime) updateData.endTime = data.endTime;
         if (data.cancelTime) updateData.cancelTime = data.cancelTime;
-        if (data.start_time) updateData.startTime = new Date(data.start_time);
-        if (data.end_time) updateData.endTime = new Date(data.end_time);
-        if (data.cancel_time) updateData.cancelTime = new Date(data.cancel_time);
+        if (data.start_time) updateData.startTime = data.start_time;
+        if (data.end_time) updateData.endTime = data.end_time;
+        if (data.cancel_time) updateData.cancelTime = data.cancel_time;
         if (data.custId || data.customer_id) updateData.custId = parseInt(data.custId || data.customer_id);
         if (data.salesId || data.salesman_id) updateData.salesId = parseInt(data.salesId || data.salesman_id);
 
@@ -371,7 +374,7 @@ class VisitService {
         const prisma = getPrismaClient();
         return await this.updateVisit(visitId, {
             status: 'START',
-            start_time: new Date().toISOString()
+            start_time: getLocalTimestamp()
         });
     }
 
@@ -380,7 +383,7 @@ class VisitService {
         const prisma = getPrismaClient();
         return await this.updateVisit(visitId, {
             status: 'END',
-            end_time: new Date().toISOString()
+            end_time: getLocalTimestamp()
         });
     }
 
@@ -389,7 +392,7 @@ class VisitService {
         const prisma = getPrismaClient();
         return await this.updateVisit(visitId, {
             status: 'CANCEL',
-            cancel_time: new Date().toISOString()
+            cancel_time: getLocalTimestamp()
         });
     }
 

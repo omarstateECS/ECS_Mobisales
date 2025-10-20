@@ -1,5 +1,6 @@
 const { getPrismaClient } = require('../lib/prisma');
 const Prisma = require('@prisma/client');
+const { getLocalTimestamp } = require('../lib/dateUtils');
 
 class InvoiceService {
     async getAllInvoices(page = 1, limit = 50, query = '') {
@@ -82,7 +83,17 @@ class InvoiceService {
                 });
 
                 if (existingInvoice) {
-                    throw new Error(`Invoice with ID ${headerData.invId} for salesman ${headerData.salesId} already exists`);
+                    console.log(`ℹ️ Invoice ${headerData.invId} already exists, fetching items`);
+                    // Fetch items separately since there's no relation in schema
+                    const existingItems = await tx.invoiceItem.findMany({
+                        where: {
+                            invoiceHeaderId: existingInvoice.invId
+                        }
+                    });
+                    return {
+                        ...existingInvoice,
+                        items: existingItems
+                    };
                 }
 
                 // Create invoice header
@@ -93,7 +104,8 @@ class InvoiceService {
                         salesId: parseInt(headerData.salesId),
                         journeyId: parseInt(headerData.journeyId),
                         visitId: parseInt(headerData.visitId),
-                        createdAt: headerData.createdAt ? new Date(headerData.createdAt) : new Date(),
+                        createdAt: headerData.createdAt || getLocalTimestamp(),
+                        updatedAt: headerData.updatedAt || getLocalTimestamp(),
                         invType: headerData.invType || headerData.int_type || 'SALE',
                         reasonId: headerData.reasonId ? parseInt(headerData.reasonId) : null,
                         netAmt: parseFloat(headerData.netAmt || 0),
@@ -106,25 +118,50 @@ class InvoiceService {
                     }
                 });
                 
-                // Create invoice items
-                const invoiceItems = await Promise.all(
-                    items.map((item, index) => 
-                        tx.invoiceItem.create({
-                            data: {
+                // Log invoice items for debugging
+                console.log(`📦 Creating ${items.length} items for invoice ${invoiceHeader.invId}`);
+                const itemNumbers = items.map((item, index) => parseInt(item.invoiceItem || item.invItem || index + 1));
+                console.log(`📋 Item numbers:`, itemNumbers);
+                
+                // Create invoice items using upsert to handle any duplicates gracefully
+                const invoiceItems = [];
+                for (let index = 0; index < items.length; index++) {
+                    const item = items[index];
+                    const itemNumber = parseInt(item.invoiceItem || item.invItem || index + 1);
+                    
+                    const invoiceItem = await tx.invoiceItem.upsert({
+                        where: {
+                            invoiceHeaderId_invItem: {
                                 invoiceHeaderId: invoiceHeader.invId,
-                                invItem: parseInt(item.invoiceItem || item.invItem || index + 1),
-                                productId: parseInt(item.productId || item.prodId),
-                                productUom: item.productUom || item.prodUom,
-                                qty: parseInt(item.qty),
-                                netAmt: parseFloat(item.netAmt || item.net_amt || 0),
-                                taxAmt: parseFloat(item.taxAmt || item.tax_amt || 0),
-                                disAmt: parseFloat(item.disAmt || item.dis_amt || 0),
-                                totAmt: parseFloat(item.totAmt || item.tot_amt || 0),
-                                reasonId: (item.reasonId || item.reason_id) ? parseInt(item.reasonId || item.reason_id) : null
+                                invItem: itemNumber
                             }
-                        })
-                    )
-                );
+                        },
+                        update: {
+                            productId: parseInt(item.productId || item.prodId),
+                            productUom: item.productUom || item.prodUom,
+                            qty: parseInt(item.qty),
+                            netAmt: parseFloat(item.netAmt || item.net_amt || 0),
+                            taxAmt: parseFloat(item.taxAmt || item.tax_amt || 0),
+                            disAmt: parseFloat(item.disAmt || item.dis_amt || 0),
+                            totAmt: parseFloat(item.totAmt || item.tot_amt || 0),
+                            reasonId: (item.reasonId || item.reason_id) ? parseInt(item.reasonId || item.reason_id) : null
+                        },
+                        create: {
+                            invoiceHeaderId: invoiceHeader.invId,
+                            invItem: itemNumber,
+                            productId: parseInt(item.productId || item.prodId),
+                            productUom: item.productUom || item.prodUom,
+                            qty: parseInt(item.qty),
+                            netAmt: parseFloat(item.netAmt || item.net_amt || 0),
+                            taxAmt: parseFloat(item.taxAmt || item.tax_amt || 0),
+                            disAmt: parseFloat(item.disAmt || item.dis_amt || 0),
+                            totAmt: parseFloat(item.totAmt || item.tot_amt || 0),
+                            reasonId: (item.reasonId || item.reason_id) ? parseInt(item.reasonId || item.reason_id) : null
+                        }
+                    });
+                    
+                    invoiceItems.push(invoiceItem);
+                }
                 
                 // Return the complete invoice with items
                 return {

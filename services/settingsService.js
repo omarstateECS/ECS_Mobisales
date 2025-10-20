@@ -1,4 +1,5 @@
 const { getPrismaClient } = require('../lib/prisma');
+const { getLocalTimestamp } = require('../lib/dateUtils');
 
 class SettingsService {
   async getSettings() {
@@ -9,10 +10,11 @@ class SettingsService {
       
       // If no settings exist, create default settings
       if (!settingsArray || settingsArray.length === 0) {
+        const timestamp = getLocalTimestamp();
         await prisma.settings.createMany({
           data: [
-            { name: 'customInvoice', value: false, textValue: '' },
-            { name: 'visitSequence', value: false }
+            { name: 'customInvoice', value: false, textValue: '', createdAt: timestamp, updatedAt: timestamp },
+            { name: 'visitSequence', value: false, createdAt: timestamp, updatedAt: timestamp }
           ]
         });
         
@@ -57,26 +59,31 @@ class SettingsService {
           where: { name: 'customInvoice' }
         });
         
+        const timestamp = getLocalTimestamp();
         await prisma.settings.upsert({
           where: { name: 'customInvoice' },
           update: { 
             value: data.customInvoice !== undefined ? data.customInvoice : existing?.value || false,
-            textValue: data.customInvoiceSequence !== undefined ? data.customInvoiceSequence : existing?.textValue || ''
+            textValue: data.customInvoiceSequence !== undefined ? data.customInvoiceSequence : existing?.textValue || '',
+            updatedAt: timestamp
           },
           create: { 
             name: 'customInvoice', 
             value: data.customInvoice || false,
-            textValue: data.customInvoiceSequence || ''
+            textValue: data.customInvoiceSequence || '',
+            createdAt: timestamp,
+            updatedAt: timestamp
           }
         });
       }
       
       // Update visitSequence if provided
       if (data.visitSequence !== undefined) {
+        const timestamp2 = getLocalTimestamp();
         await prisma.settings.upsert({
           where: { name: 'visitSequence' },
-          update: { value: data.visitSequence },
-          create: { name: 'visitSequence', value: data.visitSequence }
+          update: { value: data.visitSequence, updatedAt: timestamp2 },
+          create: { name: 'visitSequence', value: data.visitSequence, createdAt: timestamp2, updatedAt: timestamp2 }
         });
       }
       

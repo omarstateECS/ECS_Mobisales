@@ -121,8 +121,8 @@ const DashboardContent = ({
           <div className="space-y-4">
             {[
               { icon: Plus, label: 'Add Customer', color: 'from-emerald-500 to-emerald-600', onClick: openAddCustomerModal },
-              { icon: Users, label: 'Assign Sales Rep', color: 'from-blue-500 to-blue-600', onClick: () => handleNavigation('all-reps') },
-              { icon: Route, label: 'Plan Route', color: 'from-purple-500 to-purple-600', onClick: () => handleNavigation('route-planning') },
+              { icon: Route, label: 'View All Tours', color: 'from-indigo-500 to-indigo-600', onClick: () => handleNavigation('tours') },
+              { icon: Users, label: 'Plan Route', color: 'from-purple-500 to-purple-600', onClick: () => handleNavigation('plan-routes') },
               { icon: Package, label: 'Check Inventory', color: 'from-orange-500 to-orange-600', onClick: () => handleNavigation('stock-levels') }
             ].map((action, index) => {
               const Icon = action.icon;

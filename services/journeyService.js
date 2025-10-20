@@ -1,4 +1,5 @@
 const { getPrismaClient } = require('../lib/prisma');
+const { getLocalTimestamp } = require('../lib/dateUtils');
 
 class JourneyService {
     async getAllJourneys() {
@@ -6,22 +7,29 @@ class JourneyService {
         return await prisma.journey.findMany();
     }
 
-    async getAllJourneysWithPagination(page = 1, limit = 50, startDate, endDate) {
+    async getAllJourneysWithPagination(page = 1, limit = 50, startDate, endDate, salesmanId) {
         const prisma = getPrismaClient();
         const skip = (page - 1) * limit;
 
-        // Build where clause for date filtering
+        // Build where clause for date and salesman filtering
+        // Since dates are now strings, we use string comparison
         const where = {};
+        
+        // Salesman filter
+        if (salesmanId) {
+            where.salesId = parseInt(salesmanId);
+        }
+        
+        // Date filter
         if (startDate || endDate) {
             where.createdAt = {};
             if (startDate) {
-                where.createdAt.gte = new Date(startDate);
+                where.createdAt.gte = startDate;
             }
             if (endDate) {
-                // Add one day to include the entire end date
-                const endDateTime = new Date(endDate);
-                endDateTime.setDate(endDateTime.getDate() + 1);
-                where.createdAt.lt = endDateTime;
+                // For string dates, we can use lte to include the entire end date
+                // No Z at the end since we're storing dates without timezone indicator
+                where.createdAt.lte = endDate + 'T23:59:59.999';
             }
         }
 
@@ -213,13 +221,20 @@ class JourneyService {
             }
         });
         
+        // Check if the last journey has ended before creating a new one
+        if (lastJourney && !lastJourney.endJourney) {
+            throw new Error('Cannot create a new journey. The current journey has not ended yet.');
+        }
+        
         // Calculate next journeyId (starts from 1 for each salesman)
         const nextJourneyId = lastJourney ? lastJourney.journeyId + 1 : 1;
         
         return await prisma.journies.create({
             data: {
                 journeyId: nextJourneyId,
-                salesId: parseInt(salesmanId)
+                salesId: parseInt(salesmanId),
+                createdAt: getLocalTimestamp(),
+                updatedAt: getLocalTimestamp()
             }
         });
     }

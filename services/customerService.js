@@ -1,5 +1,6 @@
 // services/customerService.js
 const { getPrismaClient } = require('../lib/prisma');
+const { getLocalTimestamp } = require('../lib/dateUtils');
 
 class CustomerService {
     // Get customers with pagination (default to first 50 for performance)
@@ -87,7 +88,10 @@ class CustomerService {
     async createCustomer(data) {
         const prisma = getPrismaClient();
         return await prisma.customer.create({
-            data
+            data: {
+                ...data,
+                createdAt: data.createdAt || getLocalTimestamp()
+            }
         });
     }
 

@@ -1,5 +1,6 @@
 const { select } = require('underscore');
 const { getPrismaClient } = require('../lib/prisma');
+const { getLocalTimestamp } = require('../lib/dateUtils');
 
 class ReasonService {
     async getAllReasons() {
@@ -17,14 +18,24 @@ class ReasonService {
     async createReason(data) {
         const prisma = getPrismaClient();
         return await prisma.reasons.create({
-            data
+            data: {
+                ...data,
+                createdAt: data.createdAt || getLocalTimestamp(),
+                updatedAt: data.updatedAt || getLocalTimestamp()
+            }
         });
     }
 
     async createMultipleReasons(reasonsArray) {
         const prisma = getPrismaClient();
+        const timestamp = getLocalTimestamp();
+        const reasonsWithTimestamps = reasonsArray.map(reason => ({
+            ...reason,
+            createdAt: reason.createdAt || timestamp,
+            updatedAt: reason.updatedAt || timestamp
+        }));
         return await prisma.reasons.createMany({
-            data: reasonsArray,
+            data: reasonsWithTimestamps,
             skipDuplicates: true
         });
     }

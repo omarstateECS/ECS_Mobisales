@@ -3,13 +3,14 @@ const journeyService = require('../services/journeyService');
 class JourneyController {
     async getAll(req, res) {
         try {
-            const { page = 1, limit = 50, startDate, endDate } = req.query;
+            const { page = 1, limit = 50, startDate, endDate, salesmanId } = req.query;
             
             const result = await journeyService.getAllJourneysWithPagination(
                 parseInt(page),
                 parseInt(limit),
                 startDate,
-                endDate
+                endDate,
+                salesmanId
             );
             
             res.json(result);

@@ -1,4 +1,5 @@
 const { getPrismaClient } = require('../lib/prisma');
+const { getLocalTimestamp } = require('../lib/dateUtils');
 const visitService = require('./visitService');
 const productService = require('./productService');
 const customerService = require('./customerService');
@@ -58,7 +59,8 @@ class SalesmanService {
         const salesmanData = {
             ...salesmanDataWithoutPassword,
             deviceId: data.deviceId || '',
-            password: 'temp' // Temporary password
+            password: 'temp', // Temporary password
+            createdAt: data.createdAt || getLocalTimestamp()
         };
         
         // Create the salesman
@@ -123,6 +125,7 @@ class SalesmanService {
         for (const authority of allAuthorities) {
             const isAssigned = authorityIds.includes(authority.authorityId.toString()) || authorityIds.includes(authority.authorityId);
             
+            const timestamp = getLocalTimestamp();
             await prisma.salesmanAuthority.upsert({
                 where: {
                     salesmanId_authorityId: {
@@ -136,7 +139,8 @@ class SalesmanService {
                 create: {
                     salesmanId: Number(salesmanId),
                     authorityId: authority.authorityId,
-                    value: isAssigned
+                    value: isAssigned,
+                    createdAt: timestamp
                 }
             });
         }
@@ -241,8 +245,8 @@ class SalesmanService {
     
             const parseTimestamp = (timestamp) => {
                 if (!timestamp) return null;
-                const local = new Date(timestamp);
-                return new Date(local.getTime() - (3 * 60 * 60 * 1000)); // Convert UTC+3 to UTC
+                // Dates are now strings, just return them as-is
+                return timestamp;
             };
 
             // === JOURNEY ===
@@ -370,6 +374,7 @@ class SalesmanService {
                   const visitId = visit.visitId || visit.id;
                   const custId = visit.custId || visit.customerId;
                   
+                  const timestamp = getLocalTimestamp();
                   await tx.visit.upsert({
                     where: {
                       visitId_salesId_journeyId: {
@@ -378,13 +383,18 @@ class SalesmanService {
                         journeyId: journeyId
                       }
                     },
-                    update: visitData,
+                    update: {
+                      ...visitData,
+                      updatedAt: timestamp
+                    },
                     create: {
                       visitId: visitId,
                       custId: custId,
                       salesId: salesmanId,
                       journeyId: journeyId,
-                      ...visitData
+                      ...visitData,
+                      createdAt: visitData.createdAt || timestamp,
+                      updatedAt: timestamp
                     }
                   });
             
@@ -464,9 +474,9 @@ class SalesmanService {
                   if (visits && visits.length > 0) {
                     // Sort visits by createdAt to find the most recent one
                     const sortedVisits = [...visits].sort((a, b) => {
-                      const dateA = new Date(a.createdAt || a.startTime || 0);
-                      const dateB = new Date(b.createdAt || b.startTime || 0);
-                      return dateB - dateA; // Descending order (most recent first)
+                      const dateA = a.createdAt || a.startTime || '';
+                      const dateB = b.createdAt || b.startTime || '';
+                      return dateB.localeCompare(dateA); // Descending order (most recent first) using string comparison
                     });
                     const lastVisitId = sortedVisits[0].visitId || sortedVisits[0].id;
                     console.log('✅ Setting end journey visitId to:', lastVisitId);
@@ -602,13 +612,21 @@ class SalesmanService {
                     latitude: visitData.latitude,
                     longitude: visitData.longitude,
                     industry: visitData.industry,
+                    createdAt: getLocalTimestamp()
                 }
             });
             
             // CREATE THE NEW VISIT
+            const timestamp = getLocalTimestamp();
             const visit = await prisma.visit.create({
                 data: {
                     visitId: visitData.visitId,
+                    status: visitData.status || 'WAIT',
+                    startTime: visitData.startTime || null,
+                    endTime: visitData.endTime || null,
+                    cancelTime: visitData.cancelTime || null,
+                    createdAt: timestamp,
+                    updatedAt: timestamp,
                     salesman: {
                         connect: { salesId: visitData.salesId }
                     },

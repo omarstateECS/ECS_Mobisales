@@ -1,4 +1,5 @@
 const { getPrismaClient } = require('../lib/prisma');
+const { getLocalTimestamp } = require('../lib/dateUtils');
 
 class ProductService {
     // Get all products with their units
@@ -280,7 +281,7 @@ class ProductService {
             totalProducts,
             categoryStats,
             unitTypeStats,
-            lastUpdated: new Date().toISOString()
+            lastUpdated: getLocalTimestamp()
         };
     }
 }

@@ -1,12 +1,70 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, MapPin, User, Phone, Calendar, Clock, TrendingUp, Package, DollarSign, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, User, Phone, Calendar, Clock, TrendingUp, Package, DollarSign, CheckCircle, XCircle, AlertCircle, X, Activity, FileText } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+
+// Add keyframe animations
+const styles = `
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes modalSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes slideInFromLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInFromRight {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+`;
 
 const TourDetailsPage = ({ journey, onBack }) => {
   const { theme } = useTheme();
   const [journeyDetails, setJourneyDetails] = useState(null);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedVisit, setSelectedVisit] = useState(null);
+  const [showVisitModal, setShowVisitModal] = useState(false);
 
   useEffect(() => {
     fetchJourneyDetails();
@@ -118,8 +176,10 @@ const TourDetailsPage = ({ journey, onBack }) => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <>
+      <style>{styles}</style>
+      <div className="space-y-6">
+        {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <button
@@ -130,25 +190,25 @@ const TourDetailsPage = ({ journey, onBack }) => {
           </button>
           <div>
             <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              Journey #{journeyDetails.journeyId}
+              Tour #{journeyDetails.journeyId}
             </h2>
             <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-              Detailed journey information
+              Detailed tour information
             </p>
           </div>
         </div>
       </div>
 
-      {/* Journey Overview */}
+      {/* Tour Overview */}
       <div className={`backdrop-blur-sm rounded-2xl p-6 ${
         theme === 'dark'
           ? 'bg-gray-800/40 border border-gray-700/50'
           : 'bg-white border border-gray-200'
       }`}>
         <h3 className={`text-lg font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-          Journey Overview
+          Tour Overview
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <User size={16} className="text-blue-500" />
@@ -174,21 +234,41 @@ const TourDetailsPage = ({ journey, onBack }) => {
 
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Clock size={16} className="text-green-500" />
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Duration</p>
-            </div>
-            <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              {calculateDuration(journeyDetails.startJourney, journeyDetails.endJourney)}
-            </p>
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 mb-2">
               <MapPin size={16} className="text-orange-500" />
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Status</p>
             </div>
             <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               {!journeyDetails.startJourney ? 'Not Started' : !journeyDetails.endJourney ? 'In Progress' : 'Completed'}
+            </p>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Clock size={16} className="text-green-500" />
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Start Time</p>
+            </div>
+            <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              {formatDate(journeyDetails.startJourney)}
+            </p>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Clock size={16} className="text-red-500" />
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>End Time</p>
+            </div>
+            <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              {formatDate(journeyDetails.endJourney)}
+            </p>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Clock size={16} className="text-yellow-500" />
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Duration</p>
+            </div>
+            <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              {calculateDuration(journeyDetails.startJourney, journeyDetails.endJourney)}
             </p>
           </div>
         </div>
@@ -273,11 +353,15 @@ const TourDetailsPage = ({ journey, onBack }) => {
             {journeyDetails.visits.map((visit, index) => (
               <div
                 key={`${visit.visitId}-${visit.salesId}-${visit.journeyId}`}
-                className={`p-4 rounded-xl ${
+                onClick={() => {
+                  setSelectedVisit(visit);
+                  setShowVisitModal(true);
+                }}
+                className={`p-4 rounded-xl cursor-pointer ${
                   theme === 'dark'
                     ? 'bg-gray-800/50 hover:bg-gray-800/70'
                     : 'bg-gray-50 hover:bg-gray-100'
-                } transition-colors`}
+                } transition-all hover:scale-[1.02] hover:shadow-lg`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -314,7 +398,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
           </div>
         ) : (
           <p className={`text-center py-8 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            No visits recorded for this journey
+            No visits recorded for this tour
           </p>
         )}
       </div>
@@ -388,11 +472,271 @@ const TourDetailsPage = ({ journey, onBack }) => {
           </div>
         ) : (
           <p className={`text-center py-8 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            No invoices recorded for this journey
+            No invoices recorded for this tour
           </p>
         )}
       </div>
-    </div>
+
+      {/* Actions Section */}
+      {journeyDetails.visits && journeyDetails.visits.some(v => v.actionDetails && v.actionDetails.length > 0) && (
+        <div className={`backdrop-blur-sm rounded-2xl p-6 ${
+          theme === 'dark'
+            ? 'bg-gray-800/40 border border-gray-700/50'
+            : 'bg-white border border-gray-200'
+        }`}>
+          <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            <Activity size={20} className="text-purple-500" />
+            All Tour Actions
+          </h3>
+          <div className="space-y-3">
+            {journeyDetails.visits.flatMap(visit => 
+              (visit.actionDetails || []).map((actionDetail, idx) => (
+                <div
+                  key={`${visit.visitId}-action-${idx}`}
+                  className={`p-4 rounded-xl ${
+                    theme === 'dark'
+                      ? 'bg-gray-800/50'
+                      : 'bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <FileText size={16} className="text-purple-500" />
+                        <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                          {actionDetail.action?.name || 'Unknown Action'}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'
+                        }`}>
+                          Visit #{visit.visitId}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Customer: </span>
+                          <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                            {visit.customer?.name || 'Unknown'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Time: </span>
+                          <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                            {formatDate(actionDetail.createdAt)}
+                          </span>
+                        </div>
+                      </div>
+                      {actionDetail.notes && (
+                        <div className="mt-2 text-sm">
+                          <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Notes: </span>
+                          <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                            {actionDetail.notes}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Visit Details Modal */}
+      {showVisitModal && selectedVisit && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn"
+          onClick={() => setShowVisitModal(false)}
+          style={{
+            animation: 'fadeIn 0.2s ease-out'
+          }}
+        >
+          <div 
+            className={`max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-2xl ${
+              theme === 'dark'
+                ? 'bg-gray-900 border border-gray-700'
+                : 'bg-white border border-gray-200'
+            } shadow-2xl transform transition-all duration-300`}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              animation: 'modalSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+            }}
+          >
+            {/* Modal Header */}
+            <div className={`sticky top-0 z-10 backdrop-blur-sm p-6 border-b ${
+              theme === 'dark'
+                ? 'bg-gray-900/95 border-gray-700'
+                : 'bg-white/95 border-gray-200'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    Visit #{selectedVisit.visitId}
+                  </h2>
+                  <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                    Detailed visit information
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowVisitModal(false)}
+                  className={`p-2 rounded-xl transition-all duration-200 hover:scale-110 hover:rotate-90 ${
+                    theme === 'dark'
+                      ? 'hover:bg-gray-800 text-gray-400 hover:text-white'
+                      : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
+                  }`}
+                  style={{
+                    animation: 'scaleIn 0.3s ease-out 0.2s both'
+                  }}
+                >
+                  <X size={24} />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Visit Overview */}
+              <div 
+                className={`rounded-xl p-6 ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 border border-gray-700/50'
+                    : 'bg-gray-50 border border-gray-200'
+                }`}
+                style={{
+                  animation: 'slideInFromLeft 0.4s ease-out 0.1s both'
+                }}
+              >
+                <h3 className={`text-lg font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  Visit Overview
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <User size={16} className="text-blue-500" />
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Customer</span>
+                    </div>
+                    <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      {selectedVisit.customer?.name || 'Unknown'}
+                    </p>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                      {selectedVisit.customer?.phone || 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <MapPin size={16} className="text-orange-500" />
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Address</span>
+                    </div>
+                    <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      {selectedVisit.customer?.address || 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Clock size={16} className="text-green-500" />
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Start Time</span>
+                    </div>
+                    <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      {formatDate(selectedVisit.startTime)}
+                    </p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Clock size={16} className="text-red-500" />
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>End Time</span>
+                    </div>
+                    <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      {formatDate(selectedVisit.endTime)}
+                    </p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <AlertCircle size={16} className="text-purple-500" />
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Status</span>
+                    </div>
+                    <div className="mt-1">
+                      {getVisitStatusBadge(selectedVisit.status)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions for this Visit */}
+              {selectedVisit.actionDetails && selectedVisit.actionDetails.length > 0 && (
+                <div 
+                  className={`rounded-xl p-6 ${
+                    theme === 'dark'
+                      ? 'bg-gray-800/50 border border-gray-700/50'
+                      : 'bg-gray-50 border border-gray-200'
+                  }`}
+                  style={{
+                    animation: 'slideInFromRight 0.4s ease-out 0.2s both'
+                  }}
+                >
+                  <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    <Activity size={20} className="text-purple-500" />
+                    Actions ({selectedVisit.actionDetails.length})
+                  </h3>
+                  <div className="space-y-3">
+                    {selectedVisit.actionDetails.map((actionDetail, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-4 rounded-xl ${
+                          theme === 'dark'
+                            ? 'bg-gray-900/50'
+                            : 'bg-white'
+                        }`}
+                        style={{
+                          animation: `scaleIn 0.3s ease-out ${0.3 + idx * 0.1}s both`
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <FileText size={18} className="text-purple-500 mt-1" />
+                          <div className="flex-1">
+                            <p className={`font-semibold mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              {actionDetail.action?.name || 'Unknown Action'}
+                            </p>
+                            <p className={`text-sm mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                              {formatDate(actionDetail.createdAt)}
+                            </p>
+                            {actionDetail.notes && (
+                              <div className={`mt-2 p-3 rounded-lg ${
+                                theme === 'dark'
+                                  ? 'bg-gray-800/50'
+                                  : 'bg-gray-50'
+                              }`}>
+                                <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                  {actionDetail.notes}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(!selectedVisit.actionDetails || selectedVisit.actionDetails.length === 0) && (
+                <div className={`rounded-xl p-6 text-center ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 border border-gray-700/50'
+                    : 'bg-gray-50 border border-gray-200'
+                }`}>
+                  <Activity size={48} className={`mx-auto mb-3 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
+                  <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                    No actions recorded for this visit
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
+    </>
   );
 };
 
