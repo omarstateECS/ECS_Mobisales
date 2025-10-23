@@ -29,5 +29,7 @@ router.put('/:id/authorities', salesmanController.updateAuthorities);
 router.get('/load/:id', loadController.syncData);
 // CREATE A NEW CUSTOMER AND VISIT
 router.post('/addVisit', salesmanController.createVisit);
+// GET INVOICE ITEMS
+router.get('/invoice/:invId/items', salesmanController.getInvoiceItems);
 
 module.exports = router;

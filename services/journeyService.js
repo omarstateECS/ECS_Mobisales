@@ -107,6 +107,22 @@ class JourneyService {
                                 phone: true
                             }
                         },
+                        invoices: {
+                            select: {
+                                invId: true,
+                                invType: true,
+                                netAmt: true,
+                                taxAmt: true,
+                                disAmt: true,
+                                totalAmt: true,
+                                paymentMethod: true,
+                                currency: true,
+                                createdAt: true
+                            },
+                            orderBy: {
+                                createdAt: 'desc'
+                            }
+                        },
                         actionDetails: {
                             include: {
                                 action: true
@@ -137,7 +153,7 @@ class JourneyService {
     async getJourneyStats(journeyId, salesId) {
         const prisma = getPrismaClient();
 
-        const [visitStats, invoiceStats] = await Promise.all([
+        const [visitStats, invoiceStats, salesStats, returnStats] = await Promise.all([
             prisma.visit.groupBy({
                 by: ['status'],
                 where: {
@@ -162,12 +178,50 @@ class JourneyService {
                 _count: {
                     invId: true
                 }
+            }),
+            // Sales only (SALE invoices)
+            prisma.invoiceHeader.aggregate({
+                where: {
+                    journeyId: parseInt(journeyId),
+                    salesId: parseInt(salesId),
+                    invType: 'SALE'
+                },
+                _sum: {
+                    totalAmt: true,
+                    netAmt: true
+                },
+                _count: {
+                    invId: true
+                }
+            }),
+            // Returns only (RETURN invoices)
+            prisma.invoiceHeader.aggregate({
+                where: {
+                    journeyId: parseInt(journeyId),
+                    salesId: parseInt(salesId),
+                    invType: 'RETURN'
+                },
+                _sum: {
+                    totalAmt: true,
+                    netAmt: true
+                },
+                _count: {
+                    invId: true
+                }
             })
         ]);
 
+        // Calculate collection (sales - returns)
+        const salesTotal = salesStats._sum.totalAmt || 0;
+        const returnsTotal = returnStats._sum.totalAmt || 0;
+        const collection = salesTotal - returnsTotal;
+
         return {
             visits: visitStats,
-            invoices: invoiceStats
+            invoices: invoiceStats,
+            sales: salesStats,
+            returns: returnStats,
+            collection: collection
         };
     }
 
@@ -193,6 +247,34 @@ class JourneyService {
                 }
             }
         });
+    }
+
+    async checkLastJourneyStatus(salesmanId) {
+        const prisma = getPrismaClient();
+        
+        // Get the latest journey for this salesman
+        const latestJourney = await prisma.journies.findFirst({
+            where: {
+                salesId: parseInt(salesmanId)
+            },
+            orderBy: {
+                journeyId: 'desc'
+            },
+            select: {
+                journeyId: true,
+                salesId: true,
+                startJourney: true,
+                endJourney: true
+            }
+        });
+
+        // If no journey exists or the latest journey has ended, return false
+        if (!latestJourney || latestJourney.endJourney) {
+            return { hasActiveJourney: false, journey: latestJourney };
+        }
+
+        // Journey exists and hasn't ended
+        return { hasActiveJourney: true, journey: latestJourney };
     }
 
     async getLatestJourney(salesmanId) {

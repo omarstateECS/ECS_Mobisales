@@ -8,6 +8,31 @@ class VisitService {
         // Dates are now stored as strings, so just return them
         return date;
     }
+
+    async getNextVisitIdForSalesman(salesmanId, tx) {
+        try {
+            const prismaClient = tx || getPrismaClient();
+            
+            // Find the highest visitId for this salesman
+            const lastVisit = await prismaClient.visit.findFirst({
+                where: {
+                    salesId: parseInt(salesmanId)
+                },
+                orderBy: {
+                    visitId: 'desc'
+                },
+                select: {
+                    visitId: true
+                }
+            });
+            
+            // Return next visitId (start from 1 if no visits exist)
+            return lastVisit ? lastVisit.visitId + 1 : 1;
+        } catch (error) {
+            console.error('Error getting next visitId:', error);
+            return 1; // Default to 1 if error
+        }
+    }
     // Get all visits with optional filtering
     async getAllVisits(page = 1, limit = 50, salesmanId = null, customerId = null, status = null) {
         const prisma = getPrismaClient();
@@ -180,19 +205,26 @@ class VisitService {
             throw new Error('All selected customers already have pending visits for this salesman');
         }
 
+        let nextVisitId = await this.getNextVisitIdForSalesman(salesmanId);
+
         // Create visits for new customers
         const timestamp = getLocalTimestamp();
-        const visitData = newCustomerIds.map((custId) => ({
-            custId: parseInt(custId),
-            salesId: parseInt(salesmanId),
-            journeyId: parseInt(journeyId),
-            status: 'WAIT',
-            startTime: null,
-            endTime: null,
-            cancelTime: null,
-            createdAt: timestamp,
-            updatedAt: timestamp
-        }));
+        const visitData = newCustomerIds.map((custId) => {
+            const visit = {
+                visitId: nextVisitId,
+                custId: parseInt(custId),
+                salesId: parseInt(salesmanId),
+                journeyId: parseInt(journeyId),
+                status: 'WAIT',
+                startTime: null,
+                endTime: null,
+                cancelTime: null,
+                createdAt: timestamp,
+                updatedAt: timestamp
+            };
+            nextVisitId++; // Increment for next visit
+            return visit;
+        });
 
         // Use createMany for bulk insert
         const result = await prisma.visit.createMany({

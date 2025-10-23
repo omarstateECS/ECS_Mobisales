@@ -229,7 +229,32 @@ class SalesmanService {
             totalSales,
             activeSales
         };
-    } 
+    }
+
+    async getNextVisitIdForSalesman(salesmanId, tx) {
+        try {
+            const prismaClient = tx || getPrismaClient();
+            
+            // Find the highest visitId for this salesman
+            const lastVisit = await prismaClient.visit.findFirst({
+                where: {
+                    salesId: parseInt(salesmanId)
+                },
+                orderBy: {
+                    visitId: 'desc'
+                },
+                select: {
+                    visitId: true
+                }
+            });
+            
+            // Return next visitId (start from 1 if no visits exist)
+            return lastVisit ? lastVisit.visitId + 1 : 1;
+        } catch (error) {
+            console.error('Error getting next visitId:', error);
+            return 1; // Default to 1 if error
+        }
+    }
 
     async checkIn(checkInData) {
         const prisma = getPrismaClient();
@@ -549,13 +574,37 @@ class SalesmanService {
                   console.warn('⚠️ No valid actions to insert');
                   actionCount = 0;
                 } else {
-                  // Bulk insert all actions at once
-                  const result = await tx.actionDetails.createMany({
-                    data: validActions,
-                    skipDuplicates: true  // Skip if ID already exists
-                  });
+                  // Use upsert for each action to handle duplicates properly
+                  console.log(`🔄 Upserting ${validActions.length} actions...`);
+                  let insertedCount = 0;
+                  
+                  for (const action of validActions) {
+                    try {
+                      await tx.actionDetails.upsert({
+                        where: {
+                          id_journeyId_visitId: {
+                            id: action.id,
+                            journeyId: action.journeyId,
+                            visitId: action.visitId
+                          }
+                        },
+                        update: {
+                          salesId: action.salesId,
+                          actionId: action.actionId,
+                          createdAt: action.createdAt
+                        },
+                        create: action
+                      });
+                      insertedCount++;
+                      console.log(`✅ Upserted action ${action.id} (actionId: ${action.actionId}, visitId: ${action.visitId})`);
+                    } catch (error) {
+                      console.error(`❌ Failed to upsert action ${action.id}:`, error.message);
+                      // Continue with other actions instead of failing the entire transaction
+                    }
+                  }
 
-                  actionCount = result.count;
+                  actionCount = insertedCount;
+                  console.log(`✅ Successfully upserted ${actionCount} actions`);
                 }
               } catch (error) {
                 throw new Error(`❌ Failed to create actions: ${error.message}`);
@@ -603,6 +652,31 @@ class SalesmanService {
                 };
             }
 
+            // CHECK IF JOURNEY EXISTS, CREATE IF NOT
+            const existingJourney = await prisma.journies.findUnique({
+                where: {
+                    journeyId_salesId: {
+                        journeyId: visitData.journeyId,
+                        salesId: visitData.salesId
+                    }
+                }
+            });
+
+            if (!existingJourney) {
+                // Create the journey first
+                const timestamp = getLocalTimestamp();
+                await prisma.journies.create({
+                    data: {
+                        journeyId: visitData.journeyId,
+                        salesId: visitData.salesId,
+                        startJourney: null,
+                        endJourney: null,
+                        createdAt: timestamp,
+                        updatedAt: timestamp
+                    }
+                });
+            }
+
             // CREATE THE NEW CUSTOMER FIRST
             const customer = await prisma.customer.create({
                 data: {
@@ -617,7 +691,7 @@ class SalesmanService {
             });
             
             // CREATE THE NEW VISIT
-            const timestamp = getLocalTimestamp();
+            const timestamp2 = getLocalTimestamp();
             const visit = await prisma.visit.create({
                 data: {
                     visitId: visitData.visitId,
@@ -625,8 +699,8 @@ class SalesmanService {
                     startTime: visitData.startTime || null,
                     endTime: visitData.endTime || null,
                     cancelTime: visitData.cancelTime || null,
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
+                    createdAt: timestamp2,
+                    updatedAt: timestamp2,
                     salesman: {
                         connect: { salesId: visitData.salesId }
                     },
@@ -646,6 +720,64 @@ class SalesmanService {
             return {customerId: customer.customerId};
         } catch (error) {
             throw new Error(`❌ Failed to create visit: ${error.message}`);
+        }
+    }
+
+    async getInvoiceItems(invId) {
+        const prisma = getPrismaClient();
+        try {
+            console.log('🔍 Fetching invoice items for invId:', invId, 'Type:', typeof invId);
+            
+            // First, fetch invoice items
+            const items = await prisma.invoiceItem.findMany({
+                where: {
+                    invoiceHeaderId: String(invId)
+                },
+                include: {
+                    reason: {
+                        select: {
+                            reasonId: true,
+                            description: true
+                        }
+                    }
+                },
+                orderBy: {
+                    invItem: 'asc'
+                }
+            });
+
+            console.log(`✅ Found ${items.length} invoice items`);
+            
+            // Manually fetch product details for each item
+            const itemsWithProducts = await Promise.all(
+                items.map(async (item) => {
+                    const product = await prisma.product.findUnique({
+                        where: { prodId: item.productId },
+                        select: {
+                            name: true,
+                            category: true
+                        }
+                    });
+
+                    return {
+                        ...item,
+                        product: product,
+                        // Map field names to match frontend expectations
+                        prodId: item.productId,
+                        uom: item.productUom,
+                        qty: item.qty,
+                        unitPrice: item.netAmt / item.qty, // Calculate unit price
+                        total: item.totAmt,
+                        discount: item.disAmt
+                    };
+                })
+            );
+
+            console.log(`✅ Returning ${itemsWithProducts.length} items with product details`);
+            return itemsWithProducts;
+        } catch (error) {
+            console.error('Error fetching invoice items:', error);
+            throw new Error(`❌ Failed to fetch invoice items: ${error.message}`);
         }
     }
 }

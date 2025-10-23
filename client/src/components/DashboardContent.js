@@ -18,29 +18,38 @@ const DashboardContent = ({
   const [statsLoading, setStatsLoading] = useState(true);
 
   // Fetch dashboard stats independently
-  useEffect(() => {
-    const fetchDashboardStats = async () => {
-      try {
-        const [customersResponse, salesmenResponse] = await Promise.all([
-          fetch('http://localhost:3000/api/customers/stats'),
-          fetch('http://localhost:3000/api/salesmen/stats')
-        ]);
-        
-        const customersData = customersResponse.ok ? await customersResponse.json() : { totalCustomers: 0 };
-        const salesmenData = salesmenResponse.ok ? await salesmenResponse.json() : { data: { activeSales: 0 } };
-        
-        setDashboardStats({
-          totalCustomers: customersData.totalCustomers,
-          activeSales: salesmenData.data.activeSales
-        });
-      } catch (error) {
-        console.error('Error fetching dashboard stats:', error);
-      } finally {
-        setStatsLoading(false);
-      }
-    };
+  const fetchDashboardStats = async () => {
+    try {
+      const [customersResponse, salesmenResponse] = await Promise.all([
+        fetch('http://localhost:3000/api/customers/stats'),
+        fetch('http://localhost:3000/api/salesmen/stats')
+      ]);
+      
+      const customersData = customersResponse.ok ? await customersResponse.json() : { totalCustomers: 0 };
+      const salesmenData = salesmenResponse.ok ? await salesmenResponse.json() : { data: { activeSales: 0 } };
+      
+      setDashboardStats({
+        totalCustomers: customersData.totalCustomers,
+        activeSales: salesmenData.data.activeSales
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchDashboardStats();
+  }, []);
+
+  // Auto-refresh dashboard stats every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchDashboardStats();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
   }, []);
   const statsCards = [
     {

@@ -251,6 +251,23 @@ class SalesmanController {
             });
         }
     }
+
+    async getInvoiceItems(req, res) {
+        try {
+            const { invId } = req.params;
+            const items = await salesmanService.getInvoiceItems(invId);
+            res.status(200).json({
+                success: true,
+                items: items
+            });
+        } catch (error) {
+            console.error('Error getting invoice items:', error);
+            res.status(500).json({ 
+                success: false,
+                message: error.message || 'Internal server error' 
+            });
+        }
+    }
 }
 
 module.exports = new SalesmanController();

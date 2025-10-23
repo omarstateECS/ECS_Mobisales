@@ -71,6 +71,15 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
     fetchJourneys(currentPage, itemsPerPage, appliedStartDate, appliedEndDate, appliedSalesman);
   }, [currentPage, itemsPerPage, appliedStartDate, appliedEndDate, appliedSalesman]);
 
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchJourneys(currentPage, itemsPerPage, appliedStartDate, appliedEndDate, appliedSalesman);
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [currentPage, itemsPerPage, appliedStartDate, appliedEndDate, appliedSalesman]);
+
   // Handle page change
   const handlePageChange = (page) => {
     setCurrentPage(page);

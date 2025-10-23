@@ -34,7 +34,19 @@ class AuthService {
                 // Update the salesman object for the response
                 salesman.deviceId = deviceId;
             }
-    
+
+            if (deviceId != salesman.deviceId) {
+                throw new Error('Device not authorized');
+            }
+
+            // Check if salesman has an active journey
+            const journeyStatus = await journeyService.checkLastJourneyStatus(id);
+            if (!journeyStatus.hasActiveJourney) {
+                throw new Error('No Journies assigned');
+            }
+
+            const lastJourney = journeyStatus.journey;
+
             // Get ALL authorities from database
             const allAuthorities = await prisma.authority.findMany({
                 where: { type: 'MOBILE' },

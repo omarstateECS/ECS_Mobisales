@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Save, RefreshCw, Edit3 } from 'lucide-react';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { Settings, Save, RefreshCw, Edit3, GripVertical, Plus, X } from 'lucide-react';
 
 const SettingsPage = () => {
   const [settings, setSettings] = useState({
@@ -11,10 +11,93 @@ const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  
+  // Draggable placeholders state
+  const [sequenceParts, setSequenceParts] = useState([]);
+  const [availablePlaceholders] = useState([
+    { id: 'year', label: 'Year', value: '{year}' },
+    { id: 'month', label: 'Month', value: '{month}' },
+    { id: 'day', label: 'Day', value: '{day}' },
+    { id: 'number', label: 'Number', value: '{number}' },
+    { id: 'salesId', label: 'Sales ID', value: '{salesId}' }
+  ]);
 
   useEffect(() => {
     fetchSettings();
   }, []);
+
+  // Parse sequence string into parts when settings load
+  useEffect(() => {
+    if (settings.customInvoiceSequence) {
+      parseSequenceIntoParts(settings.customInvoiceSequence);
+    }
+  }, [settings.customInvoiceSequence]);
+
+  // Update sequence string when parts change
+  useEffect(() => {
+    const newSequence = sequenceParts.map(part => part.value).join('');
+    if (newSequence !== settings.customInvoiceSequence) {
+      setSettings(prev => ({ ...prev, customInvoiceSequence: newSequence }));
+    }
+  }, [sequenceParts]);
+
+  const parseSequenceIntoParts = (sequence) => {
+    if (!sequence) {
+      setSequenceParts([]);
+      return;
+    }
+    
+    const parts = [];
+    let currentText = '';
+    let i = 0;
+    
+    while (i < sequence.length) {
+      if (sequence[i] === '{') {
+        // Save any accumulated text
+        if (currentText) {
+          parts.push({
+            id: `text-${Date.now()}-${Math.random()}`,
+            type: 'text',
+            value: currentText,
+            label: currentText
+          });
+          currentText = '';
+        }
+        
+        // Find the closing brace
+        const closeIndex = sequence.indexOf('}', i);
+        if (closeIndex !== -1) {
+          const placeholder = sequence.substring(i, closeIndex + 1);
+          const placeholderName = placeholder.slice(1, -1); // Remove braces
+          parts.push({
+            id: `${placeholderName}-${Date.now()}-${Math.random()}`,
+            type: 'placeholder',
+            value: placeholder,
+            label: placeholderName.charAt(0).toUpperCase() + placeholderName.slice(1)
+          });
+          i = closeIndex + 1;
+        } else {
+          currentText += sequence[i];
+          i++;
+        }
+      } else {
+        currentText += sequence[i];
+        i++;
+      }
+    }
+    
+    // Add any remaining text
+    if (currentText) {
+      parts.push({
+        id: `text-${Date.now()}-${Math.random()}`,
+        type: 'text',
+        value: currentText,
+        label: currentText
+      });
+    }
+    
+    setSequenceParts(parts);
+  };
 
   const fetchSettings = async () => {
     setLoading(true);
@@ -43,6 +126,37 @@ const SettingsPage = () => {
       ...prev,
       [key]: !prev[key]
     }));
+  };
+
+  const addPlaceholder = (placeholder) => {
+    const newPart = {
+      id: `${placeholder.id}-${Date.now()}-${Math.random()}`,
+      type: 'placeholder',
+      value: placeholder.value,
+      label: placeholder.label
+    };
+    setSequenceParts(prev => [...prev, newPart]);
+  };
+
+  const addTextSeparator = () => {
+    const separator = prompt('Enter separator text (e.g., "-", "_", "/"):');
+    if (separator) {
+      const newPart = {
+        id: `text-${Date.now()}-${Math.random()}`,
+        type: 'text',
+        value: separator,
+        label: separator
+      };
+      setSequenceParts(prev => [...prev, newPart]);
+    }
+  };
+
+  const removePart = (partId) => {
+    setSequenceParts(prev => prev.filter(part => part.id !== partId));
+  };
+
+  const clearSequence = () => {
+    setSequenceParts([]);
   };
 
   const handleSave = async () => {
@@ -155,40 +269,115 @@ const SettingsPage = () => {
                         </div>
                         <div className="flex-1">
                           <label className="block text-sm font-medium text-white mb-2">
-                            Custom Invoice Sequence
+                            Custom Invoice Sequence Builder
                           </label>
                           <p className="text-xs text-gray-400 mb-3">
-                            Define the custom sequence pattern for invoice IDs (e.g., "INV-{'{'}year{'}'}-{'{'}month{'}'}-{'{'}number{'}'}")
+                            Drag and drop placeholders to build your custom invoice sequence pattern
                           </p>
-                          <div className="flex space-x-3">
-                            <input
-                              type="text"
-                              value={settings.customInvoiceSequence}
-                              onChange={(e) => setSettings(prev => ({ ...prev, customInvoiceSequence: e.target.value }))}
-                              placeholder="e.g., INV-{year}-{month}-{number}"
-                              className="flex-1 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            <button
-                              onClick={handleSave}
-                              disabled={saving}
-                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 font-medium"
-                            >
-                              {saving ? (
-                                <>
-                                  <RefreshCw className="w-4 h-4 animate-spin" />
-                                  <span>Saving...</span>
-                                </>
+                          
+                          {/* Draggable Sequence Builder */}
+                          <div className="space-y-4">
+                            {/* Current Sequence */}
+                            <div className="min-h-[60px] p-3 bg-gray-800/50 border-2 border-dashed border-gray-600 rounded-lg">
+                              {sequenceParts.length === 0 ? (
+                                <p className="text-gray-500 text-sm text-center py-2">
+                                  Add placeholders below to build your sequence
+                                </p>
                               ) : (
-                                <>
-                                  <Save className="w-4 h-4" />
-                                  <span>Save</span>
-                                </>
+                                <Reorder.Group
+                                  axis="x"
+                                  values={sequenceParts}
+                                  onReorder={setSequenceParts}
+                                  className="flex flex-wrap gap-2 items-center"
+                                >
+                                  {sequenceParts.map((part) => (
+                                    <Reorder.Item
+                                      key={part.id}
+                                      value={part}
+                                      className="cursor-grab active:cursor-grabbing"
+                                    >
+                                      <motion.div
+                                        layout
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                                          part.type === 'placeholder'
+                                            ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                                            : 'bg-gray-700/50 text-gray-300 border border-gray-600/30'
+                                        }`}
+                                      >
+                                        <GripVertical size={14} className="opacity-50" />
+                                        <span>{part.label}</span>
+                                        <button
+                                          onClick={() => removePart(part.id)}
+                                          className="ml-1 hover:text-red-400 transition-colors"
+                                        >
+                                          <X size={14} />
+                                        </button>
+                                      </motion.div>
+                                    </Reorder.Item>
+                                  ))}
+                                </Reorder.Group>
                               )}
-                            </button>
+                            </div>
+
+                            {/* Preview */}
+                            <div className="p-3 bg-gray-900/50 rounded-lg border border-gray-700/50">
+                              <p className="text-xs text-gray-500 mb-1">Preview:</p>
+                              <p className="text-sm font-mono text-white">
+                                {settings.customInvoiceSequence || 'No sequence defined'}
+                              </p>
+                            </div>
+
+                            {/* Available Placeholders */}
+                            <div>
+                              <p className="text-xs text-gray-400 mb-2">Available Placeholders:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {availablePlaceholders.map((placeholder) => (
+                                  <button
+                                    key={placeholder.id}
+                                    onClick={() => addPlaceholder(placeholder)}
+                                    className="flex items-center gap-1 px-3 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-lg text-sm font-medium transition-colors"
+                                  >
+                                    <Plus size={14} />
+                                    {placeholder.label}
+                                  </button>
+                                ))}
+                                <button
+                                  onClick={addTextSeparator}
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-700/30 hover:bg-gray-700/50 text-gray-300 border border-gray-600/30 rounded-lg text-sm font-medium transition-colors"
+                                >
+                                  <Plus size={14} />
+                                  Add Text
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-2">
+                              <button
+                                onClick={clearSequence}
+                                className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 rounded-lg transition-colors text-sm font-medium"
+                              >
+                                Clear All
+                              </button>
+                              <button
+                                onClick={handleSave}
+                                disabled={saving}
+                                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 font-medium"
+                              >
+                                {saving ? (
+                                  <>
+                                    <RefreshCw className="w-4 h-4 animate-spin" />
+                                    <span>Saving...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Save className="w-4 h-4" />
+                                    <span>Save Sequence</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
                           </div>
-                          <p className="text-xs text-gray-500 mt-2">
-                            Available placeholders: {'{'}year{'}'}, {'{'}month{'}'}, {'{'}day{'}'}, {'{'}number{'}'}, {'{'}salesId{'}'}
-                          </p>
                         </div>
                       </div>
                     </div>

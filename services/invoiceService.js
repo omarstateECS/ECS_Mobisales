@@ -1,8 +1,75 @@
 const { getPrismaClient } = require('../lib/prisma');
 const Prisma = require('@prisma/client');
 const { getLocalTimestamp } = require('../lib/dateUtils');
+const settingsService = require('./settingsService');
 
 class InvoiceService {
+    async generateCustomInvoiceId(salesId, tx) {
+        try {
+            // Get settings to check if custom invoice is enabled
+            const settings = await settingsService.getSettings();
+            
+            if (!settings.customInvoice || !settings.customInvoiceSequence) {
+                return null; // Use default invoice ID
+            }
+            
+            const sequence = settings.customInvoiceSequence;
+            const now = new Date();
+            
+            // Get the current counter for this pattern
+            const year = now.getFullYear().toString();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            
+            // Find the highest invoice number for this pattern today
+            const prismaClient = tx || getPrismaClient();
+            
+            // Get all invoices that match the pattern prefix (without the number)
+            const patternPrefix = sequence
+                .replace('{year}', year)
+                .replace('{month}', month)
+                .replace('{day}', day)
+                .replace('{salesId}', salesId.toString())
+                .replace('{number}', ''); // Remove number placeholder to get prefix
+            
+            // Find invoices with similar pattern
+            const existingInvoices = await prismaClient.invoiceHeader.findMany({
+                where: {
+                    invId: {
+                        startsWith: patternPrefix
+                    }
+                },
+                orderBy: {
+                    invId: 'desc'
+                },
+                take: 1
+            });
+            
+            let nextNumber = 1;
+            
+            if (existingInvoices.length > 0) {
+                // Extract the number from the last invoice
+                const lastInvoiceId = existingInvoices[0].invId;
+                const numberMatch = lastInvoiceId.match(/(\d+)$/);
+                if (numberMatch) {
+                    nextNumber = parseInt(numberMatch[1]) + 1;
+                }
+            }
+            
+            // Generate the new invoice ID
+            const customInvoiceId = sequence
+                .replace('{year}', year)
+                .replace('{month}', month)
+                .replace('{day}', day)
+                .replace('{number}', nextNumber.toString().padStart(3, '0'))
+                .replace('{salesId}', salesId.toString());
+            
+            return customInvoiceId;
+        } catch (error) {
+            console.error('Error generating custom invoice ID:', error);
+            return null; // Fall back to default
+        }
+    }
     async getAllInvoices(page = 1, limit = 50, query = '') {
         const prisma = getPrismaClient();
         const [total, invoices] = await prisma.$transaction([
@@ -72,18 +139,24 @@ class InvoiceService {
         try {
             // If transaction is provided, use it directly; otherwise create a new transaction
             const executeInvoiceCreation = async (tx) => {
+                // Generate custom invoice ID if enabled
+                const customInvoiceId = await this.generateCustomInvoiceId(headerData.salesId, tx);
+                const finalInvoiceId = customInvoiceId || String(headerData.invId);
+                
+                console.log(`📝 Invoice ID: ${customInvoiceId ? `Custom (${finalInvoiceId})` : `Default (${finalInvoiceId})`}`);
+                
                 // Check if invoice already exists
                 const existingInvoice = await tx.invoiceHeader.findUnique({
                     where: {
                         invId_salesId: {
-                            invId: String(headerData.invId),
+                            invId: finalInvoiceId,
                             salesId: parseInt(headerData.salesId)
                         }
                     }
                 });
 
                 if (existingInvoice) {
-                    console.log(`ℹ️ Invoice ${headerData.invId} already exists, fetching items`);
+                    console.log(`ℹ️ Invoice ${finalInvoiceId} already exists, fetching items`);
                     // Fetch items separately since there's no relation in schema
                     const existingItems = await tx.invoiceItem.findMany({
                         where: {
@@ -99,7 +172,7 @@ class InvoiceService {
                 // Create invoice header
                 const invoiceHeader = await tx.invoiceHeader.create({
                     data: {
-                        invId: String(headerData.invId),
+                        invId: finalInvoiceId,
                         custId: parseInt(headerData.custId || headerData.customerId),
                         salesId: parseInt(headerData.salesId),
                         journeyId: parseInt(headerData.journeyId),

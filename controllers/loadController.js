@@ -15,13 +15,14 @@ module.exports = {
           return res.status(400).json({ error: 'Salesman ID is required' });
         }
   
-        const [visits, products, reasons, lastInvoice, latestJourney, settings] = await Promise.all([
+        const [visits, products, reasons, lastInvoice, latestJourney, settings, nextVisitId] = await Promise.all([
           visitService.getTodayVisits(salesmanId),
           productService.getAllProducts(),
           reasonService.getAllReasons(),
           invoiceService.getLastInvoice(salesmanId),
           journeyService.getLatestJourney(salesmanId),
-          settingsService.getSettings()
+          settingsService.getSettings(),
+          visitService.getNextVisitIdForSalesman(salesmanId)
         ]);
 
         // Generate startIdInvoice pattern: last 5 digits of salesId + 5-digit invoice sequence
@@ -43,6 +44,7 @@ module.exports = {
           products,
           reasons,
           startIdInvoice,
+          startIdVisit: nextVisitId,
           journeyId: latestJourney?.journeyId || null,
           settings: {
             customInvoice: settings?.customInvoice || false,
