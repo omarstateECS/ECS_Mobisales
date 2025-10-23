@@ -9,10 +9,10 @@ function customerValidation(customer) {
     latitude: Joi.number().required(),
     longitude: Joi.number().required(),
     phone: Joi.string().optional().allow(null),
-});
+    regionId: Joi.number().integer().positive().optional().allow(null)
+  });
 
-return schema.validate(customer);
-
+  return schema.validate(customer);
 }
 
 module.exports = {

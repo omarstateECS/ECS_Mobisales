@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, User, Phone, MapPin, Lock, Smartphone, Shield, Hash } from 'lucide-react';
+import { X, Save, User, Phone, MapPin, Lock, Smartphone, Shield, Hash, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotification } from '../hooks/useNotification';
 import NotificationModal from './common/NotificationModal';
@@ -17,17 +17,20 @@ const AddSalesmanModal = ({
     phone: '',
     address: '',
     password: '',
-    status: 'INACTIVE'
+    status: 'INACTIVE',
+    regionId: ''
   });
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [hasLoadedId, setHasLoadedId] = useState(false);
+  const [regions, setRegions] = useState([]);
 
-  // Fetch next available ID when modal opens (only if form is empty)
+  // Fetch next available ID and regions when modal opens
   useEffect(() => {
     if (isOpen && !hasLoadedId) {
       fetchNextSalesmanId();
+      fetchRegions();
       setHasLoadedId(true);
     }
     
@@ -36,6 +39,18 @@ const AddSalesmanModal = ({
       setHasLoadedId(false);
     }
   }, [isOpen, hasLoadedId]);
+
+  const fetchRegions = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/regions');
+      if (response.ok) {
+        const data = await response.json();
+        setRegions(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching regions:', error);
+    }
+  };
 
   const fetchNextSalesmanId = async () => {
     try {
@@ -124,6 +139,11 @@ const AddSalesmanModal = ({
         password: formData.password,
         status: formData.status
       };
+      
+      // Add regionId if selected
+      if (formData.regionId) {
+        salesmanData.regionId = parseInt(formData.regionId);
+      }
 
       console.log('Submitting salesman data:', salesmanData);
       
@@ -147,7 +167,8 @@ const AddSalesmanModal = ({
           phone: '',
           address: '',
           password: '',
-          status: 'INACTIVE'
+          status: 'INACTIVE',
+          regionId: ''
         });
         setErrors({});
         setLoading(false);
@@ -215,7 +236,8 @@ const AddSalesmanModal = ({
         phone: '',
         address: '',
         password: '',
-        status: 'INACTIVE'
+        status: 'INACTIVE',
+        regionId: ''
       });
       setErrors({});
       setHasLoadedId(false); // Reset so next open will fetch new ID
@@ -344,6 +366,29 @@ const AddSalesmanModal = ({
                 placeholder="Enter address *"
               />
               {errors.address && <p className="mt-2 text-sm text-red-400">{errors.address}</p>}
+            </div>
+
+            {/* Region Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                <Globe size={16} className="inline mr-2" />
+                Assigned Region
+              </label>
+              <select
+                name="regionId"
+                value={formData.regionId}
+                onChange={handleInputChange}
+                disabled={loading}
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">Select region (optional)</option>
+                {regions.map((region) => (
+                  <option key={region.id} value={region.id}>
+                    {region.region} - {region.city}, {region.country}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">Assign this salesman to a specific region</p>
             </div>
 
             {/* Password */}

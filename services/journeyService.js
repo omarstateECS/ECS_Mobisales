@@ -2,6 +2,22 @@ const { getPrismaClient } = require('../lib/prisma');
 const { getLocalTimestamp } = require('../lib/dateUtils');
 
 class JourneyService {
+    // Get next global journey ID
+    async getNextJourneyId() {
+        const prisma = getPrismaClient();
+        
+        // Find the maximum journeyId across all salesmen
+        const maxJourney = await prisma.journies.findFirst({
+            orderBy: {
+                journeyId: 'desc'
+            },
+            select: {
+                journeyId: true
+            }
+        });
+        
+        return maxJourney ? maxJourney.journeyId + 1 : 1;
+    }
     async getAllJourneys() {
         const prisma = getPrismaClient();
         return await prisma.journey.findMany();
@@ -290,7 +306,7 @@ class JourneyService {
         });
     }
 
-    async createJourney(salesmanId) {
+    async createJourney(salesmanId, regionId = null) {
         const prisma = getPrismaClient();
         
         // Get the highest journeyId for this salesman
@@ -308,13 +324,14 @@ class JourneyService {
             throw new Error('Cannot create a new journey. The current journey has not ended yet.');
         }
         
-        // Calculate next journeyId (starts from 1 for each salesman)
-        const nextJourneyId = lastJourney ? lastJourney.journeyId + 1 : 1;
+        // Get the next global journey ID
+        const nextJourneyId = await this.getNextJourneyId();
         
         return await prisma.journies.create({
             data: {
                 journeyId: nextJourneyId,
                 salesId: parseInt(salesmanId),
+                regionId: regionId ? parseInt(regionId) : null,
                 createdAt: getLocalTimestamp(),
                 updatedAt: getLocalTimestamp()
             }

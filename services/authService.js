@@ -45,7 +45,10 @@ class AuthService {
                 throw new Error('No Journies assigned');
             }
 
-            const lastJourney = journeyStatus.journey;
+            const latestJourney = journeyStatus.journey;
+            
+            // If journey has ended (has endJourney timestamp), send 0, otherwise send the actual ID
+            const lastJourneyId = latestJourney && latestJourney.endJourney ? 0 : latestJourney.journeyId;
 
             // Get ALL authorities from database
             const allAuthorities = await prisma.authority.findMany({
@@ -78,7 +81,8 @@ class AuthService {
             return {
                 data: {
                     salesman: salesmanData,
-                    authorities
+                    authorities,
+                    lastJourneyId
                 }
             };
     

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Search, ChevronLeft, ChevronRight, Calendar, MapPin, User, TrendingUp, Clock } from 'lucide-react';
+import { ArrowLeft, Search, ChevronLeft, ChevronRight, Calendar, MapPin, User, TrendingUp, Clock, Globe } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 const ToursView = ({ handleNavigation, onViewTourDetails }) => {
@@ -22,8 +22,15 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
   const [salesmen, setSalesmen] = useState([]);
   const [selectedSalesman, setSelectedSalesman] = useState('');
   const [appliedSalesman, setAppliedSalesman] = useState('');
+  const [salesmanSearch, setSalesmanSearch] = useState('');
+  const [showSalesmanDropdown, setShowSalesmanDropdown] = useState(false);
+  const [filteredSalesmen, setFilteredSalesmen] = useState([]);
+  
+  // Region filtering
+  const [regions, setRegions] = useState([]);
+  const [selectedRegion, setSelectedRegion] = useState('');
 
-  // Fetch salesmen
+  // Fetch salesmen and regions
   useEffect(() => {
     const fetchSalesmen = async () => {
       try {
@@ -31,12 +38,51 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
         if (response.ok) {
           const data = await response.json();
           setSalesmen(data || []);
+          setFilteredSalesmen(data || []);
         }
       } catch (error) {
         console.error('Error fetching salesmen:', error);
       }
     };
+    
+    const fetchRegions = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/regions');
+        if (response.ok) {
+          const data = await response.json();
+          setRegions(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching regions:', error);
+      }
+    };
+    
     fetchSalesmen();
+    fetchRegions();
+  }, []);
+
+  // Filter salesmen based on search
+  useEffect(() => {
+    if (salesmanSearch.trim() === '') {
+      setFilteredSalesmen(salesmen);
+    } else {
+      const filtered = salesmen.filter(salesman => 
+        salesman.name.toLowerCase().includes(salesmanSearch.toLowerCase()) ||
+        salesman.salesId.toString().includes(salesmanSearch)
+      );
+      setFilteredSalesmen(filtered);
+    }
+  }, [salesmanSearch, salesmen]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.salesman-search-container')) {
+        setShowSalesmanDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Fetch journeys
@@ -105,10 +151,28 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
     setStartDate('');
     setEndDate('');
     setSelectedSalesman('');
+    setSalesmanSearch('');
+    setSelectedRegion('');
     setAppliedStartDate('');
     setAppliedEndDate('');
     setAppliedSalesman('');
     setCurrentPage(1);
+  };
+
+  // Handle salesman selection
+  const handleSelectSalesman = (salesman) => {
+    setSelectedSalesman(salesman.salesId);
+    setSalesmanSearch(salesman.name);
+    setShowSalesmanDropdown(false);
+  };
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSalesmanSearch(e.target.value);
+    setShowSalesmanDropdown(true);
+    if (e.target.value === '') {
+      setSelectedSalesman('');
+    }
   };
 
   // Format date
@@ -177,34 +241,66 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
       </div>
 
       {/* Date Filter Bar */}
-      <div className={`backdrop-blur-sm rounded-2xl p-4 ${
+      <div className={`backdrop-blur-sm rounded-2xl p-4 overflow-visible relative ${
         theme === 'dark'
           ? 'bg-gray-800/40 border border-gray-700/50'
           : 'bg-white border border-gray-200'
-      }`}>
-        <div className="flex flex-col md:flex-row gap-4 items-end">
-          <div className="flex-1">
+      }`}
+      style={{ zIndex: 10 }}>
+        <div className="flex flex-col md:flex-row gap-4 items-end overflow-visible">
+          <div className="flex-1 relative">
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Salesman
+              Search Salesman
             </label>
-            <div className="relative">
-              <User className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
-              <select
-                value={selectedSalesman}
-                onChange={(e) => setSelectedSalesman(e.target.value)}
+            <div className="relative salesman-search-container">
+              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
+              <input
+                type="text"
+                value={salesmanSearch}
+                onChange={handleSearchChange}
+                onFocus={() => setShowSalesmanDropdown(true)}
+                placeholder="Search by name or ID..."
                 className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
                   theme === 'dark'
-                    ? 'bg-gray-800/50 border border-gray-700/50 text-white'
-                    : 'bg-gray-50 border border-gray-200 text-gray-900'
+                    ? 'bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-500'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400'
                 }`}
-              >
-                <option value="">All Salesmen</option>
-                {salesmen.map((salesman) => (
-                  <option key={salesman.salesId} value={salesman.salesId}>
-                    {salesman.name}
-                  </option>
-                ))}
-              </select>
+              />
+              {showSalesmanDropdown && filteredSalesmen.length > 0 && salesmanSearch && (
+                <div className={`absolute z-[9999] w-full mt-2 rounded-xl shadow-2xl max-h-60 overflow-y-auto ${
+                  theme === 'dark'
+                    ? 'bg-gray-800 border border-gray-700'
+                    : 'bg-white border border-gray-200'
+                }`}
+                style={{ position: 'absolute', zIndex: 9999 }}>
+                  {filteredSalesmen.map((salesman) => (
+                    <button
+                      key={salesman.salesId}
+                      onClick={() => handleSelectSalesman(salesman)}
+                      className={`w-full text-left px-4 py-3 hover:bg-blue-500/10 transition-colors flex items-center justify-between ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}
+                    >
+                      <span>{salesman.name}</span>
+                      <span className={`text-xs px-2 py-1 rounded-lg ${
+                        theme === 'dark' ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        ID: {salesman.salesId}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {showSalesmanDropdown && filteredSalesmen.length === 0 && salesmanSearch && (
+                <div className={`absolute z-[9999] w-full mt-2 rounded-xl shadow-2xl p-4 text-center ${
+                  theme === 'dark'
+                    ? 'bg-gray-800 border border-gray-700 text-gray-400'
+                    : 'bg-white border border-gray-200 text-gray-600'
+                }`}
+                style={{ position: 'absolute', zIndex: 9999 }}>
+                  No salesmen found
+                </div>
+              )}
             </div>
           </div>
           <div className="flex-1">
@@ -241,6 +337,30 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                     : 'bg-gray-50 border border-gray-200 text-gray-900'
                 }`}
               />
+            </div>
+          </div>
+          <div className="flex-1">
+            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              Region
+            </label>
+            <div className="relative">
+              <Globe className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
+              <select
+                value={selectedRegion}
+                onChange={(e) => setSelectedRegion(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all appearance-none ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900'
+                }`}
+              >
+                <option value="">All Regions</option>
+                {regions.map(region => (
+                  <option key={region.id} value={region.id}>
+                    {region.region} - {region.city}, {region.country}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="flex gap-2">
@@ -280,7 +400,9 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
         </div>
       ) : (
         <div className="space-y-4">
-          {journeys.map((journey) => (
+          {journeys
+            .filter(journey => !selectedRegion || journey.regionId === parseInt(selectedRegion))
+            .map((journey) => (
             <div
               key={`${journey.journeyId}-${journey.salesId}`}
               onClick={() => onViewTourDetails(journey)}

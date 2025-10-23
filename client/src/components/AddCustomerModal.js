@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, MapPin, Map } from 'lucide-react';
+import { X, Plus, MapPin, Map, Globe } from 'lucide-react';
 import GoogleMapSelector from './GoogleMapSelector';
 
 const AddCustomerModal = ({
@@ -15,6 +15,14 @@ const AddCustomerModal = ({
   handleClearLocationSelection
 }) => {
   const [showMap, setShowMap] = useState(false);
+  const [regions, setRegions] = useState([]);
+  
+  // Fetch regions when modal opens
+  useEffect(() => {
+    if (showAddCustomerModal) {
+      fetchRegions();
+    }
+  }, [showAddCustomerModal]);
   
   // Reset map visibility when modal closes
   useEffect(() => {
@@ -22,6 +30,18 @@ const AddCustomerModal = ({
       setShowMap(false);
     }
   }, [showAddCustomerModal]);
+  
+  const fetchRegions = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/regions');
+      if (response.ok) {
+        const data = await response.json();
+        setRegions(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching regions:', error);
+    }
+  };
   
   if (!showAddCustomerModal) return null;
 
@@ -157,6 +177,28 @@ const AddCustomerModal = ({
                   placeholder="Enter phone number"
                 />
               </div>
+            </div>
+
+            {/* Region Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
+                <Globe size={16} className="mr-2" />
+                Region
+              </label>
+              <select
+                name="regionId"
+                value={formData.regionId || ''}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+              >
+                <option value="">Select region (optional)</option>
+                {regions.map((region) => (
+                  <option key={region.id} value={region.id}>
+                    {region.region} - {region.city}, {region.country}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">Assign this customer to a specific region</p>
             </div>
 
             {/* Address */}

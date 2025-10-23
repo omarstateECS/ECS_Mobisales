@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Search, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { ArrowLeft, Plus, Search, ChevronLeft, ChevronRight, Filter, Globe } from 'lucide-react';
 import CustomerGrid from './CustomerGrid';
 import CustomerList from './CustomerList';
 import ViewToggle from './ViewToggle';
@@ -22,22 +22,60 @@ const CustomersView = ({
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedRegion, setSelectedRegion] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder] = useState('asc');
   const [committedSearch, setCommittedSearch] = useState('');
   const [hasMorePages, setHasMorePages] = useState(true);
   const [viewMode, setViewMode] = useState('grid');
+  const [regions, setRegions] = useState([]);
 
   // Get unique industries for filter
   const industries = [...new Set(customers.map(c => c.industry).filter(Boolean))].sort();
+  
+  // Get unique countries, cities from regions
+  const countries = [...new Set(regions.map(r => r.country))].sort();
+  const cities = selectedCountry 
+    ? [...new Set(regions.filter(r => r.country === selectedCountry).map(r => r.city))].sort()
+    : [...new Set(regions.map(r => r.city))].sort();
+  const filteredRegions = regions.filter(r => 
+    (!selectedCountry || r.country === selectedCountry) &&
+    (!selectedCity || r.city === selectedCity)
+  );
+
+  // Fetch regions on mount
+  useEffect(() => {
+    const fetchRegions = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/regions');
+        if (response.ok) {
+          const data = await response.json();
+          setRegions(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching regions:', error);
+      }
+    };
+    fetchRegions();
+  }, []);
 
   // Note: For server-side pagination, we treat `customers` as the current page from server.
   // Optional client-side filtering is applied only within the current page.
   const filteredCustomers = customers
     .filter(customer => {
-      // Server handles text search; only filter by industry on client
+      // Server handles text search; filter by industry and region on client
       const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
-      return matchesIndustry;
+      
+      // Get customer's region details
+      const customerRegion = regions.find(r => r.id === customer.regionId);
+      
+      const matchesCountry = !selectedCountry || (customerRegion && customerRegion.country === selectedCountry);
+      const matchesCity = !selectedCity || (customerRegion && customerRegion.city === selectedCity);
+      const matchesRegion = !selectedRegion || customer.regionId === parseInt(selectedRegion);
+      
+      return matchesIndustry && matchesCountry && matchesCity && matchesRegion;
     })
     .sort((a, b) => {
       let aValue = a[sortBy];
@@ -167,6 +205,59 @@ const CustomersView = ({
               <option value="">All Industries</option>
               {industries.map(industry => (
                 <option key={industry} value={industry}>{industry}</option>
+              ))}
+            </select>
+            <select
+              value={selectedCountry}
+              onChange={(e) => {
+                setSelectedCountry(e.target.value);
+                setSelectedCity('');
+                setSelectedRegion('');
+              }}
+              className={`px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
+                theme === 'dark'
+                  ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                  : 'bg-gray-50 border border-gray-200 text-gray-900'
+              }`}
+            >
+              <option value="">All Countries</option>
+              {countries.map(country => (
+                <option key={country} value={country}>{country}</option>
+              ))}
+            </select>
+            <select
+              value={selectedCity}
+              onChange={(e) => {
+                setSelectedCity(e.target.value);
+                setSelectedRegion('');
+              }}
+              disabled={!selectedCountry}
+              className={`px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
+                theme === 'dark'
+                  ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                  : 'bg-gray-50 border border-gray-200 text-gray-900'
+              } ${!selectedCountry ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <option value="">All Cities</option>
+              {cities.map(city => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
+            <select
+              value={selectedRegion}
+              onChange={(e) => setSelectedRegion(e.target.value)}
+              disabled={!selectedCity && !selectedCountry}
+              className={`px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
+                theme === 'dark'
+                  ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                  : 'bg-gray-50 border border-gray-200 text-gray-900'
+              } ${!selectedCity && !selectedCountry ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <option value="">All Regions</option>
+              {filteredRegions.map(region => (
+                <option key={region.id} value={region.id}>
+                  {region.region}
+                </option>
               ))}
             </select>
             <select

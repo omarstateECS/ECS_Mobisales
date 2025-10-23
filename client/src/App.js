@@ -53,7 +53,8 @@ const Dashboard = () => {
     longitude: '',
     industry: '',
     phone: '',
-    address: ''
+    address: '',
+    regionId: ''
   });
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [deletingCustomerId, setDeletingCustomerId] = useState(null);
@@ -278,7 +279,8 @@ const Dashboard = () => {
       longitude: parseFloat(formData.longitude),
       industry: formData.industry || null,
       phone: formData.phone.trim() || null,
-      address: formData.address.trim()
+      address: formData.address.trim(),
+      regionId: formData.regionId || null
     };
     
     try {
@@ -321,7 +323,8 @@ const Dashboard = () => {
       longitude: '',
       industry: '',
       phone: '',
-      address: ''
+      address: '',
+      regionId: ''
     });
     setSelectedLocation(null);
   };

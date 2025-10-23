@@ -5,6 +5,7 @@ const productService = require('./productService');
 const customerService = require('./customerService');
 const invoiceService = require('./invoiceService');
 const actionService = require('./actionService');
+const journeyService = require('./journeyService');
 
 
 class SalesmanService {
@@ -663,11 +664,14 @@ class SalesmanService {
             });
 
             if (!existingJourney) {
-                // Create the journey first
+                // Get the next global journey ID if the provided one doesn't exist
+                const nextJourneyId = await journeyService.getNextJourneyId();
+                
+                // Create the journey with the global next ID
                 const timestamp = getLocalTimestamp();
                 await prisma.journies.create({
                     data: {
-                        journeyId: visitData.journeyId,
+                        journeyId: nextJourneyId,
                         salesId: visitData.salesId,
                         startJourney: null,
                         endJourney: null,

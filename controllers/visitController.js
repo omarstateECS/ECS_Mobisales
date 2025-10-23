@@ -1,6 +1,7 @@
 const visitService = require('../services/visitService');
 const journeyService = require('../services/journeyService');
 const salesmanService = require('../services/salesmanService');
+const customerService = require('../services/customerService');
 const { visitValidation } = require('../models/visit');
 
 class VisitController {
@@ -117,7 +118,19 @@ class VisitController {
             }
     
             // CASE 3: No journey exists OR journey already ended → create new journey
-            const newJourney = await journeyService.createJourney(salesmanId);
+            // First, get the customers to determine the region
+            const customers = await Promise.all(
+                customerIds.map(id => customerService.getCustomerById(id))
+            );
+            
+            // Get the most common regionId from the customers (or first non-null)
+            const regionIds = customers
+                .map(c => c?.regionId)
+                .filter(id => id !== null && id !== undefined);
+            
+            const regionId = regionIds.length > 0 ? regionIds[0] : null;
+            
+            const newJourney = await journeyService.createJourney(salesmanId, regionId);
     
             // Update salesman's lastJourneyId
             await salesmanService.updateSalesman(salesmanId, {

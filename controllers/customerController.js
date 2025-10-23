@@ -32,7 +32,13 @@ class CustomerController {
         if (error) return res.status(400).json({ error: error.details[0].message });
 
         try {
-            const newCustomer = await customerService.createCustomer(req.body);
+            // Convert regionId to number or null
+            const customerData = {
+                ...req.body,
+                regionId: req.body.regionId ? parseInt(req.body.regionId) : null
+            };
+            
+            const newCustomer = await customerService.createCustomer(customerData);
             res.status(201).json(newCustomer);
         } catch (error) {
             res.status(500).json({ error: error.message });
@@ -44,7 +50,13 @@ class CustomerController {
         if (error) return res.status(400).json({ error: error.details[0].message });
 
         try {
-            const updatedCustomer = await customerService.updateCustomer(req.params.id, req.body);
+            // Convert regionId to number or null
+            const customerData = {
+                ...req.body,
+                regionId: req.body.regionId ? parseInt(req.body.regionId) : null
+            };
+            
+            const updatedCustomer = await customerService.updateCustomer(req.params.id, customerData);
             res.json(updatedCustomer);
         } catch (error) {
             res.status(500).json({ error: error.message });

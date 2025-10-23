@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Search, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { ArrowLeft, Plus, Search, ChevronLeft, ChevronRight, Filter, Globe } from 'lucide-react';
 import SalesmanGrid from './SalesmanGrid';
 import SalesmanList from './SalesmanList';
 import ViewToggle from './ViewToggle';
@@ -22,6 +22,7 @@ const SalesmenView = ({
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedRegion, setSelectedRegion] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder] = useState('asc');
   const [committedSearch, setCommittedSearch] = useState('');
@@ -29,16 +30,34 @@ const SalesmenView = ({
   const [totalSalesmen, setTotalSalesmen] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [viewMode, setViewMode] = useState('grid');
+  const [regions, setRegions] = useState([]);
 
   // Get unique statuses for filter
   const statuses = [...new Set(salesmen.map(s => s.status).filter(Boolean))].sort();
 
+  // Fetch regions on mount
+  useEffect(() => {
+    const fetchRegions = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/regions');
+        if (response.ok) {
+          const data = await response.json();
+          setRegions(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching regions:', error);
+      }
+    };
+    fetchRegions();
+  }, []);
+
   // Optional client-side filtering is applied only within the current page.
   const filteredSalesmen = salesmen
     .filter(salesman => {
-      // Server handles text search; only filter by status on client
+      // Server handles text search; filter by status and region on client
       const matchesStatus = !selectedStatus || salesman.status === selectedStatus;
-      return matchesStatus;
+      const matchesRegion = !selectedRegion || salesman.regionId === parseInt(selectedRegion);
+      return matchesStatus && matchesRegion;
     })
     .sort((a, b) => {
       let aValue = a[sortBy];
@@ -159,6 +178,22 @@ const SalesmenView = ({
               <option value="ACTIVE">Active</option>
               <option value="INACTIVE">Inactive</option>
               <option value="BLOCKED">Blocked</option>
+            </select>
+            <select
+              value={selectedRegion}
+              onChange={(e) => setSelectedRegion(e.target.value)}
+              className={`px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all ${
+                theme === 'dark'
+                  ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                  : 'bg-gray-50 border border-gray-200 text-gray-900'
+              }`}
+            >
+              <option value="">All Regions</option>
+              {regions.map(region => (
+                <option key={region.id} value={region.id}>
+                  {region.region} - {region.city}, {region.country}
+                </option>
+              ))}
             </select>
             <select
               value={sortBy}

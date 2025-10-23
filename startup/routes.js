@@ -8,6 +8,7 @@ const visitsRoute = require('../routes/visit');
 const authRoute = require('../routes/auth');
 const settingsRoute = require('../routes/settings');
 const journeyRoute = require('../routes/journey');
+const regionRoute = require('../routes/region');
 
 module.exports = function(app) { 
     app.use(express.json());
@@ -19,4 +20,5 @@ module.exports = function(app) {
     app.use('/api/visits', visitsRoute);
     app.use('/api/settings', settingsRoute);
     app.use('/api/journeys', journeyRoute);
+    app.use('/api/regions', regionRoute);
 };

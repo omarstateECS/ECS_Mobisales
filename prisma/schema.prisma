@@ -16,7 +16,9 @@ model Customer {
   latitude  Float
   longitude Float
   phone     String?
+  regionId  Int?
   createdAt String
+  region    Region?         @relation(fields: [regionId], references: [id], onDelete: SetNull)
   invoices  InvoiceHeader[]
   visits    Visit[]
 
@@ -27,6 +29,7 @@ model Customer {
   @@index([name, industry])
   @@index([createdAt, customerId])
   @@index([name, createdAt])
+  @@index([regionId])
   @@map("customers")
 }
 
@@ -67,12 +70,16 @@ model Salesman {
   deviceId    String
   available   Boolean             @default(true)
   lastJourneyId Int               @default(0)
+  regionId    Int?
   createdAt   String
   isInitial   Boolean             @default(true)
+  region      Region?             @relation(fields: [regionId], references: [id], onDelete: SetNull)
   invoices    InvoiceHeader[]
   journies    Journies[]
   authorities SalesmanAuthority[]
   visits      Visit[]
+
+  @@index([regionId])
 }
 
 model Authority {
@@ -187,18 +194,36 @@ model Reasons {
   invoiceItems   InvoiceItem[]   @relation("InvoiceItemReason")
 }
 
+model Region {
+  id        Int        @id @default(autoincrement())
+  country   String
+  city      String
+  region    String
+  createdAt String
+  updatedAt String
+  salesmen  Salesman[]
+  customers Customer[]
+  journeys  Journies[]
+
+  @@index([country])
+  @@index([city])
+  @@index([region])
+  @@index([country, city])
+  @@map("regions")
+}
+
 model Journies {
   journeyId    Int
   salesId      Int
   startJourney String?
   endJourney   String?
+  regionId     Int?
   createdAt    String
   updatedAt    String
   salesman     Salesman  @relation(fields: [salesId], references: [salesId], onDelete: Cascade)
-
+  region       Region?   @relation(fields: [regionId], references: [id], onDelete: SetNull)     
   visits       Visit[]         @relation("VisitToJourney")
   invoiceHeaders InvoiceHeader[] @relation("InvoiceToJourney")
-
 
   @@id([journeyId, salesId])
 }

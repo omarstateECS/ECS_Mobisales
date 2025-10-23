@@ -7,7 +7,8 @@ function SalesmanValidation(salesman) {
     phone: Joi.string().min(10).max(20).required(),
     address: Joi.string().min(1).max(500).required(),
     password: Joi.string().min(1).max(255).required(),
-    status: Joi.string().valid('ACTIVE', 'INACTIVE', 'BLOCKED').default('INACTIVE')
+    status: Joi.string().valid('ACTIVE', 'INACTIVE', 'BLOCKED').default('INACTIVE'),
+    regionId: Joi.number().integer().positive().optional().allow(null)
   });
 
   return schema.validate(salesman);

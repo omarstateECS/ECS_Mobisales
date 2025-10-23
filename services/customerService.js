@@ -56,6 +56,7 @@ class CustomerService {
                 latitude: true,
                 longitude: true,
                 phone: true,
+                regionId: true,
                 createdAt: true
             },
             orderBy: { createdAt: 'desc' },

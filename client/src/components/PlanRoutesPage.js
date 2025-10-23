@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Search, MapPin, User, Calendar, CheckCircle, XCircle, Trash2, ArrowDown, Navigation } from 'lucide-react';
+import { ArrowLeft, Plus, Search, MapPin, User, Calendar, CheckCircle, XCircle, Trash2, ArrowDown, Navigation, Globe } from 'lucide-react';
 import NotificationModal from './common/NotificationModal';
 import { useNotification } from '../hooks/useNotification';
   import { useTheme } from '../contexts/ThemeContext';
@@ -9,10 +9,12 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
   const { notification, showSuccess, showError, hideNotification } = useNotification();
   const [salesmen, setSalesmen] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [regions, setRegions] = useState([]);
   const [selectedSalesman, setSelectedSalesman] = useState(null);
   const [selectedCustomers, setSelectedCustomers] = useState([]); // Array of customer IDs in order
   const [searchTerm, setSearchTerm] = useState('');
   const [salesmanSearchTerm, setSalesmanSearchTerm] = useState('');
+  const [selectedRegion, setSelectedRegion] = useState('');
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
 
@@ -20,6 +22,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
   useEffect(() => {
     fetchSalesmen();
     fetchCustomers();
+    fetchRegions();
   }, [salesmenRefreshKey]);
 
   const fetchSalesmen = async () => {
@@ -48,6 +51,18 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
       showError('Failed to load customers');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRegions = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/regions');
+      if (response.ok) {
+        const data = await response.json();
+        setRegions(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching regions:', error);
     }
   };
 
@@ -140,13 +155,16 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
     }
   };
 
-  // Filter customers based on search
+  // Filter customers based on search and region
   const filteredCustomers = customers.filter(customer => {
     const matchesSearch = !searchTerm || 
       customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.phone?.includes(searchTerm);
-    return matchesSearch;
+    
+    const matchesRegion = !selectedRegion || customer.regionId === parseInt(selectedRegion);
+    
+    return matchesSearch && matchesRegion;
   });
 
   // Filter salesmen based on search
@@ -431,8 +449,9 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-4">
+        {/* Search and Filter Bar */}
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Search Bar */}
           <div className="relative">
             <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
             <input
@@ -446,6 +465,36 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
                   : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-500'
               }`}
             />
+          </div>
+          
+          {/* Region Filter */}
+          <div className="relative">
+            <Globe className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
+            <select
+              value={selectedRegion}
+              onChange={(e) => setSelectedRegion(e.target.value)}
+              className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all appearance-none ${
+                theme === 'dark'
+                  ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                  : 'bg-gray-50 border border-gray-200 text-gray-900'
+              }`}
+            >
+              <option value="">All Regions</option>
+              {regions.map((region) => (
+                <option key={region.id} value={region.id}>
+                  {region.region} - {region.city}, {region.country}
+                </option>
+              ))}
+            </select>
+            {selectedRegion && (
+              <button
+                onClick={() => setSelectedRegion('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                title="Clear filter"
+              >
+                <XCircle size={16} />
+              </button>
+            )}
           </div>
         </div>
 
@@ -479,13 +528,19 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
                   <div className="flex-1">
                     <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{customer.name}</p>
                     <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{customer.address}</p>
-                    <div className="flex items-center space-x-4 mt-1">
+                    <div className="flex items-center flex-wrap gap-2 mt-1">
                       <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>{customer.phone}</p>
                       {customer.industry && (
                         <span className={`text-xs px-2 py-1 rounded ${
                           theme === 'dark' ? 'bg-gray-700/50 text-gray-400' : 'bg-gray-100 text-gray-600'
                         }`}>
                           {customer.industry}
+                        </span>
+                      )}
+                      {customer.regionId && regions.find(r => r.id === customer.regionId) && (
+                        <span className="flex items-center space-x-1 text-xs px-2 py-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/30">
+                          <Globe size={12} />
+                          <span>{regions.find(r => r.id === customer.regionId)?.region}</span>
                         </span>
                       )}
                     </div>

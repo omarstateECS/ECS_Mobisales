@@ -31,8 +31,14 @@ class SalesmanController {
                 error: error.details[0].message 
             });
         }
-        try { 
-            const salesman = await salesmanService.createSalesman(req.body);
+        try {
+            // Convert regionId to number or null
+            const salesmanData = {
+                ...req.body,
+                regionId: req.body.regionId ? parseInt(req.body.regionId) : null
+            };
+            
+            const salesman = await salesmanService.createSalesman(salesmanData);
             console.log('✅ Salesman created successfully:', salesman.salesId);
             res.status(201).json({
                 success: true,
@@ -50,8 +56,14 @@ class SalesmanController {
     async update(req, res) {
         const { error } = SalesmanValidation(req.body);
         if (error) return res.status(400).json({ error: error.details[0].message });
-        try { 
-            const salesman = await salesmanService.updateSalesman(req.params.id, req.body);
+        try {
+            // Convert regionId to number or null
+            const salesmanData = {
+                ...req.body,
+                regionId: req.body.regionId ? parseInt(req.body.regionId) : null
+            };
+            
+            const salesman = await salesmanService.updateSalesman(req.params.id, salesmanData);
             res.status(200).json(salesman);
         } catch (error) {
             res.status(500).json({ error: error.message });
