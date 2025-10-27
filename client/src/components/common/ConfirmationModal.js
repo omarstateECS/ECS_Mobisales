@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, Trash2 } from 'lucide-react';
+import { AlertTriangle, Trash2, Ban, CheckCircle } from 'lucide-react';
 
 const ConfirmationModal = ({ 
   isOpen, 
@@ -78,7 +78,11 @@ const ConfirmationModal = ({
                 }}
                 className={`inline-flex items-center justify-center w-20 h-20 ${styles.iconBg} backdrop-blur-xl rounded-full mb-6 border border-white/30`}
               >
-                {type === 'danger' ? (
+                {type === 'danger' && confirmText === 'Block' ? (
+                  <Ban className="w-12 h-12 text-white stroke-[2.5]" />
+                ) : type === 'warning' && confirmText === 'Unblock' ? (
+                  <CheckCircle className="w-12 h-12 text-white stroke-[2.5]" />
+                ) : type === 'danger' ? (
                   <Trash2 className="w-12 h-12 text-white stroke-[2.5]" />
                 ) : (
                   <AlertTriangle className="w-12 h-12 text-white stroke-[2.5]" />

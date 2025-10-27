@@ -5,7 +5,7 @@ class ProductService {
     // Get all products with their units
     async getAllProducts() {
         const prisma = getPrismaClient();
-        return await prisma.product.findMany({
+        const products = await prisma.product.findMany({
             include: {
                 units: {
                     orderBy: { uom: 'asc' }
@@ -13,6 +13,16 @@ class ProductService {
             },
             orderBy: { prodId: 'desc' }
         });
+        
+        // Convert basePrice from Decimal/string to float
+        return products.map(product => ({
+            ...product,
+            basePrice: parseFloat(product.basePrice),
+            units: product.units.map(unit => ({
+                ...unit,
+                price: parseFloat(unit.price)
+            }))
+        }));
     }
 
     // Get a single product by ID with units

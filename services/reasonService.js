@@ -39,7 +39,24 @@ class ReasonService {
             skipDuplicates: true
         });
     }
-    
+
+    async updateReason(id, data) {
+        const prisma = getPrismaClient();
+        return await prisma.reasons.update({
+            where: { reasonId: Number(id) },
+            data: {
+                ...data,
+                updatedAt: getLocalTimestamp()
+            }
+        });
+    }
+
+    async deleteReason(id) {
+        const prisma = getPrismaClient();
+        return await prisma.reasons.delete({
+            where: { reasonId: Number(id) }
+        });
+    }
 }
 
 module.exports = new ReasonService();

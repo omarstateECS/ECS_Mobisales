@@ -72,12 +72,45 @@ class CustomerController {
         }
     }
 
+    async block(req, res) {
+        try {
+            const blockedCustomer = await customerService.blockCustomer(req.params.id);
+            res.json({ message: 'Customer blocked successfully', customer: blockedCustomer });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    async unblock(req, res) {
+        try {
+            const unblockedCustomer = await customerService.unblockCustomer(req.params.id);
+            res.json({ message: 'Customer unblocked successfully', customer: unblockedCustomer });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
     async getStats(req, res) {
         try {
             const stats = await customerService.getStats();
             res.json(stats);
         } catch (error) {
             console.error('Error fetching customer stats:', error);
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    async checkSimilarNames(req, res) {
+        try {
+            const { name } = req.query;
+            if (!name) {
+                return res.status(400).json({ error: 'Name parameter is required' });
+            }
+            
+            const similarCustomers = await customerService.checkSimilarNames(name);
+            res.json({ similarCustomers });
+        } catch (error) {
+            console.error('Error checking similar names:', error);
             res.status(500).json({ error: error.message });
         }
     }

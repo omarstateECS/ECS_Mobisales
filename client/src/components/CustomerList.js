@@ -1,5 +1,5 @@
 import React from 'react';
-import { Store, Eye, Edit, Trash2, MapPin, Phone } from 'lucide-react';
+import { Store, Eye, Edit, Trash2, MapPin, Phone, Ban, CheckCircle } from 'lucide-react';
 
 const CustomerList = ({ customers, handleViewDetails, handleEditCustomer, handleDeleteCustomer, deletingCustomerId, theme = 'dark' }) => {
   const formatDate = (dateString) => {
@@ -24,6 +24,7 @@ const CustomerList = ({ customers, handleViewDetails, handleEditCustomer, handle
             <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Industry</th>
             <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Phone</th>
             <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Location</th>
+            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Status</th>
             <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Created</th>
             <th className={`text-right px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Actions</th>
           </tr>
@@ -96,6 +97,14 @@ const CustomerList = ({ customers, handleViewDetails, handleEditCustomer, handle
                 )}
               </td>
               <td className="px-6 py-4">
+                <div className="flex items-center space-x-2">
+                  <div className={`w-2 h-2 rounded-full ${customer.blocked ? 'bg-red-500' : 'bg-emerald-500'}`}></div>
+                  <span className={`text-xs font-medium ${customer.blocked ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {customer.blocked ? 'Blocked' : 'Active'}
+                  </span>
+                </div>
+              </td>
+              <td className="px-6 py-4">
                 <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                   {formatDate(customer.createdAt)}
                 </span>
@@ -125,19 +134,25 @@ const CustomerList = ({ customers, handleViewDetails, handleEditCustomer, handle
                     <Edit size={16} />
                   </button>
                   <button 
-                    onClick={() => handleDeleteCustomer(customer.customerId, customer.name)}
+                    onClick={() => handleDeleteCustomer(customer.customerId, customer.name, customer.blocked)}
                     disabled={deletingCustomerId === customer.customerId}
                     className={`p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                      theme === 'dark'
-                        ? 'hover:bg-red-600/20 text-gray-400 hover:text-red-400'
-                        : 'hover:bg-red-100 text-gray-600 hover:text-red-600'
+                      customer.blocked
+                        ? theme === 'dark'
+                          ? 'hover:bg-emerald-600/20 text-gray-400 hover:text-emerald-400'
+                          : 'hover:bg-emerald-100 text-gray-600 hover:text-emerald-600'
+                        : theme === 'dark'
+                          ? 'hover:bg-orange-600/20 text-gray-400 hover:text-orange-400'
+                          : 'hover:bg-orange-100 text-gray-600 hover:text-orange-600'
                     }`}
-                    title="Delete customer"
+                    title={customer.blocked ? "Unblock customer" : "Block customer"}
                   >
                     {deletingCustomerId === customer.customerId ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-red-400/30 border-t-red-400"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-orange-400/30 border-t-orange-400"></div>
+                    ) : customer.blocked ? (
+                      <CheckCircle size={16} />
                     ) : (
-                      <Trash2 size={16} />
+                      <Ban size={16} />
                     )}
                   </button>
                 </div>

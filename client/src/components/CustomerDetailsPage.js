@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Store, MapPin, Phone, Calendar, Database, Globe, Building, Edit } from 'lucide-react';
+import { ArrowLeft, Store, MapPin, Phone, Calendar, Database, Globe, Building, Edit, Ban, CheckCircle } from 'lucide-react';
 
 const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
   if (!customer) return null;
@@ -166,6 +166,46 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
           {/* Right Column - Metadata & Actions */}
           <div className="space-y-6">
             
+            {/* Customer Status */}
+            <div className={`backdrop-blur-sm border rounded-2xl p-6 ${
+              customer.blocked
+                ? 'bg-red-900/20 border-red-700/50'
+                : 'bg-emerald-900/20 border-emerald-700/50'
+            }`}>
+              <div className="flex items-center space-x-3 mb-4">
+                {customer.blocked ? (
+                  <Ban className="w-8 h-8 text-red-400" />
+                ) : (
+                  <CheckCircle className="w-8 h-8 text-emerald-400" />
+                )}
+                <div>
+                  <h3 className="text-xl font-semibold text-white">Account Status</h3>
+                  <p className={customer.blocked ? 'text-red-400' : 'text-emerald-400'}>
+                    {customer.blocked ? 'Customer is blocked' : 'Customer is active'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className={`p-4 rounded-lg border ${
+                customer.blocked
+                  ? 'bg-red-500/10 border-red-500/30'
+                  : 'bg-emerald-500/10 border-emerald-500/30'
+              }`}>
+                <div className="flex items-center space-x-2">
+                  <div className={`w-3 h-3 rounded-full ${customer.blocked ? 'bg-red-500' : 'bg-emerald-500'} animate-pulse`}></div>
+                  <span className={`font-semibold ${customer.blocked ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {customer.blocked ? 'BLOCKED' : 'ACTIVE'}
+                  </span>
+                </div>
+                <p className={`text-sm mt-2 ${customer.blocked ? 'text-red-300' : 'text-emerald-300'}`}>
+                  {customer.blocked 
+                    ? 'This customer cannot make purchases or place orders.'
+                    : 'This customer can make purchases and place orders normally.'
+                  }
+                </p>
+              </div>
+            </div>
+
             {/* Customer Metadata */}
             <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6">
               <div className="flex items-center space-x-3 mb-4">

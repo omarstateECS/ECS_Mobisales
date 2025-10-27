@@ -1,6 +1,9 @@
 // services/customerService.js
 const { getPrismaClient } = require('../lib/prisma');
 const { getLocalTimestamp } = require('../lib/dateUtils');
+const visitService = require('./visitService');
+const journeyService = require('./journeyService');
+const salesmanService = require('./salesmanService');
 
 class CustomerService {
     // Get customers with pagination (default to first 50 for performance)
@@ -57,10 +60,12 @@ class CustomerService {
                 longitude: true,
                 phone: true,
                 regionId: true,
+                blocked: true,
+                isActive: true,
                 createdAt: true
             },
             orderBy: { createdAt: 'desc' },
-            where,
+            where: where,
             skip,
             take: limit
         });
@@ -77,12 +82,75 @@ class CustomerService {
             hasMore: customers.length === limit // Indicates if there might be more records
         };
     }
+
+   async getAvailableCustomers(salesmanId) {
+        const prisma = getPrismaClient();
+
+        // Get all visits for today (or the current journey)
+        const visits = await visitService.getTodayVisits(salesmanId);
+
+        // Extract visited customer IDs
+        const visitedCustomerIds = visits.map(v => v.customerId);
+
+        // Fetch only customers who are:
+        //     - Not blocked
+        //     - Not already visited today
+        //     - Ordered by most recently created
+        const availableCustomers = await prisma.customer.findMany({
+            where: {
+            blocked: false,
+            customerId: {
+                notIn: visitedCustomerIds,
+            },
+            },
+            select: {
+            customerId: true,
+            name: true,
+            industry: true,
+            address: true,
+            latitude: true,
+            longitude: true,
+            phone: true,
+            },
+            orderBy: {
+            createdAt: 'desc',
+            },
+        });
+
+        return availableCustomers;
+        }
+
+
     // Get a single customer by ID
     async getCustomerById(id) {
         const prisma = getPrismaClient();
         return await prisma.customer.findUnique({
             where: { customerId: Number(id) }
         });
+    }
+
+    // Check for similar customer names
+    async checkSimilarNames(name) {
+        const prisma = getPrismaClient();
+        
+        // Search for customers with similar names (case-insensitive)
+        const similarCustomers = await prisma.customer.findMany({
+            where: {
+                name: {
+                    contains: name,
+                    mode: 'insensitive'
+                }
+            },
+            select: {
+                customerId: true,
+                name: true,
+                phone: true,
+                address: true
+            },
+            take: 5 // Limit to 5 similar results
+        });
+
+        return similarCustomers;
     }
 
     // Create a new customer
@@ -105,7 +173,31 @@ class CustomerService {
         });
     }
 
-    // Delete a customer by ID
+    // Block a customer (soft delete)
+    async blockCustomer(id) {
+        const prisma = getPrismaClient();
+        return await prisma.customer.update({
+            where: { customerId: Number(id) },
+            data: { 
+                blocked: true,
+                isActive: false
+            }
+        });
+    }
+
+    // Unblock a customer
+    async unblockCustomer(id) {
+        const prisma = getPrismaClient();
+        return await prisma.customer.update({
+            where: { customerId: Number(id) },
+            data: { 
+                blocked: false,
+                isActive: true
+            }
+        });
+    }
+
+    // Hard delete a customer (admin only - if needed)
     async deleteCustomer(id) {
         const prisma = getPrismaClient();
         return await prisma.customer.delete({
@@ -117,9 +209,17 @@ class CustomerService {
     async getStats() {
         const prisma = getPrismaClient();
         const totalCustomers = await prisma.customer.count();
+        const activeCustomers = await prisma.customer.count({
+            where: { blocked: false }
+        });
+        const blockedCustomers = await prisma.customer.count({
+            where: { blocked: true }
+        });
     
         return {
-            totalCustomers
+            totalCustomers,
+            activeCustomers,
+            blockedCustomers
         };
     }
 }

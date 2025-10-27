@@ -17,6 +17,7 @@ import EditSalesmanModal from './components/EditSalesmanModal';
 import SalesmanDetailsPage from './components/SalesmanDetailsPage';
 import ToursView from './components/ToursView';
 import TourDetailsPage from './components/TourDetailsPage';
+import CancelReasonsView from './components/CancelReasonsView';
 import ConfirmationModal from './components/common/ConfirmationModal';
 import NotificationModal from './components/common/NotificationModal';
 import { useNotification } from './hooks/useNotification';
@@ -40,8 +41,11 @@ const Dashboard = () => {
     title: '',
     message: '',
     onConfirm: null,
-    loading: false
+    loading: false,
+    confirmText: 'Confirm',
+    type: 'danger'
   });
+  const [pendingCustomerData, setPendingCustomerData] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [currentView, setCurrentView] = useState('dashboard');
@@ -273,6 +277,100 @@ const Dashboard = () => {
     
     setAddCustomerLoading(true);
     
+    // Check for similar customer names first
+    try {
+      const checkResponse = await fetch(`http://localhost:3000/api/customers/check-similar?name=${encodeURIComponent(formData.name.trim())}`);
+      
+      if (checkResponse.ok) {
+        const data = await checkResponse.json();
+        const { similarCustomers } = data;
+        
+        if (similarCustomers && similarCustomers.length > 0) {
+          setAddCustomerLoading(false);
+          
+          // Prepare customer data to save for later
+          const newCustomer = {
+            name: formData.name.trim(),
+            latitude: parseFloat(formData.latitude),
+            longitude: parseFloat(formData.longitude),
+            industry: formData.industry || null,
+            phone: formData.phone.trim() || null,
+            address: formData.address.trim(),
+            regionId: formData.regionId || null
+          };
+          
+          setPendingCustomerData(newCustomer);
+          
+          // Show warning modal with similar customers
+          const customerNames = similarCustomers.map(c => c.name).join(', ');
+          
+          setConfirmationModal({
+            isOpen: true,
+            title: 'Similar Customer Found',
+            message: customerNames,
+            onConfirm: () => confirmAddCustomer(),
+            loading: false,
+            confirmText: 'Add Anyway',
+            type: 'warning'
+          });
+          
+          return; // Stop here and wait for user confirmation
+        }
+      }
+    } catch (error) {
+      console.error('Error checking similar names:', error);
+      // Continue with adding customer even if check fails
+    }
+    
+    // No duplicates found, proceed with adding
+    await proceedWithAddingCustomer();
+  };
+
+  // Confirm adding customer after duplicate warning
+  const confirmAddCustomer = async () => {
+    if (!pendingCustomerData) {
+      console.error('No pending customer data to add');
+      setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false, confirmText: 'Confirm', type: 'danger' });
+      return;
+    }
+    
+    setConfirmationModal(prev => ({ ...prev, loading: true }));
+    
+    try {
+      const response = await fetch('http://localhost:3000/api/customers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(pendingCustomerData),
+      });
+      
+      if (response.ok) {
+        const apiCustomer = await response.json();
+        setCustomers(prev => [...prev, apiCustomer]);
+        showSuccess('Customer added successfully!');
+      } else {
+        throw new Error(`API failed with status: ${response.status}`);
+      }
+    } catch (error) {
+      const localCustomer = {
+        ...pendingCustomerData,
+        id: Date.now(),
+        createdAt: new Date().toISOString()
+      };
+      
+      setCustomers(prev => [...prev, localCustomer]);
+      showWarning(`Customer added locally! (${error.message})`);
+    }
+    
+    setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false, confirmText: 'Confirm', type: 'danger' });
+    setPendingCustomerData(null);
+    setShowAddCustomerModal(false);
+    resetForm();
+  };
+
+  // Proceed with adding customer (no duplicates found)
+  const proceedWithAddingCustomer = async () => {
     const newCustomer = {
       name: formData.name.trim(),
       latitude: parseFloat(formData.latitude),
@@ -374,41 +472,55 @@ const Dashboard = () => {
     resetForm();
   };
 
-  // Handle customer deletion
-  const handleDeleteCustomer = async (customerId, customerName) => {
+  // Handle customer block/unblock
+  const handleDeleteCustomer = async (customerId, customerName, isBlocked) => {
+    const action = isBlocked ? 'unblock' : 'block';
+    const actionTitle = isBlocked ? 'Unblock Customer' : 'Block Customer';
+    const actionMessage = isBlocked 
+      ? `Are you sure you want to unblock "${customerName}"? They will be able to make purchases again.`
+      : `Are you sure you want to block "${customerName}"? They won't be able to make purchases.`;
+    
     setConfirmationModal({
       isOpen: true,
-      title: 'Delete Customer',
-      message: `Are you sure you want to delete "${customerName}"? This action cannot be undone.`,
-      onConfirm: () => confirmDeleteCustomer(customerId),
-      loading: false
+      title: actionTitle,
+      message: actionMessage,
+      onConfirm: () => confirmBlockCustomer(customerId, action),
+      loading: false,
+      confirmText: isBlocked ? 'Unblock' : 'Block',
+      type: isBlocked ? 'warning' : 'danger'
     });
   };
 
-  const confirmDeleteCustomer = async (customerId) => {
+  const confirmBlockCustomer = async (customerId, action) => {
     setConfirmationModal(prev => ({ ...prev, loading: true }));
 
     setDeletingCustomerId(customerId);
     
     try {
-      const response = await fetch(`http://localhost:3000/api/customers/${customerId}`, {
-        method: 'DELETE',
+      const response = await fetch(`http://localhost:3000/api/customers/${customerId}/${action}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
       });
       
       if (response.ok) {
-        setCustomers(prev => prev.filter(customer => customer.customerId !== customerId));
+        // Refresh customers list to get updated blocked status
+        await fetchCustomers();
         setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
-        showDelete('Customer has been deleted successfully!');
+        showSuccess(
+          action === 'block' ? 'Customer Blocked' : 'Customer Unblocked',
+          action === 'block' 
+            ? 'Customer has been blocked successfully!' 
+            : 'Customer has been unblocked successfully!'
+        );
       } else {
-        throw new Error(`Failed to delete customer: ${response.status}`);
+        throw new Error(`Failed to ${action} customer: ${response.status}`);
       }
     } catch (error) {
-      console.error('Error deleting customer:', error);
+      console.error(`Error ${action}ing customer:`, error);
       setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
-      showError('Error Deleting Customer', error.message);
+      showError(`Error ${action === 'block' ? 'Blocking' : 'Unblocking'} Customer`, error.message);
     } finally {
       setDeletingCustomerId(null);
     }
@@ -828,6 +940,19 @@ const Dashboard = () => {
           </motion.div>
         );
       
+      case 'cancel-reasons':
+        return (
+          <motion.div
+            key="cancel-reasons"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <CancelReasonsView />
+          </motion.div>
+        );
+      
       case 'settings':
         return (
           <motion.div
@@ -962,13 +1087,16 @@ const Dashboard = () => {
       {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={confirmationModal.isOpen}
-        onClose={() => setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false })}
+        onClose={() => {
+          setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false, confirmText: 'Confirm', type: 'danger' });
+          setPendingCustomerData(null); // Clear pending data when modal is closed
+        }}
         onConfirm={confirmationModal.onConfirm}
         title={confirmationModal.title}
         message={confirmationModal.message}
         loading={confirmationModal.loading}
-        type="danger"
-        confirmText="Delete"
+        type={confirmationModal.type}
+        confirmText={confirmationModal.confirmText}
         cancelText="Cancel"
       />
     </div>

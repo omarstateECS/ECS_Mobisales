@@ -17,6 +17,8 @@ model Customer {
   longitude Float
   phone     String?
   regionId  Int?
+  blocked   Boolean @default(false)
+  isActive  Boolean @default(true)
   createdAt String
   region    Region?         @relation(fields: [regionId], references: [id], onDelete: SetNull)
   invoices  InvoiceHeader[]
@@ -40,7 +42,7 @@ model Product {
   stock          Int
   nonSellableQty Int
   baseUom        String
-  basePrice      Float
+  basePrice      Decimal      @db.Decimal(18, 5)
   units          ProductUOM[]
 
   @@index([category])
@@ -151,10 +153,10 @@ model InvoiceHeader {
   updatedAt      String
   invType        InvoiceType
   reasonId       Int?
-  netAmt         Float
-  taxAmt         Float
-  disAmt         Float
-  totalAmt       Float
+  netAmt         Decimal       @db.Decimal(18, 5)
+  taxAmt         Decimal       @db.Decimal(18, 5)
+  disAmt         Decimal       @db.Decimal(18, 5)
+  totalAmt       Decimal       @db.Decimal(18, 5)
   paymentMethod  PaymentMethod
   currency       String
   invRef         String
@@ -169,15 +171,15 @@ model InvoiceHeader {
 
 model InvoiceItem {
   qty             Int
-  disAmt          Float
+  disAmt          Decimal       @db.Decimal(18, 5)
   invoiceHeaderId String
   invItem         Int
-  netAmt          Float
+  netAmt          Decimal       @db.Decimal(18, 5)
   productId       Int
   productUom      String
   reasonId        Int?
-  taxAmt          Float
-  totAmt          Float
+  taxAmt          Decimal       @db.Decimal(18, 5)
+  totAmt          Decimal       @db.Decimal(18, 5)
   reason          Reasons?      @relation("InvoiceItemReason", fields: [reasonId], references: [reasonId], onDelete: Cascade)
 
   @@id([invoiceHeaderId, invItem], map: "invoice_items_pkey")

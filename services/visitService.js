@@ -9,14 +9,15 @@ class VisitService {
         return date;
     }
 
-    async getNextVisitIdForSalesman(salesmanId, tx) {
+    async getNextVisitIdForJourney(salesmanId, journeyId, tx) {
         try {
             const prismaClient = tx || getPrismaClient();
             
-            // Find the highest visitId for this salesman
+            // Find the highest visitId for this specific journey
             const lastVisit = await prismaClient.visit.findFirst({
                 where: {
-                    salesId: parseInt(salesmanId)
+                    salesId: parseInt(salesmanId),
+                    journeyId: parseInt(journeyId)
                 },
                 orderBy: {
                     visitId: 'desc'
@@ -26,10 +27,10 @@ class VisitService {
                 }
             });
             
-            // Return next visitId (start from 1 if no visits exist)
+            // Return next visitId (start from 1 if no visits exist for this journey)
             return lastVisit ? lastVisit.visitId + 1 : 1;
         } catch (error) {
-            console.error('Error getting next visitId:', error);
+            console.error('Error getting next visitId for journey:', error);
             return 1; // Default to 1 if error
         }
     }
@@ -121,9 +122,17 @@ class VisitService {
     async createVisit(data) {
         const prisma = getPrismaClient();
         
+        const salesId = parseInt(data.salesId || data.salesman_id);
+        const journeyId = parseInt(data.journeyId || data.journey_id);
+        
+        // Get the next visitId for this specific journey
+        const nextVisitId = data.visitId || await this.getNextVisitIdForJourney(salesId, journeyId);
+        
         const visitData = {
+            visitId: nextVisitId,
             custId: parseInt(data.custId || data.customer_id),
-            salesId: parseInt(data.salesId || data.salesman_id),
+            salesId: salesId,
+            journeyId: journeyId,
             status: data.status || 'WAIT',
             startTime: data.start_time || null,
             endTime: data.end_time || null,
@@ -137,7 +146,7 @@ class VisitService {
             include: {
                 customer: {
                     select: {
-                        id: true,
+                        customerId: true,
                         name: true,
                         address: true,
                         phone: true,
@@ -146,7 +155,7 @@ class VisitService {
                 },
                 salesman: {
                     select: {
-                        id: true,
+                        salesId: true,
                         name: true,
                         phone: true
                     }
@@ -205,7 +214,7 @@ class VisitService {
             throw new Error('All selected customers already have pending visits for this salesman');
         }
 
-        let nextVisitId = await this.getNextVisitIdForSalesman(salesmanId);
+        let nextVisitId = await this.getNextVisitIdForJourney(salesmanId, journeyId);
 
         // Create visits for new customers
         const timestamp = getLocalTimestamp();
@@ -449,6 +458,74 @@ class VisitService {
             ended,
             cancelled
         };
+    }
+
+    // Add existing customer as a visit to journey
+    async addExistingCustomerVisit(salesmanId, journeyId, visitId, customerId) {
+        const prisma = getPrismaClient();
+        
+        // Validate inputs
+        const salesId = parseInt(salesmanId);
+        const jId = parseInt(journeyId);
+        const vId = parseInt(visitId);
+        const custId = parseInt(customerId);
+
+        // Check if visit already exists
+        const existingVisit = await prisma.visit.findFirst({
+            where: {
+                salesId: salesId,
+                journeyId: jId,
+                visitId: vId
+            }
+        });
+
+        if (existingVisit) {
+            throw new Error('Visit with this ID already exists for this journey');
+        }
+
+        // Check if customer already has a visit in this journey
+        const customerVisit = await prisma.visit.findFirst({
+            where: {
+                salesId: salesId,
+                journeyId: jId,
+                custId: custId
+            }
+        });
+
+        if (customerVisit) {
+            throw new Error('Customer already has a visit in this journey');
+        }
+
+        // Create the visit
+        const visitData = {
+            visitId: vId,
+            custId: custId,
+            salesId: salesId,
+            journeyId: jId,
+            status: 'WAIT',
+            startTime: null,
+            endTime: null,
+            cancelTime: null,
+            createdAt: getLocalTimestamp(),
+            updatedAt: getLocalTimestamp()
+        };
+
+        return await prisma.visit.create({
+            data: visitData,
+            include: {
+                customer: {
+                    select: {
+                        customerId: true,
+                        name: true,
+                        address: true,
+                        phone: true,
+                        industry: true,
+                        latitude: true,
+                        longitude: true
+                    }
+                }
+            }
+        });
     }
 }
 

@@ -12,7 +12,8 @@ import {
   X,
   Package,
   MapPin,
-  Route
+  Route,
+  XCircle
 } from 'lucide-react';
 
 const SidebarItem = ({ item, isChild = false, expandedMenus, toggleMenu }) => {
@@ -185,6 +186,12 @@ const Sidebar = ({
       label: 'Tours',
       icon: Route,
       onClick: () => handleNavigation('tours')
+    },
+    {
+      id: 'cancel-reasons',
+      label: 'Cancel Reasons',
+      icon: XCircle,
+      onClick: () => handleNavigation('cancel-reasons')
     },
     {
       id: 'settings',

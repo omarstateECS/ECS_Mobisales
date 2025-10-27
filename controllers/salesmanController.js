@@ -280,6 +280,44 @@ class SalesmanController {
             });
         }
     }
+
+    async refreshAuthorities(req, res) { 
+        const refreshedAuthoritites = await salesmanService.refreshAuthorities(req.body.salesmanId);
+        res.status(200).json(refreshedAuthoritites);
+    }
+
+    async addExistingCustomer(req, res) {
+        try {
+            const { salesmanId, journeyId, visitId, customerId } = req.body;
+
+            // Validate required fields
+            if (!salesmanId || !journeyId || !visitId || !customerId) {
+                return res.status(400).json({ 
+                    error: 'Missing required fields: salesmanId, journeyId, visitId, customerId' 
+                });
+            }
+
+            const visitService = require('../services/visitService');
+            const visit = await visitService.addExistingCustomerVisit(
+                salesmanId,
+                journeyId,
+                visitId,
+                customerId
+            );
+
+            res.status(201).json({
+                success: true,
+                message: 'Customer added to journey successfully',
+                visit
+            });
+        } catch (error) {
+            console.error('Error adding existing customer:', error);
+            res.status(500).json({ 
+                success: false,
+                error: error.message 
+            });
+        }
+    }
 }
 
 module.exports = new SalesmanController();

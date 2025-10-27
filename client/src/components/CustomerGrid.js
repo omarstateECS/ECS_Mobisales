@@ -1,5 +1,5 @@
 import React from 'react';
-import { Store, MapPin, Phone, Eye, Settings, Trash2, Edit } from 'lucide-react';
+import { Store, MapPin, Phone, Eye, Settings, Trash2, Edit, Ban, CheckCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 const CustomerCard = ({ customer, handleDeleteCustomer, deletingCustomerId, handleEditCustomer, handleViewDetails }) => {
@@ -54,17 +54,21 @@ const CustomerCard = ({ customer, handleDeleteCustomer, deletingCustomerId, hand
             <Settings size={16} />
           </button>
           <button 
-            onClick={() => handleDeleteCustomer(customer.customerId, customer.name)}
+            onClick={() => handleDeleteCustomer(customer.customerId, customer.name, customer.blocked)}
             disabled={deletingCustomerId === customer.customerId}
-            className={`p-2 rounded-lg hover:bg-red-600/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 ${
-              theme === 'dark' ? 'text-gray-400 hover:text-red-400' : 'text-gray-600 hover:text-red-500'
+            className={`p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 ${
+              customer.blocked
+                ? theme === 'dark' ? 'hover:bg-emerald-600/20 text-gray-400 hover:text-emerald-400' : 'hover:bg-emerald-100 text-gray-600 hover:text-emerald-500'
+                : theme === 'dark' ? 'hover:bg-orange-600/20 text-gray-400 hover:text-orange-400' : 'hover:bg-orange-100 text-gray-600 hover:text-orange-500'
             }`}
-            title="Delete customer"
+            title={customer.blocked ? "Unblock customer" : "Block customer"}
           >
             {deletingCustomerId === customer.customerId ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-red-400/30 border-t-red-400"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-orange-400/30 border-t-orange-400"></div>
+            ) : customer.blocked ? (
+              <CheckCircle size={16} />
             ) : (
-              <Trash2 size={16} />
+              <Ban size={16} />
             )}
           </button>
         </div>
@@ -85,17 +89,19 @@ const CustomerCard = ({ customer, handleDeleteCustomer, deletingCustomerId, hand
           </div>
         )}
 
-        {customer.industry && (
-          <div className={`flex items-center justify-between pt-2 border-t ${theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200'}`}>
+        <div className={`flex items-center justify-between pt-2 border-t ${theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200'}`}>
+          {customer.industry && (
             <span className="inline-block text-xs px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full">
               {customer.industry}
             </span>
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-              <span className="text-xs text-emerald-400">Active</span>
-            </div>
+          )}
+          <div className="flex items-center space-x-1">
+            <div className={`w-2 h-2 rounded-full ${customer.blocked ? 'bg-red-500' : 'bg-emerald-500'}`}></div>
+            <span className={`text-xs ${customer.blocked ? 'text-red-400' : 'text-emerald-400'}`}>
+              {customer.blocked ? 'Blocked' : 'Active'}
+            </span>
           </div>
-        )}
+        </div>
       </div>
 
       <div className="mt-4 pt-4 border-t border-gray-700/50 flex-shrink-0">

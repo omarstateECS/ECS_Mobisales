@@ -31,5 +31,10 @@ router.get('/load/:id', loadController.syncData);
 router.post('/addVisit', salesmanController.createVisit);
 // GET INVOICE ITEMS
 router.get('/invoice/:invId/items', salesmanController.getInvoiceItems);
+// REFRESH AUTHORITIES (for mobile app)
+router.post('/refreshAuth', salesmanController.refreshAuthorities);
+// ADD EXISTING CUSTOMER TO JOURNEY (for mobile app)
+router.post('/addExistingCustomer', salesmanController.addExistingCustomer);
+
 
 module.exports = router;

@@ -217,6 +217,28 @@ class SalesmanService {
         return await this.assignAuthorities(salesmanId, authorityIds);
     }
 
+    async refreshAuthorities(salesmanId) {
+        const prisma = getPrismaClient();
+        
+        // Get all authorities for the salesman
+        const salesmanAuthorities = await prisma.salesmanAuthority.findMany({
+            where: {
+                salesmanId: Number(salesmanId),
+            },
+            include: {
+                authority: true
+            }
+        });
+        
+        // Return authorities as an object with name: value pairs
+        const authoritiesObject = {};
+        salesmanAuthorities.forEach(sa => {
+            authoritiesObject[sa.authority.name] = sa.value;
+        });
+        
+        return authoritiesObject;
+    }
+
     async getStats() {
         const prisma = getPrismaClient();
         const totalSales = await prisma.salesman.count();
