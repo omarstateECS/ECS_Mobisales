@@ -6,7 +6,8 @@ const SettingsPage = () => {
   const [settings, setSettings] = useState({
     customInvoice: false,
     customInvoiceSequence: '',
-    visitSequence: false
+    visitSequence: false,
+    filterCustomersByRegion: false
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -108,7 +109,8 @@ const SettingsPage = () => {
         setSettings({
           customInvoice: data.data.customInvoice,
           customInvoiceSequence: data.data.customInvoiceSequence || '',
-          visitSequence: data.data.visitSequence
+          visitSequence: data.data.visitSequence,
+          filterCustomersByRegion: data.data.filterCustomersByRegion || false
         });
       } else {
         throw new Error('Failed to fetch settings');
@@ -174,6 +176,14 @@ const SettingsPage = () => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Settings saved response:', data);
+        // Update local state with saved settings
+        setSettings({
+          customInvoice: data.data.customInvoice,
+          customInvoiceSequence: data.data.customInvoiceSequence || '',
+          visitSequence: data.data.visitSequence,
+          filterCustomersByRegion: data.data.filterCustomersByRegion || false
+        });
         setMessage({ type: 'success', text: 'Settings saved successfully!' });
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
       } else {
@@ -403,6 +413,28 @@ const SettingsPage = () => {
                 <span
                   className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
                     settings.visitSequence ? 'translate-x-7' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Filter Customers by Region Toggle */}
+            <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-colors">
+              <div className="flex-1">
+                <h3 className="text-lg font-medium text-white mb-1">Filter Customers by Region</h3>
+                <p className="text-sm text-gray-400">
+                  Send only customers in the journey's region to mobile app (when disabled, sends all customers)
+                </p>
+              </div>
+              <button
+                onClick={() => handleToggle('filterCustomersByRegion')}
+                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 ${
+                  settings.filterCustomersByRegion ? 'bg-blue-600' : 'bg-gray-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                    settings.filterCustomersByRegion ? 'translate-x-7' : 'translate-x-1'
                   }`}
                 />
               </button>

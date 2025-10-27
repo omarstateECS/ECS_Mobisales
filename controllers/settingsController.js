@@ -9,7 +9,8 @@ module.exports = {
         data: {
           customInvoice: settings.customInvoice || false,
           customInvoiceSequence: settings.customInvoiceSequence || '',
-          visitSequence: settings.visitSequence || false
+          visitSequence: settings.visitSequence || false,
+          filterCustomersByRegion: settings.filterCustomersByRegion || false
         }
       });
     } catch (error) {
@@ -24,12 +25,13 @@ module.exports = {
 
   async updateSettings(req, res) {
     try {
-      const { customInvoice, customInvoiceSequence, visitSequence } = req.body;
+      const { customInvoice, customInvoiceSequence, visitSequence, filterCustomersByRegion } = req.body;
       
       const settings = await settingsService.updateSettings({
         customInvoice,
         customInvoiceSequence,
-        visitSequence
+        visitSequence,
+        filterCustomersByRegion
       });
       
       return res.json({
@@ -37,7 +39,8 @@ module.exports = {
         data: {
           customInvoice: settings.customInvoice || false,
           customInvoiceSequence: settings.customInvoiceSequence || '',
-          visitSequence: settings.visitSequence || false
+          visitSequence: settings.visitSequence || false,
+          filterCustomersByRegion: settings.filterCustomersByRegion || false
         },
         message: 'Settings updated successfully'
       });

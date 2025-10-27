@@ -16,16 +16,34 @@ module.exports = {
           return res.status(400).json({ error: 'Salesman ID is required' });
         }
   
-        const [visits, products, reasons, customers, lastInvoice, latestJourney, settings] = await Promise.all([
+        const [visits, products, reasons, lastInvoice, latestJourney, settings] = await Promise.all([
           visitService.getTodayVisits(salesmanId),
           productService.getAllProducts(),
           reasonService.getAllReasons(),
-          customerService.getAvailableCustomers(salesmanId),
           invoiceService.getLastInvoice(salesmanId),
           journeyService.getLatestJourney(salesmanId),
           settingsService.getSettings(),
-          
         ]);
+        
+        // Get customers based on filterCustomersByRegion setting
+        let customers;
+        console.log('🔍 Filter Settings:', {
+          filterCustomersByRegion: settings?.filterCustomersByRegion,
+          journeyRegionId: latestJourney?.regionId,
+          journeyId: latestJourney?.journeyId
+        });
+        
+        if (settings?.filterCustomersByRegion && latestJourney?.regionId) {
+          // Filter by journey's region
+          console.log('✅ Filtering customers by region:', latestJourney.regionId);
+          customers = await customerService.getAvailableCustomersByRegion(salesmanId, latestJourney.regionId);
+          console.log('📊 Filtered customers count:', customers.length);
+        } else {
+          // Get all available customers
+          console.log('⚠️ Sending all customers (filter disabled or no journey region)');
+          customers = await customerService.getAvailableCustomers(salesmanId);
+          console.log('📊 All customers count:', customers.length);
+        }
         
         // Get next visit ID for the latest journey (or 1 if no journey exists)
         const journeyId = latestJourney?.journeyId;
@@ -57,7 +75,8 @@ module.exports = {
           customers,
           settings: {
             customInvoice: settings?.customInvoice || false,
-            visitSequence: settings?.visitSequence || false
+            visitSequence: settings?.visitSequence || false,
+            filterCustomersByRegion: settings?.filterCustomersByRegion || false
           }
         });
       } catch (error) {

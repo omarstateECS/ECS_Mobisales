@@ -14,7 +14,8 @@ class SettingsService {
         await prisma.settings.createMany({
           data: [
             { name: 'customInvoice', value: false, textValue: '', createdAt: timestamp, updatedAt: timestamp },
-            { name: 'visitSequence', value: false, createdAt: timestamp, updatedAt: timestamp }
+            { name: 'visitSequence', value: false, createdAt: timestamp, updatedAt: timestamp },
+            { name: 'filterCustomersByRegion', value: false, createdAt: timestamp, updatedAt: timestamp }
           ]
         });
         
@@ -22,7 +23,8 @@ class SettingsService {
         return {
           customInvoice: false,
           customInvoiceSequence: '',
-          visitSequence: false
+          visitSequence: false,
+          filterCustomersByRegion: false
         };
       }
       
@@ -30,7 +32,8 @@ class SettingsService {
       const settings = {
         customInvoice: false,
         customInvoiceSequence: '',
-        visitSequence: false
+        visitSequence: false,
+        filterCustomersByRegion: false
       };
       
       settingsArray.forEach(setting => {
@@ -39,6 +42,8 @@ class SettingsService {
           settings.customInvoiceSequence = setting.textValue || '';
         } else if (setting.name === 'visitSequence') {
           settings.visitSequence = setting.value;
+        } else if (setting.name === 'filterCustomersByRegion') {
+          settings.filterCustomersByRegion = setting.value;
         }
       });
       
@@ -52,6 +57,7 @@ class SettingsService {
   async updateSettings(data) {
     try {
       const prisma = getPrismaClient();
+      console.log('💾 Updating settings with data:', data);
       
       // Update customInvoice (both toggle and sequence text)
       if (data.customInvoice !== undefined || data.customInvoiceSequence !== undefined) {
@@ -87,8 +93,21 @@ class SettingsService {
         });
       }
       
+      // Update filterCustomersByRegion if provided
+      if (data.filterCustomersByRegion !== undefined) {
+        console.log('✅ Updating filterCustomersByRegion to:', data.filterCustomersByRegion);
+        const timestamp3 = getLocalTimestamp();
+        await prisma.settings.upsert({
+          where: { name: 'filterCustomersByRegion' },
+          update: { value: data.filterCustomersByRegion, updatedAt: timestamp3 },
+          create: { name: 'filterCustomersByRegion', value: data.filterCustomersByRegion, createdAt: timestamp3, updatedAt: timestamp3 }
+        });
+      }
+      
       // Return updated settings
-      return await this.getSettings();
+      const updatedSettings = await this.getSettings();
+      console.log('📤 Returning updated settings:', updatedSettings);
+      return updatedSettings;
     } catch (error) {
       console.error('Error updating settings:', error);
       throw error;

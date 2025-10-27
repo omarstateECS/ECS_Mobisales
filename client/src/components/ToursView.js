@@ -467,7 +467,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                     <div className="text-right">
                       <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>Total Sales</p>
                       <p className="text-lg font-bold text-green-500">
-                        {journey.invoiceHeaders.reduce((sum, inv) => sum + (inv.totalAmt || 0), 0).toFixed(2)} EGP
+                        {journey.invoiceHeaders.reduce((sum, inv) => sum + parseFloat(inv.totalAmt || 0), 0).toFixed(2)} EGP
                       </p>
                     </div>
                   )}

@@ -120,6 +120,45 @@ class CustomerService {
         return availableCustomers;
         }
 
+    // Get available customers filtered by region
+    async getAvailableCustomersByRegion(salesmanId, regionId) {
+        const prisma = getPrismaClient();
+
+        // Get all visits for today (or the current journey)
+        const visits = await visitService.getTodayVisits(salesmanId);
+
+        // Extract visited customer IDs
+        const visitedCustomerIds = visits.map(v => v.customerId);
+
+        // Fetch only customers who are:
+        //     - Not blocked
+        //     - Not already visited today
+        //     - In the specified region
+        //     - Ordered by most recently created
+        const availableCustomers = await prisma.customer.findMany({
+            where: {
+                blocked: false,
+                customerId: {
+                    notIn: visitedCustomerIds,
+                },
+                regionId: parseInt(regionId)
+            },
+            select: {
+                customerId: true,
+                name: true,
+                industry: true,
+                address: true,
+                latitude: true,
+                longitude: true,
+                phone: true,
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+
+        return availableCustomers;
+    }
 
     // Get a single customer by ID
     async getCustomerById(id) {
