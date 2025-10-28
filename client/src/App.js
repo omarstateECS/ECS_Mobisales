@@ -18,6 +18,8 @@ import SalesmanDetailsPage from './components/SalesmanDetailsPage';
 import ToursView from './components/ToursView';
 import TourDetailsPage from './components/TourDetailsPage';
 import CancelReasonsView from './components/CancelReasonsView';
+import AuthoritiesView from './components/AuthoritiesView';
+import FillupView from './components/FillupView';
 import ConfirmationModal from './components/common/ConfirmationModal';
 import NotificationModal from './components/common/NotificationModal';
 import { useNotification } from './hooks/useNotification';
@@ -940,6 +942,32 @@ const Dashboard = () => {
           </motion.div>
         );
       
+      case 'authorities':
+        return (
+          <motion.div
+            key="authorities"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <AuthoritiesView />
+          </motion.div>
+        );
+
+      case 'fillup':
+        return (
+          <motion.div
+            key="fillup"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <FillupView />
+          </motion.div>
+        );
+
       case 'cancel-reasons':
         return (
           <motion.div

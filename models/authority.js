@@ -7,7 +7,9 @@ class Authority {
       const authority = await prisma.authority.create({
         data: {
           name: data.name,
-          type: data.type
+          type: data.type,
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt
         }
       });
       return authority;

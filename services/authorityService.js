@@ -1,4 +1,5 @@
 const Authority = require('../models/authority');
+const { getLocalTimestamp } = require('../lib/dateUtils');
 
 class AuthorityService {
   static async createAuthority(authorityData) {
@@ -13,7 +14,12 @@ class AuthorityService {
         throw new Error('Type must be either WEB or MOBILE');
       }
 
-      const authority = await Authority.create(authorityData);
+      const timestamp = getLocalTimestamp();
+      const authority = await Authority.create({
+        ...authorityData,
+        createdAt: timestamp,
+        updatedAt: timestamp
+      });
       return authority;
     } catch (error) {
       throw error;

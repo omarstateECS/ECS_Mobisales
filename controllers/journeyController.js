@@ -55,6 +55,21 @@ class JourneyController {
             res.status(500).json({ error: 'Failed to fetch journey stats' });
         }
     }
+
+    async getLatestJourney(req, res) {
+        try {
+            const journey = await journeyService.getLatestJourney(req.params.salesId);
+            
+            if (!journey) {
+                return res.status(404).json({ error: 'Journey not found' });
+            }
+            
+            res.json(journey);
+        } catch (error) {
+            console.error('Error fetching latest journey:', error);
+            res.status(500).json({ error: 'Failed to fetch latest journey' });
+        }
+    }
 }
 
 module.exports = new JourneyController();

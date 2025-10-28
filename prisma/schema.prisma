@@ -226,8 +226,39 @@ model Journies {
   region       Region?   @relation(fields: [regionId], references: [id], onDelete: SetNull)     
   visits       Visit[]         @relation("VisitToJourney")
   invoiceHeaders InvoiceHeader[] @relation("InvoiceToJourney")
+  fillups      Fillup[]
 
   @@id([journeyId, salesId])
+}
+
+model Fillup {
+  fillupId    Int            @id @default(autoincrement())
+  journeyId   Int
+  salesId     Int
+  createdAt   String
+  updatedAt   String
+  status      FillupStatus   @default(PENDING)
+  journey     Journies       @relation(fields: [journeyId, salesId], references: [journeyId, salesId], onDelete: Cascade)
+  items       FillupItem[]
+
+  @@index([journeyId, salesId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("fillups")
+}
+
+model FillupItem {
+  id          Int      @id @default(autoincrement())
+  fillupId    Int
+  prodId      Int
+  quantity    Int
+  uom         String
+  createdAt   String
+  fillup      Fillup   @relation(fields: [fillupId], references: [fillupId], onDelete: Cascade)
+
+  @@index([fillupId])
+  @@index([prodId])
+  @@map("fillup_items")
 }
 
 
@@ -302,4 +333,10 @@ enum VisitStatus {
   END
   WAIT
   CANCEL
+}
+
+enum FillupStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
 }
