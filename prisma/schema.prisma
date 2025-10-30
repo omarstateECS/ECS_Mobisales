@@ -44,6 +44,7 @@ model Product {
   baseUom        String
   basePrice      Decimal      @db.Decimal(18, 5)
   units          ProductUOM[]
+  fillupItems    FillupItem[]
 
   @@index([category])
   @@index([baseUom])
@@ -255,6 +256,7 @@ model FillupItem {
   uom         String
   createdAt   String
   fillup      Fillup   @relation(fields: [fillupId], references: [fillupId], onDelete: Cascade)
+  product     Product  @relation(fields: [prodId], references: [prodId], onDelete: Cascade)
 
   @@index([fillupId])
   @@index([prodId])

@@ -20,6 +20,7 @@ const FillupView = () => {
   const [selectedJourney, setSelectedJourney] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [salesmanSearchTerm, setSalesmanSearchTerm] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -27,11 +28,13 @@ const FillupView = () => {
   }, []);
 
   useEffect(() => {
+    // Clear journey selection when salesman changes
+    setSelectedJourney(null);
+    
     if (selectedSalesman) {
       fetchJourneys(selectedSalesman.salesId);
     } else {
       setJourneys([]);
-      setSelectedJourney(null);
     }
   }, [selectedSalesman]);
 
@@ -55,6 +58,9 @@ const FillupView = () => {
 
   const fetchJourneys = async (salesId) => {
     try {
+      // Clear previous journeys first
+      setJourneys([]);
+      
       const response = await axios.get(`/api/journeys/latest/${salesId}`);
       console.log('📍 Journey response:', response.data);
       
@@ -70,6 +76,7 @@ const FillupView = () => {
       setJourneys(Array.isArray(journeyData) ? journeyData : []);
     } catch (error) {
       console.error('Error fetching journeys:', error);
+      setJourneys([]);
       showError('Failed to load journeys');
     }
   };
@@ -80,19 +87,36 @@ const FillupView = () => {
       return;
     }
 
+    // Check if product has stock available
+    if (product.stock <= 0) {
+      showError(`${product.name} is out of stock`);
+      return;
+    }
+
     setSelectedProducts([...selectedProducts, {
       prodId: product.prodId,
       name: product.name,
       quantity: 1,
       uom: product.baseUom,
-      basePrice: product.basePrice
+      basePrice: product.basePrice,
+      maxStock: product.stock  // Store max available stock
     }]);
   };
 
   const updateQuantity = (prodId, quantity) => {
-    setSelectedProducts(selectedProducts.map(p =>
-      p.prodId === prodId ? { ...p, quantity: parseInt(quantity) || 0 } : p
-    ));
+    const qty = parseInt(quantity) || 0;
+    
+    setSelectedProducts(selectedProducts.map(p => {
+      if (p.prodId === prodId) {
+        // Validate against max stock
+        if (qty > p.maxStock) {
+          showError(`Cannot exceed available stock of ${p.maxStock} for ${p.name}`);
+          return { ...p, quantity: p.maxStock };
+        }
+        return { ...p, quantity: qty };
+      }
+      return p;
+    }));
   };
 
   const removeProduct = (prodId) => {
@@ -117,6 +141,16 @@ const FillupView = () => {
 
     if (selectedProducts.some(p => p.quantity <= 0)) {
       showError('All products must have quantity greater than 0');
+      return;
+    }
+
+    // Final validation: check if any quantity exceeds max stock
+    const exceededStock = selectedProducts.filter(p => p.quantity > p.maxStock);
+    if (exceededStock.length > 0) {
+      const errorMsg = exceededStock.map(p => 
+        `${p.name}: ${p.quantity} exceeds available stock of ${p.maxStock}`
+      ).join(', ');
+      showError(`Stock exceeded: ${errorMsg}`);
       return;
     }
 
@@ -146,6 +180,11 @@ const FillupView = () => {
       setSaving(false);
     }
   };
+
+  const filteredSalesmen = salesmen.filter(salesman =>
+    salesman.name.toLowerCase().includes(salesmanSearchTerm.toLowerCase()) ||
+    salesman.salesId.toString().includes(salesmanSearchTerm)
+  );
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -189,25 +228,64 @@ const FillupView = () => {
               <Users size={24} />
               Select Salesman
             </h2>
-            <select
-              value={selectedSalesman?.salesId || ''}
-              onChange={(e) => {
-                const salesman = salesmen.find(s => s.salesId === parseInt(e.target.value));
-                setSelectedSalesman(salesman || null);
-              }}
-              className={`w-full px-4 py-3 rounded-xl border transition-colors ${
-                theme === 'dark'
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
-            >
-              <option value="">Choose a salesman...</option>
-              {salesmen.map(salesman => (
-                <option key={salesman.salesId} value={salesman.salesId}>
-                  {salesman.name} - {salesman.phone}
-                </option>
+
+            {/* Search Bar */}
+            <div className="relative mb-4">
+              <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+              }`} size={20} />
+              <input
+                type="text"
+                placeholder="Search salesmen..."
+                value={salesmanSearchTerm}
+                onChange={(e) => setSalesmanSearchTerm(e.target.value)}
+                className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-colors ${
+                  theme === 'dark'
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+              />
+            </div>
+
+            {/* Salesmen Grid */}
+            <div className="grid grid-cols-3 gap-3 max-h-80 overflow-y-auto overflow-x-hidden scrollbar-hide">
+              {filteredSalesmen.map(salesman => (
+                <motion.div
+                  key={salesman.salesId}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setSelectedSalesman(salesman)}
+                  className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    selectedSalesman?.salesId === salesman.salesId
+                      ? theme === 'dark'
+                        ? 'border-blue-500 bg-blue-500/10'
+                        : 'border-blue-500 bg-blue-50'
+                      : theme === 'dark'
+                        ? 'border-gray-700 hover:border-gray-600 bg-gray-700/30'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <div className="text-center">
+                    <p className={`font-semibold text-sm truncate ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      {salesman.name}
+                    </p>
+                    <p className={`text-xs mt-1 ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      ID: {salesman.salesId}
+                    </p>
+                  </div>
+                </motion.div>
               ))}
-            </select>
+            </div>
+
+            {filteredSalesmen.length === 0 && (
+              <p className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                No salesmen found
+              </p>
+            )}
           </motion.div>
 
           {/* Journey Selection */}
@@ -230,25 +308,55 @@ const FillupView = () => {
                   No journeys found for this salesman
                 </p>
               ) : (
-                <select
-                  value={selectedJourney?.journeyId || ''}
-                  onChange={(e) => {
-                    const journey = journeys.find(j => j.journeyId === parseInt(e.target.value));
-                    setSelectedJourney(journey || null);
-                  }}
-                  className={`w-full px-4 py-3 rounded-xl border transition-colors ${
-                    theme === 'dark'
-                      ? 'bg-gray-700 border-gray-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
-                >
-                  <option value="">Choose a journey...</option>
+                <div className="space-y-3">
                   {journeys.map(journey => (
-                    <option key={journey.journeyId} value={journey.journeyId}>
-                      Journey #{journey.journeyId} - {journey.region?.region || 'No Region'}
-                    </option>
+                    <motion.div
+                      key={journey.journeyId}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedJourney(journey)}
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                        selectedJourney?.journeyId === journey.journeyId
+                          ? theme === 'dark'
+                            ? 'border-blue-500 bg-blue-500/10'
+                            : 'border-blue-500 bg-blue-50'
+                          : theme === 'dark'
+                            ? 'border-gray-700 hover:border-gray-600 bg-gray-700/30'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className={`font-semibold ${
+                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          }`}>
+                            Journey #{journey.journeyId}
+                          </p>
+                          <p className={`text-sm mt-1 ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                          }`}>
+                            {journey.region?.region || 'No Region'} 
+                            {journey.region?.city && ` • ${journey.region.city}`}
+                          </p>
+                          {journey.createdAt && (
+                            <p className={`text-xs mt-1 ${
+                              theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
+                            }`}>
+                              Created: {new Date(journey.createdAt).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                        {selectedJourney?.journeyId === journey.journeyId && (
+                          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
                   ))}
-                </select>
+                </div>
               )}
             </motion.div>
           )}
@@ -344,9 +452,14 @@ const FillupView = () => {
                     }`}
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <p className={`font-medium text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        {product.name}
-                      </p>
+                      <div>
+                        <p className={`font-medium text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                          {product.name}
+                        </p>
+                        <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                          Available: {product.maxStock}
+                        </p>
+                      </div>
                       <button
                         onClick={() => removeProduct(product.prodId)}
                         className="text-red-500 hover:text-red-600"
@@ -357,6 +470,7 @@ const FillupView = () => {
                     <input
                       type="number"
                       min="1"
+                      max={product.maxStock}
                       value={product.quantity}
                       onChange={(e) => updateQuantity(product.prodId, e.target.value)}
                       className={`w-full px-3 py-2 rounded-lg border text-sm ${

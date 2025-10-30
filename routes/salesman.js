@@ -35,6 +35,8 @@ router.get('/invoice/:invId/items', salesmanController.getInvoiceItems);
 router.post('/refreshAuth', salesmanController.refreshAuthorities);
 // ADD EXISTING CUSTOMER TO JOURNEY (for mobile app)
 router.post('/addExistingCustomer', salesmanController.addExistingCustomer);
+// SEARCH INVOICES (for mobile app)
+router.post('/searchInvoices', salesmanController.searchInvoices);
 
 
 module.exports = router;

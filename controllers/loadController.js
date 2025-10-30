@@ -6,6 +6,7 @@ const invoiceService = require('../services/invoiceService');
 const journeyService = require('../services/journeyService');
 const settingsService = require('../services/settingsService');
 const customerService = require('../services/customerService');
+const fillupService = require('../services/fillupService');
 
 module.exports = {
     async syncData(req, res) {
@@ -16,14 +17,22 @@ module.exports = {
           return res.status(400).json({ error: 'Salesman ID is required' });
         }
   
-        const [visits, products, reasons, lastInvoice, latestJourney, settings] = await Promise.all([
+        const [visits, reasons, lastInvoice, latestJourney, settings] = await Promise.all([
           visitService.getTodayVisits(salesmanId),
-          productService.getAllProducts(),
           reasonService.getAllReasons(),
           invoiceService.getLastInvoice(salesmanId),
           journeyService.getLatestJourney(salesmanId),
           settingsService.getSettings(),
         ]);
+        
+        // Get fillup items with product details for the latest journey
+        let products = [];
+        if (latestJourney?.journeyId) {
+          products = await fillupService.getFillupItemsByJourney(
+            latestJourney.journeyId,
+            salesmanId
+          );
+        }
         
         // Get customers based on filterCustomersByRegion setting
         let customers;

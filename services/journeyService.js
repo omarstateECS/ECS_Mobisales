@@ -300,6 +300,9 @@ class JourneyService {
             where: {
                 salesId: parseInt(salesmanId)
             },
+            include: {
+                region: true
+            },
             orderBy: {
                 createdAt: 'desc'
             }

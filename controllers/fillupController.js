@@ -31,7 +31,12 @@ class FillupController {
             });
         } catch (error) {
             console.error('Error creating fillup:', error);
-            res.status(500).json({
+            
+            // Check if it's a validation error (insufficient stock or product not found)
+            const isValidationError = error.message.includes('Insufficient stock') || 
+                                     error.message.includes('not found');
+            
+            res.status(isValidationError ? 400 : 500).json({
                 success: false,
                 message: error.message || 'Internal server error'
             });

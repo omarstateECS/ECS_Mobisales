@@ -63,6 +63,10 @@ class JourneyController {
             if (!journey) {
                 return res.status(404).json({ error: 'Journey not found' });
             }
+
+            if(journey.startJourney){
+                return res.status(404).json({ error: 'No Journies Found' });
+            }
             
             res.json(journey);
         } catch (error) {

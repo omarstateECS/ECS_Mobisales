@@ -15,6 +15,23 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Error handler for JSON parsing errors
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    console.error('❌ JSON Parse Error:');
+    console.error('   URL:', req.url);
+    console.error('   Method:', req.method);
+    console.error('   Error:', err.message);
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid JSON format in request body',
+      error: err.message,
+      hint: 'Make sure all property names and string values use double quotes, and there are no trailing commas'
+    });
+  }
+  next();
+});
+
 // Routes
 require('./startup/routes')(app);
 

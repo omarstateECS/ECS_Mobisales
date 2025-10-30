@@ -318,6 +318,34 @@ class SalesmanController {
             });
         }
     }
+
+    async searchInvoices(req, res) {
+        try {
+            
+            if (!req.body || Object.keys(req.body).length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Request body is empty. Please provide search criteria (invoiceId, date, salesId)',
+                    debug: {
+                        method: req.method,
+                        contentType: req.get('Content-Type'),
+                        bodyReceived: req.body
+                    }
+                });
+            }
+            
+            const data = req.body;
+            const invoices = await salesmanService.searchInvoices(data);
+            res.status(200).json({
+                invoices: invoices
+            });
+        } catch (error) {
+            console.error('Error searching invoices:', error);
+            res.status(500).json({ 
+                message: error.message || 'Internal server error' 
+            });
+        }
+    }
 }
 
 module.exports = new SalesmanController();

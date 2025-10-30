@@ -329,6 +329,15 @@ class SalesmanService {
                     if (salesman.endJourney) {
                         // Journey ended → set available to TRUE
                         salesmanUpdateData.available = true;
+                        
+                        // Return unused stock when journey ends
+                        const fillupService = require('./fillupService');
+                        await fillupService.returnUnusedStock(
+                            Number(journeyId),
+                            Number(salesmanId),
+                            products,
+                            tx
+                        );
                     }
 
                     if (Object.keys(salesmanUpdateData).length > 0) {
@@ -745,7 +754,7 @@ class SalesmanService {
             });
             return {customerId: customer.customerId};
         } catch (error) {
-            throw new Error(`❌ Failed to create visit: ${error.message}`);
+            throw new Error(`Failed to create visit: ${error.message}`);
         }
     }
 
@@ -803,9 +812,183 @@ class SalesmanService {
             return itemsWithProducts;
         } catch (error) {
             console.error('Error fetching invoice items:', error);
-            throw new Error(`❌ Failed to fetch invoice items: ${error.message}`);
+            throw new Error(`Failed to fetch invoice items: ${error.message}`);
         }
     }
+
+    async calculateNetQuantitiesAfterReturns(invoice) {
+        const prisma = getPrismaClient();
+        
+        // Initialize returned quantities object
+        const returnedQuantities = {};
+        
+        // Find all RETURN invoices that reference this SALE invoice
+        const returnInvoices = await prisma.invoiceHeader.findMany({
+            where: {
+                invRef: invoice.invId,
+                invType: 'RETURN'
+            }
+        });
+        
+        // If there are returns, calculate the returned quantities
+        if (returnInvoices.length > 0) {
+            // Fetch all return items for these return invoices
+            const returnInvoiceIds = returnInvoices.map(inv => inv.invId);
+            const returnItems = await prisma.invoiceItem.findMany({
+                where: {
+                    invoiceHeaderId: {
+                        in: returnInvoiceIds
+                    }
+                }
+            });
+            
+            // Calculate total returned quantities per product
+            for (const returnItem of returnItems) {
+                const key = `${returnItem.productId}_${returnItem.productUom}`;
+                if (!returnedQuantities[key]) {
+                    returnedQuantities[key] = 0;
+                }
+                returnedQuantities[key] += returnItem.qty;
+            }
+        }
+        
+        // Always add quantity fields to all items (even if no returns)
+        if (invoice.items) {
+            invoice.items = invoice.items.map(item => {
+                const key = `${item.productId}_${item.productUom}`;
+                const returnedQty = returnedQuantities[key] || 0;
+                return {
+                    ...item,
+                    originalQty: item.qty,
+                    returnedQty: returnedQty,
+                    availableQty: item.qty - returnedQty
+                };
+            });
+        }
+        
+        // No need to return, we modify in place
+    }
+
+    async searchInvoices(data) {
+        const prisma = getPrismaClient();
+        
+        if (!data) {
+            throw new Error('Search data is required');
+        }
+        
+        const { invoiceId, salesId, date } = data;
+
+        // Validate that salesId is provided
+        if (!salesId) {
+            throw new Error('salesId is required to search invoices');
+        }
+
+        if (!invoiceId && !date) {
+            throw new Error('No search criteria provided. Please provide either invoiceId or date');
+        }
+
+        if (invoiceId && !date) {
+            try {
+                const invoices = await prisma.invoiceHeader.findMany({
+                    where: {
+                        invId: invoiceId,
+                        salesId: salesId,  // Ensure salesman can only view their own invoices
+                        invType: 'SALE'
+                    }
+                });
+                
+                // Fetch items for each invoice and calculate net quantities
+                for (const invoice of invoices) {
+                    const items = await prisma.invoiceItem.findMany({
+                        where: {
+                            invoiceHeaderId: invoice.invId
+                        }
+                    });
+                    invoice.items = items;
+                    
+                    // Calculate net quantities after returns
+                    await this.calculateNetQuantitiesAfterReturns(invoice);
+                }
+                
+                return invoices;
+            } catch (error) {
+                console.error('Error searching invoices:', error);
+                throw new Error(`Failed to search invoices: ${error.message}`);
+            }
+        }
+
+        if (date && !invoiceId) {
+            try {
+                // Build where clause - salesId is always required
+                const whereClause = {
+                    createdAt: {
+                        startsWith: date  // Matches any timestamp starting with the date
+                    },
+                    salesId: salesId,  // Ensure salesman can only view their own invoices
+                    invType: 'SALE'
+                };
+                
+                const invoices = await prisma.invoiceHeader.findMany({
+                    where: whereClause
+                });
+                
+                // Fetch items for each invoice separately and calculate net quantities
+                for (const invoice of invoices) {
+                    const items = await prisma.invoiceItem.findMany({
+                        where: {
+                            invoiceHeaderId: invoice.invId
+                        }
+                    });
+                    invoice.items = items;
+                    
+                    // Calculate net quantities after returns
+                    await this.calculateNetQuantitiesAfterReturns(invoice);
+                }
+                
+            return invoices;
+        } catch (error) {
+            console.error('Error searching invoices:', error);
+            throw new Error(`Failed to search invoices: ${error.message}`);
+        }
+    }
+
+    if (invoiceId && date) {
+        try {
+            // Build where clause - salesId is always required
+            const whereClause = {
+                invId: invoiceId,
+                createdAt: {
+                    startsWith: date  // Matches any timestamp starting with the date
+                },
+                salesId: salesId,  // Ensure salesman can only view their own invoices
+                invType: 'SALE'
+            };
+            
+            const invoice = await prisma.invoiceHeader.findFirst({
+                where: whereClause
+            });
+            
+            if (invoice) {
+                // Fetch items separately since there's no relation in schema
+                const items = await prisma.invoiceItem.findMany({
+                    where: {
+                        invoiceHeaderId: invoice.invId
+                    }
+                });
+                invoice.items = items;
+                
+                // Calculate net quantities after returns
+                await this.calculateNetQuantitiesAfterReturns(invoice);
+            }
+            
+            return invoice;
+        } catch (error) {
+            console.error('Error searching invoices:', error);
+            throw new Error(`Failed to search invoices: ${error.message}`);
+        }
+    }
+}
+
 }
 
 module.exports = new SalesmanService(); 
