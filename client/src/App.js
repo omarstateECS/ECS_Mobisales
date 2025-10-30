@@ -20,6 +20,7 @@ import TourDetailsPage from './components/TourDetailsPage';
 import CancelReasonsView from './components/CancelReasonsView';
 import AuthoritiesView from './components/AuthoritiesView';
 import FillupView from './components/FillupView';
+import LoadOrdersView from './components/LoadOrdersView';
 import ConfirmationModal from './components/common/ConfirmationModal';
 import NotificationModal from './components/common/NotificationModal';
 import { useNotification } from './hooks/useNotification';
@@ -965,6 +966,19 @@ const Dashboard = () => {
             transition={{ duration: 0.4, ease: "easeOut" }}
           >
             <FillupView />
+          </motion.div>
+        );
+
+      case 'loadorders':
+        return (
+          <motion.div
+            key="loadorders"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <LoadOrdersView />
           </motion.div>
         );
 

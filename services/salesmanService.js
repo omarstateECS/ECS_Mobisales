@@ -30,6 +30,11 @@ class SalesmanService {
 
     async getSalesmanById(id) {
         const prisma = getPrismaClient();
+        
+        if (!id) {
+            throw new Error('Salesman ID is required');
+        }
+        
         return await prisma.salesman.findUnique({
             where: { salesId: Number(id) },
             include: {
@@ -876,11 +881,15 @@ class SalesmanService {
             throw new Error('Search data is required');
         }
         
-        const { invoiceId, salesId, date } = data;
+        const { invoiceId, salesId, date, customerId} = data;
 
         // Validate that salesId is provided
         if (!salesId) {
             throw new Error('salesId is required to search invoices');
+        }
+
+        if (!customerId) {
+            throw new Error('customerId is required to search invoices');
         }
 
         if (!invoiceId && !date) {
@@ -892,7 +901,8 @@ class SalesmanService {
                 const invoices = await prisma.invoiceHeader.findMany({
                     where: {
                         invId: invoiceId,
-                        salesId: salesId,  // Ensure salesman can only view their own invoices
+                        salesId: salesId,
+                        custId: customerId,
                         invType: 'SALE'
                     }
                 });
@@ -901,7 +911,7 @@ class SalesmanService {
                 for (const invoice of invoices) {
                     const items = await prisma.invoiceItem.findMany({
                         where: {
-                            invoiceHeaderId: invoice.invId
+                            invoiceHeaderId: invoice.invId,
                         }
                     });
                     invoice.items = items;
@@ -924,7 +934,8 @@ class SalesmanService {
                     createdAt: {
                         startsWith: date  // Matches any timestamp starting with the date
                     },
-                    salesId: salesId,  // Ensure salesman can only view their own invoices
+                    salesId: salesId, 
+                    custId: customerId,
                     invType: 'SALE'
                 };
                 
@@ -936,7 +947,7 @@ class SalesmanService {
                 for (const invoice of invoices) {
                     const items = await prisma.invoiceItem.findMany({
                         where: {
-                            invoiceHeaderId: invoice.invId
+                            invoiceHeaderId: invoice.invId,
                         }
                     });
                     invoice.items = items;
@@ -960,7 +971,8 @@ class SalesmanService {
                 createdAt: {
                     startsWith: date  // Matches any timestamp starting with the date
                 },
-                salesId: salesId,  // Ensure salesman can only view their own invoices
+                salesId: salesId, 
+                custId: customerId,
                 invType: 'SALE'
             };
             
@@ -972,7 +984,7 @@ class SalesmanService {
                 // Fetch items separately since there's no relation in schema
                 const items = await prisma.invoiceItem.findMany({
                     where: {
-                        invoiceHeaderId: invoice.invId
+                        invoiceHeaderId: invoice.invId,
                     }
                 });
                 invoice.items = items;
@@ -986,6 +998,100 @@ class SalesmanService {
             console.error('Error searching invoices:', error);
             throw new Error(`Failed to search invoices: ${error.message}`);
         }
+    }
+}
+
+async loadOrder(data) {
+    const prisma = getPrismaClient();
+    const { getLocalTimestamp } = require('../lib/dateUtils');
+    
+    try {
+        const { salesId, journeyId, products } = data;
+        
+        if (!salesId || !journeyId) {
+            throw new Error('salesId and journeyId are required');
+        }
+        
+        if (!products || !Array.isArray(products) || products.length === 0) {
+            throw new Error('products array is required and must not be empty');
+        }
+        
+        // Get the next loadOrderId
+        const lastOrder = await prisma.loadOrders.findFirst({
+            orderBy: { loadOrderId: 'desc' }
+        });
+        
+        let nextLoadOrderId = (lastOrder?.loadOrderId || 0) + 1;
+        const timestamp = getLocalTimestamp();
+        
+        // Create load orders for each product
+        const createdOrders = [];
+        for (const product of products) {
+            const { productId, quantity } = product;
+            
+            if (!productId || !quantity) {
+                throw new Error('Each product must have productId and quantity');
+            }
+            
+            const loadOrder = await prisma.loadOrders.create({
+                data: {
+                    loadOrderId: nextLoadOrderId,
+                    salesId: salesId,
+                    journeyId: journeyId,
+                    quantity: quantity,
+                    productId: productId,
+                    createdAt: timestamp,
+                    updatedAt: timestamp
+                }
+            });
+            
+            createdOrders.push(loadOrder);
+            nextLoadOrderId++;
+        }
+        
+        return createdOrders;
+    } catch (error) {
+        console.error('Error loading order:', error);
+        throw new Error(`Failed to load order: ${error.message}`);
+    }
+}
+
+async getLoadOrders(data) {
+    const prisma = getPrismaClient();
+    
+    try {
+        const { salesId, journeyId } = data;
+        
+        const whereClause = {};
+        
+        // Add salesId filter only if provided
+        if (salesId) {
+            whereClause.salesId = salesId;
+        }
+        
+        // Add journeyId filter only if provided
+        if (journeyId) {
+            whereClause.journeyId = journeyId;
+        }
+        
+        const loadOrders = await prisma.loadOrders.findMany({
+            where: whereClause,
+            include: {
+                product: {
+                    include: {
+                        units: true
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+        
+        return loadOrders;
+    } catch (error) {
+        console.error('Error getting load orders:', error);
+        throw new Error(`Failed to get load orders: ${error.message}`);
     }
 }
 

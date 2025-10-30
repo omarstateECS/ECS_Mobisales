@@ -346,6 +346,41 @@ class SalesmanController {
             });
         }
     }
+
+    async loadOrder(req, res) {
+        try {
+            const data = req.body;
+            const orders = await salesmanService.loadOrder(data);
+            res.status(201).json({
+                success: true,
+                message: 'Load order created successfully',
+                orders: orders
+            });
+        } catch (error) {
+            console.error('Error creating load orders:', error);
+            res.status(500).json({ 
+                success: false,
+                message: error.message || 'Internal server error' 
+            });
+        }
+    }
+
+    async getLoadOrders(req, res) {
+        try {
+            const data = req.body;
+            const orders = await salesmanService.getLoadOrders(data);
+            res.status(200).json({
+                success: true,
+                orders: orders
+            });
+        } catch (error) {
+            console.error('Error getting load orders:', error);
+            res.status(500).json({ 
+                success: false,
+                message: error.message || 'Internal server error' 
+            });
+        }
+    }
 }
 
 module.exports = new SalesmanController();

@@ -14,15 +14,17 @@ class ProductService {
             orderBy: { prodId: 'desc' }
         });
         
-        // Convert basePrice from Decimal/string to float
-        return products.map(product => ({
-            ...product,
-            basePrice: parseFloat(product.basePrice),
-            units: product.units.map(unit => ({
-                ...unit,
-                price: parseFloat(unit.price)
-            }))
-        }));
+        // Convert basePrice from Decimal/string to float and exclude stock fields
+        return products.map(product => {
+            const { stock, nonSellableQty, ...productWithoutStock } = product;
+            return {
+                ...productWithoutStock,
+                basePrice: parseFloat(product.basePrice),
+                units: product.units.map(unit => ({
+                    ...unit,
+                }))
+            };
+        });
     }
 
     // Get a single product by ID with units

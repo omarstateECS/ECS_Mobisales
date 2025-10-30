@@ -14,7 +14,8 @@ import {
   MapPin,
   Route,
   XCircle,
-  Shield
+  Shield,
+  ShoppingCart
 } from 'lucide-react';
 
 const SidebarItem = ({ item, isChild = false, expandedMenus, toggleMenu }) => {
@@ -199,6 +200,12 @@ const Sidebar = ({
       label: 'Fillup',
       icon: Package,
       onClick: () => handleNavigation('fillup')
+    },
+    {
+      id: 'loadorders',
+      label: 'Load Orders',
+      icon: ShoppingCart,
+      onClick: () => handleNavigation('loadorders')
     },
     {
       id: 'cancel-reasons',

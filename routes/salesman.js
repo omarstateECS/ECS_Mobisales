@@ -37,6 +37,10 @@ router.post('/refreshAuth', salesmanController.refreshAuthorities);
 router.post('/addExistingCustomer', salesmanController.addExistingCustomer);
 // SEARCH INVOICES (for mobile app)
 router.post('/searchInvoices', salesmanController.searchInvoices);
+// CREATE LOAD ORDER (for mobile app)
+router.post('/loadOrder', salesmanController.loadOrder);
+// GET LOAD ORDERS (for mobile app)
+router.post('/loadOrders', salesmanController.getLoadOrders);
 
 
 module.exports = router;

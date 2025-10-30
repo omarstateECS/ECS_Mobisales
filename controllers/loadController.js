@@ -17,12 +17,13 @@ module.exports = {
           return res.status(400).json({ error: 'Salesman ID is required' });
         }
   
-        const [visits, reasons, lastInvoice, latestJourney, settings] = await Promise.all([
+        const [visits, reasons, lastInvoice, latestJourney, settings, allProducts] = await Promise.all([
           visitService.getTodayVisits(salesmanId),
           reasonService.getAllReasons(),
           invoiceService.getLastInvoice(salesmanId),
           journeyService.getLatestJourney(salesmanId),
           settingsService.getSettings(),
+          productService.getAllProducts(),
         ]);
         
         // Get fillup items with product details for the latest journey
@@ -82,6 +83,7 @@ module.exports = {
           startIdVisit: nextVisitId,
           journeyId: latestJourney?.journeyId || null,
           customers,
+          allProducts,
           settings: {
             customInvoice: settings?.customInvoice || false,
             visitSequence: settings?.visitSequence || false,
