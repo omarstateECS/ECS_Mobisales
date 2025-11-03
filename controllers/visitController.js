@@ -96,8 +96,23 @@ class VisitController {
                 salesmanId
             );
     
-            // CASE 1: Journey exists and has not started → add visits
+            // CASE 1: Journey exists and has not started → add visits and update regions
             if (journey && journey.startJourney === null) {
+                // Get the customers to determine the region(s)
+                const customers = await Promise.all(
+                    customerIds.map(id => customerService.getCustomerById(id))
+                );
+                
+                // Get unique regionIds from the customers
+                const regionIds = [...new Set(customers
+                    .map(c => c?.regionId)
+                    .filter(id => id !== null && id !== undefined))];
+                
+                // Replace salesman's regions with regions from all customers in this journey
+                if (regionIds.length > 0) {
+                    await salesmanService.assignRegions(salesmanId, regionIds);
+                }
+                
                 const result = await visitService.bulkCreateVisits(
                     salesmanId,
                     customerIds,
@@ -105,7 +120,7 @@ class VisitController {
                 );
     
                 return res.status(201).json({
-                    message: `Added ${result.count} visits to existing journey`,
+                    message: `Added ${result.count} visits to existing journey and updated regions`,
                     data: result
                 });
             }
@@ -118,16 +133,22 @@ class VisitController {
             }
     
             // CASE 3: No journey exists OR journey already ended → create new journey
-            // First, get the customers to determine the region
+            // First, get the customers to determine the region(s)
             const customers = await Promise.all(
                 customerIds.map(id => customerService.getCustomerById(id))
             );
             
-            // Get the most common regionId from the customers (or first non-null)
-            const regionIds = customers
+            // Get unique regionIds from the customers
+            const regionIds = [...new Set(customers
                 .map(c => c?.regionId)
-                .filter(id => id !== null && id !== undefined);
+                .filter(id => id !== null && id !== undefined))];
             
+            // Replace salesman's regions with regions from customers in this new journey
+            if (regionIds.length > 0) {
+                await salesmanService.assignRegions(salesmanId, regionIds);
+            }
+            
+            // Use first region for the journey
             const regionId = regionIds.length > 0 ? regionIds[0] : null;
             
             const newJourney = await journeyService.createJourney(salesmanId, regionId);

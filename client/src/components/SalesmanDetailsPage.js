@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, User, MapPin, Phone, Calendar, Shield, Globe, Edit, UserCheck } from 'lucide-react';
 import ManageAuthoritiesModal from './ManageAuthoritiesModal';
+import ManageRegionsModal from './ManageRegionsModal';
 
 const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNavigation }) => {
   const [showAuthoritiesModal, setShowAuthoritiesModal] = useState(false);
+  const [showRegionsModal, setShowRegionsModal] = useState(false);
   const [salesmanData, setSalesmanData] = useState(salesman);
 
   // Sync local state with prop changes
@@ -55,6 +57,10 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
     setShowAuthoritiesModal(true);
   };
 
+  const handleManageRegions = () => {
+    setShowRegionsModal(true);
+  };
+
   const handleAuthoritiesUpdated = async (salesmanId, authorityIds) => {
     console.log('🔄 Authorities updated, refreshing data...');
     console.log('🔄 Salesman ID:', salesmanId, 'Authority IDs:', authorityIds);
@@ -82,6 +88,35 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
 
   const handleCloseAuthoritiesModal = () => {
     setShowAuthoritiesModal(false);
+  };
+
+  const handleRegionsUpdated = async (salesmanId, regionIds) => {
+    console.log('🔄 Regions updated, refreshing data...');
+    console.log('🔄 Salesman ID:', salesmanId, 'Region IDs:', regionIds);
+    
+    try {
+      // Fetch the updated salesman data directly
+      const response = await fetch(`http://localhost:3000/api/salesmen/${salesmanId}`);
+      if (response.ok) {
+        const updatedSalesman = await response.json();
+        setSalesmanData(updatedSalesman);
+        console.log('✅ Salesman data refreshed with updated regions');
+      } else {
+        console.error('Failed to fetch updated salesman data');
+      }
+    } catch (error) {
+      console.error('Error refreshing salesman data:', error);
+    }
+    
+    // Also call parent refresh if available to update the list
+    if (onRefresh) {
+      await onRefresh();
+      console.log('✅ Parent refresh completed!');
+    }
+  };
+
+  const handleCloseRegionsModal = () => {
+    setShowRegionsModal(false);
   };
 
   return (
@@ -199,6 +234,51 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
               </div>
             </div>
 
+            {/* Assigned Regions */}
+            <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <Globe className="w-8 h-8 text-cyan-400" />
+                <div>
+                  <h3 className="text-xl font-semibold text-white">Assigned Regions</h3>
+                  <p className="text-gray-400">Regions this salesman can operate in</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                {(() => {
+                  const assignedRegions = salesmanData.regions || [];
+                  
+                  return assignedRegions.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-2">
+                      {assignedRegions.map((regionRecord, index) => {
+                        const region = regionRecord.region || regionRecord;
+                        return (
+                          <div key={region.id || index} className="p-3 bg-gradient-to-r from-cyan-600/10 to-blue-600/10 rounded-lg border border-cyan-600/30 hover:border-cyan-500/50 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <MapPin className="w-4 h-4 text-cyan-400" />
+                                <div>
+                                  <div className="text-white font-medium">{region.region}</div>
+                                  <div className="text-xs text-gray-400">{region.city}, {region.country}</div>
+                                </div>
+                              </div>
+                              <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6">
+                      <Globe className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                      <p className="text-gray-400">No regions assigned</p>
+                      <p className="text-sm text-gray-500">Assign regions when planning routes</p>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
             {/* Authorities */}
             <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6">
               <div className="flex items-center space-x-3 mb-4">
@@ -313,6 +393,14 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                   <span>Manage Authorities</span>
                 </button>
                 
+                <button 
+                  onClick={handleManageRegions}
+                  className="w-full px-4 py-3 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 rounded-xl font-medium transition-colors border border-cyan-600/30 flex items-center justify-center space-x-2"
+                >
+                  <Globe className="w-5 h-5" />
+                  <span>Manage Regions</span>
+                </button>
+                
                 <button className="w-full px-4 py-3 bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-400 rounded-xl font-medium transition-colors border border-yellow-600/30 flex items-center justify-center space-x-2">
                   <UserCheck className="w-5 h-5" />
                   <span>Assign Customers</span>
@@ -382,6 +470,14 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
         onClose={handleCloseAuthoritiesModal}
         salesman={salesmanData}
         onAuthoritiesUpdated={handleAuthoritiesUpdated}
+      />
+
+      {/* Manage Regions Modal */}
+      <ManageRegionsModal
+        isOpen={showRegionsModal}
+        onClose={handleCloseRegionsModal}
+        salesman={salesmanData}
+        onRegionsUpdated={handleRegionsUpdated}
       />
     </div>
   );

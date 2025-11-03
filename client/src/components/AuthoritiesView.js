@@ -29,6 +29,7 @@ const AuthoritiesView = () => {
   const [newlyCreatedAuthority, setNewlyCreatedAuthority] = useState(null);
   const [selectedSalesmen, setSelectedSalesmen] = useState([]);
   const [assigning, setAssigning] = useState(false);
+  const [salesmanSearchTerm, setSalesmanSearchTerm] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -193,6 +194,7 @@ const AuthoritiesView = () => {
       setShowBulkAssign(false);
       setSelectedSalesmen([]);
       setNewlyCreatedAuthority(null);
+      setSalesmanSearchTerm('');
     } catch (error) {
       console.error('Error bulk assigning:', error);
       showError('Failed to assign authorities');
@@ -764,6 +766,7 @@ const AuthoritiesView = () => {
                   setShowBulkAssign(false);
                   setSelectedSalesmen([]);
                   setNewlyCreatedAuthority(null);
+                  setSalesmanSearchTerm('');
                 }}
                 className={`p-2 rounded-lg transition-colors ${
                   theme === 'dark'
@@ -775,7 +778,27 @@ const AuthoritiesView = () => {
               </button>
             </div>
 
+            {/* Search Input */}
             <div className="mb-4">
+              <div className="relative">
+                <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                }`} size={20} />
+                <input
+                  type="text"
+                  placeholder="Search by name or ID..."
+                  value={salesmanSearchTerm}
+                  onChange={(e) => setSalesmanSearchTerm(e.target.value)}
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500'
+                  } focus:outline-none`}
+                />
+              </div>
+            </div>
+
+            <div className="mb-4 flex items-center justify-between">
               <button
                 onClick={selectAllSalesmen}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -786,13 +809,19 @@ const AuthoritiesView = () => {
               >
                 {selectedSalesmen.length === salesmen.length ? 'Deselect All' : 'Select All'}
               </button>
-              <span className={`ml-3 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                {selectedSalesmen.length} of {salesmen.length} selected
+              <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                {selectedSalesmen.length} of {salesmen.filter(s => 
+                  s.name.toLowerCase().includes(salesmanSearchTerm.toLowerCase()) ||
+                  s.salesId.toString().includes(salesmanSearchTerm)
+                ).length} selected
               </span>
             </div>
 
             <div className="flex-1 overflow-y-auto mb-6 space-y-2">
-              {salesmen.map((salesman) => {
+              {salesmen.filter(s => 
+                s.name.toLowerCase().includes(salesmanSearchTerm.toLowerCase()) ||
+                s.salesId.toString().includes(salesmanSearchTerm)
+              ).map((salesman) => {
                 const hasAuthority = salesman.authorities?.some(
                   auth => auth.authorityId === newlyCreatedAuthority.authorityId
                 );
@@ -847,6 +876,7 @@ const AuthoritiesView = () => {
                   setShowBulkAssign(false);
                   setSelectedSalesmen([]);
                   setNewlyCreatedAuthority(null);
+                  setSalesmanSearchTerm('');
                 }}
                 className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-colors ${
                   theme === 'dark'

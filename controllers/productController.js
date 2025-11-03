@@ -10,6 +10,15 @@ class ProductController {
         }
     }
 
+    async getAllWithStock(req, res) {
+        try {
+            const products = await productService.getAllProductsWithStock();
+            res.json(products);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
     async getById(req, res) {
         try {
             const product = await productService.getProductById(req.params.id);

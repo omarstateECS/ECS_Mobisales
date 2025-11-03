@@ -173,6 +173,34 @@ class SalesmanController {
         }
     }
 
+    async updateRegions(req, res) {
+        try {
+            const { regionIds } = req.body;
+            const salesmanId = req.params.id;
+
+            if (!regionIds || !Array.isArray(regionIds)) {
+                return res.status(400).json({ 
+                    success: false,
+                    message: 'regionIds must be an array' 
+                });
+            }
+
+            const updatedRegions = await salesmanService.assignRegions(salesmanId, regionIds);
+            
+            res.status(200).json({
+                success: true,
+                data: updatedRegions,
+                message: 'Regions updated successfully'
+            });
+        } catch (error) {
+            console.error('Error updating regions:', error);
+            res.status(500).json({ 
+                success: false,
+                message: error.message || 'Internal server error' 
+            });
+        }
+    }
+
     async checkIn(req, res) {
         try {      
           const checkInData = req.body;

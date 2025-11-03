@@ -29,6 +29,12 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
   // Region filtering
   const [regions, setRegions] = useState([]);
   const [selectedRegion, setSelectedRegion] = useState('');
+  
+  // Tour ID search
+  const [tourIdSearch, setTourIdSearch] = useState('');
+  
+  // Status filter
+  const [selectedStatus, setSelectedStatus] = useState('');
 
   // Fetch salesmen and regions
   useEffect(() => {
@@ -151,11 +157,13 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
     setStartDate('');
     setEndDate('');
     setSelectedSalesman('');
-    setSalesmanSearch('');
-    setSelectedRegion('');
     setAppliedStartDate('');
     setAppliedEndDate('');
     setAppliedSalesman('');
+    setSalesmanSearch('');
+    setSelectedRegion('');
+    setTourIdSearch('');
+    setSelectedStatus('');
     setCurrentPage(1);
   };
 
@@ -240,13 +248,59 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
         </div>
       </div>
 
-      {/* Date Filter Bar */}
+      {/* Filter Bar */}
       <div className={`backdrop-blur-sm rounded-2xl p-4 overflow-visible relative ${
         theme === 'dark'
           ? 'bg-gray-800/40 border border-gray-700/50'
           : 'bg-white border border-gray-200'
       }`}
       style={{ zIndex: 10 }}>
+        {/* First Row: Tour ID and Status */}
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="flex-1">
+            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              Search Tour ID
+            </label>
+            <div className="relative">
+              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
+              <input
+                type="text"
+                value={tourIdSearch}
+                onChange={(e) => setTourIdSearch(e.target.value)}
+                placeholder="Enter tour ID..."
+                className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-500'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400'
+                }`}
+              />
+            </div>
+          </div>
+          <div className="flex-1">
+            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              Status
+            </label>
+            <div className="relative">
+              <Clock className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all appearance-none ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900'
+                }`}
+              >
+                <option value="">All Statuses</option>
+                <option value="not_started">Not Started</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        {/* Second Row: Other Filters */}
         <div className="flex flex-col md:flex-row gap-4 items-end overflow-visible">
           <div className="flex-1 relative">
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -401,7 +455,30 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
       ) : (
         <div className="space-y-4">
           {journeys
-            .filter(journey => !selectedRegion || journey.regionId === parseInt(selectedRegion))
+            .filter(journey => {
+              // Region filter
+              const matchesRegion = !selectedRegion || journey.regionId === parseInt(selectedRegion);
+              
+              // Tour ID filter
+              const matchesTourId = !tourIdSearch || journey.journeyId.toString().includes(tourIdSearch);
+              
+              // Status filter
+              let matchesStatus = true;
+              if (selectedStatus) {
+                const hasStarted = journey.startJourney !== null;
+                const hasEnded = journey.endJourney !== null;
+                
+                if (selectedStatus === 'not_started') {
+                  matchesStatus = !hasStarted;
+                } else if (selectedStatus === 'in_progress') {
+                  matchesStatus = hasStarted && !hasEnded;
+                } else if (selectedStatus === 'completed') {
+                  matchesStatus = hasEnded;
+                }
+              }
+              
+              return matchesRegion && matchesTourId && matchesStatus;
+            })
             .map((journey) => (
             <div
               key={`${journey.journeyId}-${journey.salesId}`}

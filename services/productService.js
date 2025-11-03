@@ -27,6 +27,30 @@ class ProductService {
         });
     }
 
+    // Get all products with stock information (for fillup/inventory management)
+    async getAllProductsWithStock() {
+        const prisma = getPrismaClient();
+        const products = await prisma.product.findMany({
+            include: {
+                units: {
+                    orderBy: { uom: 'asc' }
+                }
+            },
+            orderBy: { prodId: 'desc' }
+        });
+        
+        // Convert basePrice from Decimal/string to float and include stock fields
+        return products.map(product => ({
+            ...product,
+            basePrice: parseFloat(product.basePrice),
+            stock: product.stock || 0,
+            nonSellableQty: product.nonSellableQty || 0,
+            units: product.units.map(unit => ({
+                ...unit,
+            }))
+        }));
+    }
+
     // Get a single product by ID with units
     async getProductById(id) {
         const prisma = getPrismaClient();

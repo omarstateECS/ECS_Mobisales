@@ -15,7 +15,10 @@ import {
   Route,
   XCircle,
   Shield,
-  ShoppingCart
+  ShoppingCart,
+  Database,
+  Building2,
+  Globe
 } from 'lucide-react';
 
 const SidebarItem = ({ item, isChild = false, expandedMenus, toggleMenu }) => {
@@ -172,11 +175,6 @@ const Sidebar = ({
           onClick: openAddSalesmanModal
         },
         { 
-          label: 'Plan Routes', 
-          icon: MapPin,
-          onClick: () => handleNavigation('plan-routes')
-        },
-        { 
           label: 'Salesman Analytics', 
           icon: BarChart3,
           onClick: () => handleNavigation('salesman-analytics')
@@ -187,31 +185,55 @@ const Sidebar = ({
       id: 'tours',
       label: 'Tours',
       icon: Route,
-      onClick: () => handleNavigation('tours')
+      children: [
+        { 
+          label: 'All Tours', 
+          icon: Route,
+          onClick: () => handleNavigation('tours')
+        },
+        { 
+          label: 'Plan Routes', 
+          icon: MapPin,
+          onClick: () => handleNavigation('plan-routes')
+        },
+        { 
+          label: 'Fillup', 
+          icon: Package,
+          onClick: () => handleNavigation('fillup')
+        },
+        { 
+          label: 'Load Orders', 
+          icon: ShoppingCart,
+          onClick: () => handleNavigation('loadorders')
+        }
+      ]
     },
     {
-      id: 'authorities',
-      label: 'Authorities',
-      icon: Shield,
-      onClick: () => handleNavigation('authorities')
-    },
-    {
-      id: 'fillup',
-      label: 'Fillup',
-      icon: Package,
-      onClick: () => handleNavigation('fillup')
-    },
-    {
-      id: 'loadorders',
-      label: 'Load Orders',
-      icon: ShoppingCart,
-      onClick: () => handleNavigation('loadorders')
-    },
-    {
-      id: 'cancel-reasons',
-      label: 'Cancel Reasons',
-      icon: XCircle,
-      onClick: () => handleNavigation('cancel-reasons')
+      id: 'master-data',
+      label: 'Master Data',
+      icon: Database,
+      children: [
+        { 
+          label: 'Cancel Reasons', 
+          icon: XCircle,
+          onClick: () => handleNavigation('cancel-reasons')
+        },
+        { 
+          label: 'Authorities', 
+          icon: Shield,
+          onClick: () => handleNavigation('authorities')
+        },
+        { 
+          label: 'Industries', 
+          icon: Building2,
+          onClick: () => handleNavigation('industries')
+        },
+        { 
+          label: 'Regions', 
+          icon: Globe,
+          onClick: () => handleNavigation('regions')
+        }
+      ]
     },
     {
       id: 'settings',

@@ -43,9 +43,10 @@ const FillupView = () => {
       setLoading(true);
       const [salesmenRes, productsRes] = await Promise.all([
         axios.get('/api/salesmen'),
-        axios.get('/api/products')
+        axios.get('/api/products/with-stock')
       ]);
       
+      console.log('📦 Products with stock:', productsRes.data);
       setSalesmen(Array.isArray(salesmenRes.data) ? salesmenRes.data : []);
       setProducts(Array.isArray(productsRes.data) ? productsRes.data : []);
     } catch (error) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Users, MapPin, Package, Calendar, Hash } from 'lucide-react';
+import { ShoppingCart, Users, MapPin, Package, Calendar, Hash, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotification } from '../hooks/useNotification';
 import axios from 'axios';
@@ -18,6 +18,7 @@ const LoadOrdersView = () => {
   
   const [selectedSalesman, setSelectedSalesman] = useState('');
   const [selectedJourney, setSelectedJourney] = useState('');
+  const [expandedOrders, setExpandedOrders] = useState({});
 
   useEffect(() => {
     fetchInitialData();
@@ -79,6 +80,7 @@ const LoadOrdersView = () => {
       
       const response = await axios.post('/api/salesmen/loadOrders', requestBody);
       const orders = response.data?.orders || [];
+      console.log('📦 Load Orders Response:', orders);
       setLoadOrders(Array.isArray(orders) ? orders : []);
     } catch (error) {
       console.error('Error fetching load orders:', error);
@@ -89,19 +91,36 @@ const LoadOrdersView = () => {
     }
   };
 
-  // Group orders by journey
-  const groupedOrders = loadOrders.reduce((acc, order) => {
-    const key = `${order.journeyId}-${order.salesId}`;
-    if (!acc[key]) {
-      acc[key] = {
+  // Group orders by journey and then by loadOrderId
+  const groupedByJourney = loadOrders.reduce((acc, order) => {
+    const journeyKey = `${order.journeyId}-${order.salesId}`;
+    if (!acc[journeyKey]) {
+      acc[journeyKey] = {
         journeyId: order.journeyId,
         salesId: order.salesId,
-        orders: []
+        orders: {}
       };
     }
-    acc[key].orders.push(order);
+    
+    // Group by loadOrderId within each journey
+    if (!acc[journeyKey].orders[order.loadOrderId]) {
+      acc[journeyKey].orders[order.loadOrderId] = {
+        loadOrderId: order.loadOrderId,
+        createdAt: order.createdAt,
+        items: []
+      };
+    }
+    
+    acc[journeyKey].orders[order.loadOrderId].items.push(order);
     return acc;
   }, {});
+  
+  const toggleOrder = (orderId) => {
+    setExpandedOrders(prev => ({
+      ...prev,
+      [orderId]: !prev[orderId]
+    }));
+  };
 
   const filteredSalesmen = salesmen.filter(s => 
     s.name?.toLowerCase().includes('')
@@ -205,7 +224,7 @@ const LoadOrdersView = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {Object.values(groupedOrders).map((group) => {
+          {Object.values(groupedByJourney).map((group) => {
             const salesman = salesmen.find(s => s.salesId === group.salesId);
             const journey = journeys.find(j => j.journeyId === group.journeyId);
             
@@ -233,7 +252,7 @@ const LoadOrdersView = () => {
                     <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                       theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700'
                     }`}>
-                      {group.orders.length} items
+                      {Object.keys(group.orders).length} {Object.keys(group.orders).length === 1 ? 'order' : 'orders'}
                     </div>
                   </div>
                 </div>
@@ -251,12 +270,7 @@ const LoadOrdersView = () => {
                         <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
                           theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                         }`}>
-                          Product
-                        </th>
-                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                        }`}>
-                          Quantity
+                          Items
                         </th>
                         <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
                           theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -266,40 +280,101 @@ const LoadOrdersView = () => {
                       </tr>
                     </thead>
                     <tbody className={`divide-y ${theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>
-                      {group.orders.map((order) => (
-                        <tr key={order.loadOrderId} className={theme === 'dark' ? 'hover:bg-gray-750' : 'hover:bg-gray-50'}>
-                          <td className={`px-6 py-4 whitespace-nowrap ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
-                            <div className="flex items-center gap-2">
-                              <Hash className="w-4 h-4 text-gray-500" />
-                              {order.loadOrderId}
-                            </div>
-                          </td>
-                          <td className={`px-6 py-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
-                            <div className="flex items-center gap-2">
-                              <Package className="w-4 h-4 text-blue-500" />
-                              <div>
-                                <div className="font-medium">{order.product?.name || `Product #${order.productId}`}</div>
-                                <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                  {order.product?.category}
+                      {Object.values(group.orders).map((order) => {
+                        const isExpanded = expandedOrders[order.loadOrderId];
+                        return (
+                          <React.Fragment key={order.loadOrderId}>
+                            {/* Order Row */}
+                            <tr 
+                              onClick={() => toggleOrder(order.loadOrderId)}
+                              className={`cursor-pointer transition-colors ${
+                                theme === 'dark' ? 'hover:bg-gray-750' : 'hover:bg-gray-50'
+                              }`}
+                            >
+                              <td className={`px-6 py-4 whitespace-nowrap ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+                                <div className="flex items-center gap-2">
+                                  {isExpanded ? (
+                                    <ChevronDown className="w-4 h-4 text-blue-500" />
+                                  ) : (
+                                    <ChevronRight className="w-4 h-4 text-gray-500" />
+                                  )}
+                                  <Hash className="w-4 h-4 text-gray-500" />
+                                  <span className="font-semibold">{order.loadOrderId}</span>
                                 </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className={`px-6 py-4 whitespace-nowrap ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                              theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700'
-                            }`}>
-                              {order.quantity}
-                            </span>
-                          </td>
-                          <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4" />
-                              {new Date(order.createdAt).toLocaleString()}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                              </td>
+                              <td className={`px-6 py-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                  theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700'
+                                }`}>
+                                  {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+                                </span>
+                              </td>
+                              <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                <div className="flex items-center gap-2">
+                                  <Calendar className="w-4 h-4" />
+                                  {new Date(order.createdAt).toLocaleString()}
+                                </div>
+                              </td>
+                            </tr>
+                            
+                            {/* Expanded Items */}
+                            {isExpanded && (
+                              <tr>
+                                <td colSpan="3" className={`px-6 py-0 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50/50'}`}>
+                                  <div className="py-4">
+                                    <table className="w-full">
+                                      <thead>
+                                        <tr className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                                          <th className={`px-4 py-2 text-left text-xs font-medium ${
+                                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                          }`}>
+                                            Product
+                                          </th>
+                                          <th className={`px-4 py-2 text-left text-xs font-medium ${
+                                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                          }`}>
+                                            Category
+                                          </th>
+                                          <th className={`px-4 py-2 text-right text-xs font-medium ${
+                                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                          }`}>
+                                            Quantity
+                                          </th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {order.items.map((item, idx) => (
+                                          <tr 
+                                            key={idx}
+                                            className={`border-b ${theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200/50'}`}
+                                          >
+                                            <td className={`px-4 py-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+                                              <div className="flex items-center gap-2">
+                                                <Package className="w-4 h-4 text-blue-500" />
+                                                <span className="font-medium">{item.product?.name || `Product #${item.productId}`}</span>
+                                              </div>
+                                            </td>
+                                            <td className={`px-4 py-3 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                              {item.product?.category || '-'}
+                                            </td>
+                                            <td className={`px-4 py-3 text-right ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+                                              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                                theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700'
+                                              }`}>
+                                                {item.quantity}
+                                              </span>
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

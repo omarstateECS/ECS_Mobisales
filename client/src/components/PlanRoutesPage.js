@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Plus, Search, MapPin, User, Calendar, CheckCircle, XCircle, Trash2, ArrowDown, Navigation, Globe } from 'lucide-react';
 import NotificationModal from './common/NotificationModal';
 import { useNotification } from '../hooks/useNotification';
@@ -15,8 +15,10 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [salesmanSearchTerm, setSalesmanSearchTerm] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('');
+  const [salesmanRegionFilter, setSalesmanRegionFilter] = useState([]); // Array of region IDs from selected salesman
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
+  const customersRef = useRef(null);
 
   // Fetch salesmen on component mount and when salesmenRefreshKey changes
   useEffect(() => {
@@ -143,6 +145,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
         showSuccess(message, 'Visits Created');
         setSelectedCustomers([]);
         setSelectedSalesman(null);
+        setSalesmanRegionFilter([]);
       } else {
         const error = await response.json();
         showError(error.message || 'Failed to create visits');
@@ -162,7 +165,14 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
       customer.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.phone?.includes(searchTerm);
     
-    const matchesRegion = !selectedRegion || customer.regionId === parseInt(selectedRegion);
+    // If salesman is selected and has regions, filter by those regions
+    // Otherwise, use the manual region filter
+    let matchesRegion = true;
+    if (salesmanRegionFilter.length > 0) {
+      matchesRegion = salesmanRegionFilter.includes(customer.regionId);
+    } else if (selectedRegion) {
+      matchesRegion = customer.regionId === parseInt(selectedRegion);
+    }
     
     return matchesSearch && matchesRegion;
   });
@@ -274,7 +284,30 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
               return (
                 <div
                   key={salesman.salesId}
-                  onClick={() => selectable && setSelectedSalesman(salesman.salesId)}
+                  onClick={() => {
+                    if (selectable) {
+                      setSelectedSalesman(salesman.salesId);
+                      
+                      // Get salesman's regions and set filter to show ALL their regions
+                      const salesmanRegions = salesman.regions || [];
+                      if (salesmanRegions.length > 0) {
+                        const regionIds = salesmanRegions.map(r => r.region?.id || r.regionId).filter(id => id);
+                        setSalesmanRegionFilter(regionIds);
+                        setSelectedRegion(''); // Clear manual region filter
+                      } else {
+                        setSalesmanRegionFilter([]);
+                        setSelectedRegion('');
+                      }
+                      
+                      // Scroll to customers section
+                      setTimeout(() => {
+                        customersRef.current?.scrollIntoView({ 
+                          behavior: 'smooth', 
+                          block: 'start' 
+                        });
+                      }, 100);
+                    }
+                  }}
                   className={`p-4 rounded-xl border-2 transition-all ${
                     !selectable
                       ? theme === 'dark'
@@ -423,7 +456,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
       )}
 
       {/* Customer Selection */}
-      <div className={`backdrop-blur-sm rounded-2xl p-6 ${
+      <div ref={customersRef} className={`backdrop-blur-sm rounded-2xl p-6 ${
         theme === 'dark'
           ? 'bg-gray-800/40 border border-gray-700/50'
           : 'bg-white border border-gray-200'
@@ -467,33 +500,63 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
             />
           </div>
           
-          {/* Region Filter */}
-          <div className="relative">
-            <Globe className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
-            <select
-              value={selectedRegion}
-              onChange={(e) => setSelectedRegion(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all appearance-none ${
-                theme === 'dark'
-                  ? 'bg-gray-800/50 border border-gray-700/50 text-white'
-                  : 'bg-gray-50 border border-gray-200 text-gray-900'
-              }`}
-            >
-              <option value="">All Regions</option>
-              {regions.map((region) => (
-                <option key={region.id} value={region.id}>
-                  {region.region} - {region.city}, {region.country}
-                </option>
-              ))}
-            </select>
-            {selectedRegion && (
-              <button
-                onClick={() => setSelectedRegion('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                title="Clear filter"
+          {/* Region Filter - Multi-select */}
+          <div>
+            <div className="relative">
+              <Globe className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
+              <select
+                value=""
+                onChange={(e) => {
+                  const regionId = parseInt(e.target.value);
+                  if (regionId && !salesmanRegionFilter.includes(regionId)) {
+                    setSalesmanRegionFilter(prev => [...prev, regionId]);
+                  }
+                }}
+                className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all appearance-none ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900'
+                }`}
               >
-                <XCircle size={16} />
-              </button>
+                <option value="">Add Region Filter...</option>
+                {regions.filter(r => !salesmanRegionFilter.includes(r.id)).map((region) => (
+                  <option key={region.id} value={region.id}>
+                    {region.region} - {region.city}, {region.country}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            {/* Selected Regions Badges */}
+            {salesmanRegionFilter.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {salesmanRegionFilter.map(regionId => {
+                  const region = regions.find(r => r.id === regionId);
+                  if (!region) return null;
+                  return (
+                    <div
+                      key={regionId}
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                        theme === 'dark'
+                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                          : 'bg-purple-100 text-purple-700 border border-purple-300'
+                      }`}
+                    >
+                      <Globe size={14} />
+                      <span>{region.region} - {region.city}</span>
+                      <button
+                        onClick={() => {
+                          setSalesmanRegionFilter(prev => prev.filter(id => id !== regionId));
+                        }}
+                        className="hover:bg-red-500/20 rounded p-0.5 transition-colors"
+                        title="Remove region filter"
+                      >
+                        <XCircle size={14} className="text-red-400" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>
@@ -561,6 +624,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
           onClick={() => {
             setSelectedSalesman(null);
             setSelectedCustomers([]);
+            setSalesmanRegionFilter([]);
           }}
           className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all"
         >

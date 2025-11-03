@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Plus, Search, Package, Eye, Settings, Trash2, Edit, ChevronLeft, ChevronRight, BarChart3, Tag } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Package, Eye, Settings, Trash2, Edit, ChevronLeft, ChevronRight, BarChart3, Tag, ArrowUpDown } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import axios from 'axios';
 import AddProductModal from './AddProductModal';
@@ -47,6 +47,21 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
               {product.name}
             </h3>
             <p className="text-sm text-gray-400">ID: #{product.prodId}</p>
+            {/* Price and Stock badges */}
+            <div className="flex items-center gap-2 mt-2">
+              <span className="inline-flex items-center px-2.5 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-semibold">
+                {formatPrice(product.basePrice || 0)}
+              </span>
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                (product.stock || 0) > 10 
+                  ? 'bg-blue-500/20 text-blue-400' 
+                  : (product.stock || 0) > 0 
+                    ? 'bg-yellow-500/20 text-yellow-400' 
+                    : 'bg-red-500/20 text-red-400'
+              }`}>
+                Stock: {product.stock || 0}
+              </span>
+            </div>
           </div>
         </div>
         <div className="flex space-x-1 flex-shrink-0 ml-2">
@@ -160,6 +175,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
     const [categories, setCategories] = useState([]);
     const [deletingProductId, setDeletingProductId] = useState(null);
     const [viewMode, setViewMode] = useState('grid');
+    const [sortBy, setSortBy] = useState('name-asc');
     const [confirmationModal, setConfirmationModal] = useState({
         isOpen: false,
         title: '',
@@ -299,6 +315,30 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
         setCurrentPage(1);
     };
 
+    const handleSortChange = (sortOption) => {
+        setSortBy(sortOption);
+    };
+
+    // Sort products based on selected option
+    const sortedProducts = [...products].sort((a, b) => {
+        switch (sortBy) {
+            case 'name-asc':
+                return a.name.localeCompare(b.name);
+            case 'name-desc':
+                return b.name.localeCompare(a.name);
+            case 'price-asc':
+                return (a.basePrice || 0) - (b.basePrice || 0);
+            case 'price-desc':
+                return (b.basePrice || 0) - (a.basePrice || 0);
+            case 'stock-asc':
+                return (a.stock || 0) - (b.stock || 0);
+            case 'stock-desc':
+                return (b.stock || 0) - (a.stock || 0);
+            default:
+                return 0;
+        }
+    });
+
     if (loading && products.length === 0) {
         return (
             <div className="text-center py-12">
@@ -359,6 +399,21 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                                 <option key={category} value={category}>{category}</option>
                             ))}
                         </select>
+                        <div className="relative">
+                            <ArrowUpDown className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                            <select
+                                value={sortBy}
+                                onChange={(e) => handleSortChange(e.target.value)}
+                                className="pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all appearance-none cursor-pointer"
+                            >
+                                <option value="name-asc">Name (A-Z)</option>
+                                <option value="name-desc">Name (Z-A)</option>
+                                <option value="price-asc">Price (Low to High)</option>
+                                <option value="price-desc">Price (High to Low)</option>
+                                <option value="stock-asc">Stock (Low to High)</option>
+                                <option value="stock-desc">Stock (High to Low)</option>
+                            </select>
+                        </div>
                         <button 
                             onClick={handleSearch}
                             className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium transition-all duration-200"
@@ -413,7 +468,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                  </div>
             ) : viewMode === 'list' ? (
                 <ProductsList
-                    products={products}
+                    products={sortedProducts}
                     handleViewDetails={handleViewDetails}
                     handleEditProduct={handleEditProduct}
                     handleDeleteProduct={handleDeleteProduct}
@@ -434,7 +489,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                          }
                      }}
                  >
-                     {products.map((product, index) => (
+                     {sortedProducts.map((product, index) => (
                          <motion.div
                              key={product.prodId}
                              variants={{

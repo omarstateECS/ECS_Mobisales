@@ -74,16 +74,13 @@ model Salesman {
   deviceId    String
   available   Boolean             @default(true)
   lastJourneyId Int               @default(0)
-  regionId    Int?
   createdAt   String
   isInitial   Boolean             @default(true)
-  region      Region?             @relation(fields: [regionId], references: [id], onDelete: SetNull)
   invoices    InvoiceHeader[]
   journies    Journies[]
   authorities SalesmanAuthority[]
   visits      Visit[]
-
-  @@index([regionId])
+  regions     SalesmanRegion[]
 }
 
 model Authority {
@@ -114,6 +111,22 @@ model SalesmanAuthority {
   @@index([authorityId])
   @@index([createdAt])
   @@map("salesman_authorities")
+}
+
+model SalesmanRegion {
+  id         Int      @id @default(autoincrement())
+  salesmanId Int
+  regionId   Int
+  createdAt  String
+  updatedAt  String
+  salesman   Salesman @relation(fields: [salesmanId], references: [salesId], onDelete: Cascade)
+  region     Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  @@unique([salesmanId, regionId])
+  @@index([salesmanId])
+  @@index([regionId])
+  @@index([createdAt])
+  @@map("salesman_regions")
 }
 
 model Visit {
@@ -205,9 +218,9 @@ model Region {
   region    String
   createdAt String
   updatedAt String
-  salesmen  Salesman[]
   customers Customer[]
   journeys  Journies[]
+  salesmen  SalesmanRegion[]
 
   @@index([country])
   @@index([city])
@@ -312,7 +325,7 @@ model loadOrders {
   journey        Journies       @relation(fields: [journeyId, salesId], references: [journeyId, salesId], onDelete: Cascade)
   product        Product        @relation(fields: [productId], references: [prodId], onDelete: Cascade)
 
-  @@id([loadOrderId, journeyId])
+  @@id([loadOrderId, journeyId, productId])
   @@map("load_orders")
 }
 

@@ -23,6 +23,11 @@ class SalesmanService {
                         createdAt: 'desc'
                     },
                     take: 1  // Get only the latest journey
+                },
+                regions: {
+                    include: {
+                        region: true
+                    }
                 }
             }
         });
@@ -42,6 +47,11 @@ class SalesmanService {
                     include: {
                         authority: true
                     }
+                },
+                regions: {
+                    include: {
+                        region: true
+                    }
                 }
             }
         });
@@ -59,9 +69,8 @@ class SalesmanService {
             throw new Error('A salesman with this phone number already exists');
         }
         
-        // Set deviceId to empty string if not provided (will be set during first mobile login)
-        // Don't include password yet - we'll set it to the actual ID after creation
-        const { password, ...salesmanDataWithoutPassword } = data;
+        // Extract regionIds if provided
+        const { password, regionIds, regionId, ...salesmanDataWithoutPassword } = data;
         const salesmanData = {
             ...salesmanDataWithoutPassword,
             deviceId: data.deviceId || '',
@@ -90,11 +99,37 @@ class SalesmanService {
                     include: {
                         authority: true
                     }
+                },
+                regions: {
+                    include: {
+                        region: true
+                    }
                 }
             }
         });
         
-        return updatedSalesman;
+        // Assign regions if provided (support both regionIds array and single regionId for backward compatibility)
+        const regionsToAssign = regionIds || (regionId ? [regionId] : []);
+        if (regionsToAssign && regionsToAssign.length > 0) {
+            await this.assignRegions(updatedSalesman.salesId, regionsToAssign);
+        }
+        
+        // Fetch and return salesman with regions
+        return await prisma.salesman.findUnique({
+            where: { salesId: updatedSalesman.salesId },
+            include: {
+                authorities: {
+                    include: {
+                        authority: true
+                    }
+                },
+                regions: {
+                    include: {
+                        region: true
+                    }
+                }
+            }
+        });
     }
 
     async updateSalesman(id, data) {
@@ -116,6 +151,38 @@ class SalesmanService {
         const prisma = getPrismaClient();
         return await prisma.salesman.delete({
             where: { salesId: Number(id) }
+        });
+    }
+
+    // Replaces ALL existing region assignments with new ones
+    async assignRegions(salesmanId, regionIds) {
+        const prisma = getPrismaClient();
+        const timestamp = getLocalTimestamp();
+        
+        // Delete ALL existing region assignments for this salesman
+        await prisma.salesmanRegion.deleteMany({
+            where: { salesmanId: Number(salesmanId) }
+        });
+        
+        // Create new region assignments (replaces old ones)
+        if (regionIds && regionIds.length > 0) {
+            const regionAssignments = regionIds.map(regionId => ({
+                salesmanId: Number(salesmanId),
+                regionId: Number(regionId),
+                createdAt: timestamp,
+                updatedAt: timestamp
+            }));
+            
+            await prisma.salesmanRegion.createMany({
+                data: regionAssignments
+            });
+        }
+        
+        return await prisma.salesmanRegion.findMany({
+            where: { salesmanId: Number(salesmanId) },
+            include: {
+                region: true
+            }
         });
     }
 
@@ -354,61 +421,8 @@ class SalesmanService {
                 }
             }
     
-            // === INVOICES ===
-            const createdInvoices = [];
-            if (invoices) {
-                const invoiceArray = Array.isArray(invoices) ? invoices : [invoices];
-    
-                for (const invoice of invoiceArray) {
-                    try {
-                        if (invoice.reasonId !== 0) {
-                            invoice.items.forEach(item => item.reasonId = null);
-                        } else {
-                            invoice.reasonId = null;
-                            invoice.items.forEach(item => {
-                                if (item.reasonId === 0) item.reasonId = null;
-                            });
-                        }
-    
-                        const invoiceData = {
-                            ...invoice,
-                            invId: invoice.invId || invoice.id,
-                            salesId: invoice.salesId || salesmanId,
-                            journeyId: journeyId,
-                            visitId: invoice.visitId
-                        };
-    
-                        const createdInvoice = await invoiceService.createInvoice(invoiceData, tx);
-                        createdInvoices.push({ invId: invoiceData.invId, status: 'success' });
-                    } catch (error) {
-                        // Throw error to rollback transaction
-                        throw new Error(`${error.message}`);
-                    }
-                }
-            }
-
-            // === PRODUCTS ===
-            const updatedProducts = [];
-            if (products && products.length > 0) {
-                for (const product of products) {
-                    try {
-                        const updateData = {
-                            stock: product.stock,
-                            nonSellableQty: product.nonSellableQty
-                        };
-                        await prisma.product.update({
-                            where: { prodId: Number(product.prodId) },
-                            data: updateData,
-                        });
-                        updatedProducts.push({ productId: product.id, status: 'success' });
-                    } catch (error) {
-                        // Throw error to rollback transaction
-                        throw new Error(`${error.message}`);
-                    }
-                }
-            }
-    
             // === VISITS ===
+            // IMPORTANT: Visits must be created BEFORE invoices due to foreign key constraint
             const updatedVisits = [];
 
             if (Array.isArray(visits) && visits.length > 0) {
@@ -466,6 +480,60 @@ class SalesmanService {
                   throw new Error(`❌ Failed to upsert visit ${visit.visitId || visit.id}: ${error.message}`);
                 }
               }
+            }
+
+            // === INVOICES ===
+            const createdInvoices = [];
+            if (invoices) {
+                const invoiceArray = Array.isArray(invoices) ? invoices : [invoices];
+    
+                for (const invoice of invoiceArray) {
+                    try {
+                        if (invoice.reasonId !== 0) {
+                            invoice.items.forEach(item => item.reasonId = null);
+                        } else {
+                            invoice.reasonId = null;
+                            invoice.items.forEach(item => {
+                                if (item.reasonId === 0) item.reasonId = null;
+                            });
+                        }
+    
+                        const invoiceData = {
+                            ...invoice,
+                            invId: invoice.invId || invoice.id,
+                            salesId: invoice.salesId || salesmanId,
+                            journeyId: journeyId,
+                            visitId: invoice.visitId
+                        };
+    
+                        const createdInvoice = await invoiceService.createInvoice(invoiceData, tx);
+                        createdInvoices.push({ invId: invoiceData.invId, status: 'success' });
+                    } catch (error) {
+                        // Throw error to rollback transaction
+                        throw new Error(`${error.message}`);
+                    }
+                }
+            }
+
+            // === PRODUCTS ===
+            const updatedProducts = [];
+            if (products && products.length > 0) {
+                for (const product of products) {
+                    try {
+                        const updateData = {
+                            stock: product.stock,
+                            nonSellableQty: product.nonSellableQty
+                        };
+                        await prisma.product.update({
+                            where: { prodId: Number(product.prodId) },
+                            data: updateData,
+                        });
+                        updatedProducts.push({ productId: product.id, status: 'success' });
+                    } catch (error) {
+                        // Throw error to rollback transaction
+                        throw new Error(`${error.message}`);
+                    }
+                }
             }
 
             // === ACTIONS ===
@@ -874,6 +942,28 @@ class SalesmanService {
         // No need to return, we modify in place
     }
 
+    // Helper function to convert invoice amounts from strings to doubles
+    convertInvoiceAmounts(invoice) {
+        return {
+            ...invoice,
+            netAmt: parseFloat(invoice.netAmt) || 0,
+            taxAmt: parseFloat(invoice.taxAmt) || 0,
+            disAmt: parseFloat(invoice.disAmt) || 0,
+            totalAmt: parseFloat(invoice.totalAmt) || 0,
+            items: invoice.items?.map(item => ({
+                ...item,
+                qty: parseFloat(item.qty) || 0,
+                disAmt: parseFloat(item.disAmt) || 0,
+                netAmt: parseFloat(item.netAmt) || 0,
+                taxAmt: parseFloat(item.taxAmt) || 0,
+                totAmt: parseFloat(item.totAmt) || 0,
+                originalQty: parseFloat(item.originalQty) || 0,
+                returnedQty: parseFloat(item.returnedQty) || 0,
+                availableQty: parseFloat(item.availableQty) || 0
+            })) || []
+        };
+    }
+
     async searchInvoices(data) {
         const prisma = getPrismaClient();
         
@@ -881,12 +971,7 @@ class SalesmanService {
             throw new Error('Search data is required');
         }
         
-        const { invoiceId, salesId, date, customerId} = data;
-
-        // Validate that salesId is provided
-        if (!salesId) {
-            throw new Error('salesId is required to search invoices');
-        }
+        const { invoiceId, date, customerId} = data;
 
         if (!customerId) {
             throw new Error('customerId is required to search invoices');
@@ -901,7 +986,6 @@ class SalesmanService {
                 const invoices = await prisma.invoiceHeader.findMany({
                     where: {
                         invId: invoiceId,
-                        salesId: salesId,
                         custId: customerId,
                         invType: 'SALE'
                     }
@@ -920,7 +1004,8 @@ class SalesmanService {
                     await this.calculateNetQuantitiesAfterReturns(invoice);
                 }
                 
-                return invoices;
+                // Convert amounts to doubles before returning
+                return invoices.map(inv => this.convertInvoiceAmounts(inv));
             } catch (error) {
                 console.error('Error searching invoices:', error);
                 throw new Error(`Failed to search invoices: ${error.message}`);
@@ -934,7 +1019,6 @@ class SalesmanService {
                     createdAt: {
                         startsWith: date  // Matches any timestamp starting with the date
                     },
-                    salesId: salesId, 
                     custId: customerId,
                     invType: 'SALE'
                 };
@@ -956,7 +1040,8 @@ class SalesmanService {
                     await this.calculateNetQuantitiesAfterReturns(invoice);
                 }
                 
-            return invoices;
+            // Convert amounts to doubles before returning
+            return invoices.map(inv => this.convertInvoiceAmounts(inv));
         } catch (error) {
             console.error('Error searching invoices:', error);
             throw new Error(`Failed to search invoices: ${error.message}`);
@@ -971,7 +1056,6 @@ class SalesmanService {
                 createdAt: {
                     startsWith: date  // Matches any timestamp starting with the date
                 },
-                salesId: salesId, 
                 custId: customerId,
                 invType: 'SALE'
             };
@@ -991,9 +1075,12 @@ class SalesmanService {
                 
                 // Calculate net quantities after returns
                 await this.calculateNetQuantitiesAfterReturns(invoice);
+                
+                // Convert amounts to doubles before returning
+                return this.convertInvoiceAmounts(invoice);
             }
             
-            return invoice;
+            return null;
         } catch (error) {
             console.error('Error searching invoices:', error);
             throw new Error(`Failed to search invoices: ${error.message}`);
@@ -1016,38 +1103,57 @@ async loadOrder(data) {
             throw new Error('products array is required and must not be empty');
         }
         
-        // Get the next loadOrderId
+        // Get the next loadOrderId - one ID for the entire order
         const lastOrder = await prisma.loadOrders.findFirst({
             orderBy: { loadOrderId: 'desc' }
         });
         
-        let nextLoadOrderId = (lastOrder?.loadOrderId || 0) + 1;
+        const nextLoadOrderId = (lastOrder?.loadOrderId || 0) + 1;
         const timestamp = getLocalTimestamp();
         
-        // Create load orders for each product
-        const createdOrders = [];
+        // Validate all products first
         for (const product of products) {
             const { productId, quantity } = product;
-            
             if (!productId || !quantity) {
                 throw new Error('Each product must have productId and quantity');
             }
-            
-            const loadOrder = await prisma.loadOrders.create({
-                data: {
-                    loadOrderId: nextLoadOrderId,
-                    salesId: salesId,
-                    journeyId: journeyId,
-                    quantity: quantity,
-                    productId: productId,
-                    createdAt: timestamp,
-                    updatedAt: timestamp
-                }
-            });
-            
-            createdOrders.push(loadOrder);
-            nextLoadOrderId++;
         }
+        
+        // Create load orders for each product with the SAME loadOrderId
+        const orderData = products.map(product => ({
+            loadOrderId: nextLoadOrderId,  // Same ID for all products in this order
+            salesId: salesId,
+            journeyId: journeyId,
+            quantity: product.quantity,
+            productId: product.productId,
+            createdAt: timestamp,
+            updatedAt: timestamp
+        }));
+        
+        console.log('📦 Creating load order with data:', JSON.stringify(orderData, null, 2));
+        
+        // Insert all products at once
+        await prisma.loadOrders.createMany({
+            data: orderData
+        });
+        
+        // Fetch and return the created orders with product details
+        const createdOrders = await prisma.loadOrders.findMany({
+            where: {
+                loadOrderId: nextLoadOrderId,
+                salesId: salesId,
+                journeyId: journeyId
+            },
+            include: {
+                product: {
+                    include: {
+                        units: true
+                    }
+                }
+            }
+        });
+        
+        console.log('📦 Created orders with products:', JSON.stringify(createdOrders, null, 2));
         
         return createdOrders;
     } catch (error) {
@@ -1087,6 +1193,8 @@ async getLoadOrders(data) {
                 createdAt: 'desc'
             }
         });
+        
+        console.log('📦 getLoadOrders result:', JSON.stringify(loadOrders, null, 2));
         
         return loadOrders;
     } catch (error) {

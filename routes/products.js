@@ -8,6 +8,9 @@ router.get('/page', productController.getWithPagination);
 // Stats endpoint
 router.get('/stats', productController.getStats);
 
+// Products with stock information (for fillup/inventory)
+router.get('/with-stock', productController.getAllWithStock);
+
 // Basic CRUD operations
 router.get('/', productController.getAll);
 router.post('/', productController.create);

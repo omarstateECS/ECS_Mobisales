@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, XCircle, Eye, Trash2, Edit, AlertCircle, CheckCircle } from 'lucide-react';
+import { Plus, Search, XCircle, Eye, Trash2, Edit, AlertCircle, CheckCircle, List, Grid, FileText } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import axios from 'axios';
 import ConfirmationModal from './common/ConfirmationModal';
 import NotificationModal from './common/NotificationModal';
 import { useNotification } from '../hooks/useNotification';
+import CancelReasonsList from './CancelReasonsList';
 
 // Set axios base URL
 axios.defaults.baseURL = 'http://localhost:3000';
@@ -20,17 +21,17 @@ const ReasonCard = ({ reason, handleEditReason, handleDeleteReason, deletingReas
       transition={{ duration: 0.3 }}
       className={`backdrop-blur-sm border rounded-2xl p-6 transition-all duration-300 hover:shadow-xl group ${
         theme === 'dark'
-          ? 'bg-gray-800/40 border-gray-700/50 hover:bg-gray-800/60 hover:shadow-red-500/10'
-          : 'bg-white border-gray-200 hover:border-red-200 hover:shadow-lg'
+          ? 'bg-gray-800/40 border-gray-700/50 hover:bg-gray-800/60 hover:shadow-slate-500/10'
+          : 'bg-white border-gray-200 hover:border-slate-200 hover:shadow-lg'
       }`}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3 min-w-0 flex-1">
-          <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-xl flex items-center justify-center flex-shrink-0">
-            <XCircle className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 bg-gradient-to-r from-slate-500 to-slate-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <FileText className="w-6 h-6 text-white" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className={`text-lg font-semibold group-hover:text-red-400 transition-colors truncate ${
+            <h3 className={`text-lg font-semibold group-hover:text-slate-400 transition-colors truncate ${
               theme === 'dark' ? 'text-white' : 'text-gray-900'
             }`}>
               {reason.description}
@@ -109,6 +110,7 @@ const CancelReasonsView = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [deletingReasonId, setDeletingReasonId] = useState(null);
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
   const [confirmationModal, setConfirmationModal] = useState({
     isOpen: false,
     title: '',
@@ -189,7 +191,7 @@ const CancelReasonsView = () => {
             Manage cancellation reasons for visits and orders
           </p>
         </div>
-        <button className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl">
+        <button className="px-6 py-3 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl">
           <Plus size={20} />
           <span>Add Reason</span>
         </button>
@@ -215,8 +217,8 @@ const CancelReasonsView = () => {
                 {reasons.length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-xl flex items-center justify-center">
-              <XCircle className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-gradient-to-r from-slate-500 to-slate-600 rounded-xl flex items-center justify-center">
+              <FileText className="w-6 h-6 text-white" />
             </div>
           </div>
         </motion.div>
@@ -272,31 +274,71 @@ const CancelReasonsView = () => {
         </motion.div>
       </div>
 
-      {/* Search Bar */}
+      {/* Search Bar with View Toggle */}
       <div className={`backdrop-blur-sm border rounded-2xl p-4 ${
         theme === 'dark'
           ? 'bg-gray-800/40 border-gray-700/50'
           : 'bg-white border-gray-200'
       }`}>
-        <div className="relative">
-          <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${
-            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-          }`} size={20} />
-          <input
-            type="text"
-            placeholder="Search cancel reasons..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-colors ${
-              theme === 'dark'
-                ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-red-500'
-                : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:border-red-500'
-            } focus:outline-none focus:ring-2 focus:ring-red-500/20`}
-          />
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1">
+            <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${
+              theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+            }`} size={20} />
+            <input
+              type="text"
+              placeholder="Search cancel reasons..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-colors ${
+                theme === 'dark'
+                  ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-slate-500'
+                  : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:border-slate-500'
+              } focus:outline-none focus:ring-2 focus:ring-slate-500/20`}
+            />
+          </div>
+          
+          {/* View Toggle */}
+          <div className={`flex items-center rounded-xl border ${
+            theme === 'dark'
+              ? 'bg-gray-700/50 border-gray-600'
+              : 'bg-gray-50 border-gray-300'
+          }`}>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-3 rounded-l-xl transition-colors ${
+                viewMode === 'list'
+                  ? theme === 'dark'
+                    ? 'bg-slate-600 text-white'
+                    : 'bg-slate-500 text-white'
+                  : theme === 'dark'
+                    ? 'text-gray-400 hover:text-white hover:bg-gray-600'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+              }`}
+              title="List view"
+            >
+              <List size={20} />
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-3 rounded-r-xl transition-colors ${
+                viewMode === 'grid'
+                  ? theme === 'dark'
+                    ? 'bg-slate-600 text-white'
+                    : 'bg-slate-500 text-white'
+                  : theme === 'dark'
+                    ? 'text-gray-400 hover:text-white hover:bg-gray-600'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+              }`}
+              title="Grid view"
+            >
+              <Grid size={20} />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Reasons Grid */}
+      {/* Reasons List/Grid */}
       {loading ? (
         <div className="text-center py-12">
           <div className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
@@ -321,6 +363,14 @@ const CancelReasonsView = () => {
             {searchTerm ? 'Try adjusting your search.' : 'Get started by adding your first cancel reason.'}
           </p>
         </div>
+      ) : viewMode === 'list' ? (
+        <CancelReasonsList
+          reasons={filteredReasons}
+          handleEditReason={handleEditReason}
+          handleDeleteReason={handleDeleteReason}
+          deletingReasonId={deletingReasonId}
+          theme={theme}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredReasons.map((reason) => (

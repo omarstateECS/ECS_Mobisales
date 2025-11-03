@@ -25,6 +25,8 @@ router.get('/:id/authorities/all', salesmanController.getAllAuthorities);
 router.post('/:id/authorities', salesmanController.assignAuthorities);
 // UPDATE salesman's authorities (replace all)
 router.put('/:id/authorities', salesmanController.updateAuthorities);
+// UPDATE salesman's regions (replace all)
+router.put('/:id/regions', salesmanController.updateRegions);
 // GET ALL DATA
 router.get('/load/:id', loadController.syncData);
 // CREATE A NEW CUSTOMER AND VISIT
