@@ -14,6 +14,8 @@ import ProductsList from './ProductsList';
 axios.defaults.baseURL = 'http://localhost:3000';
 
 const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDeleteProduct, deletingProductId }) => {
+  const { theme } = useTheme();
+  
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-EG', {
       style: 'currency',
@@ -35,7 +37,11 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="product-card bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 hover:bg-gray-800/60 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 group h-[420px] flex flex-col overflow-hidden"
+      className={`product-card backdrop-blur-sm border rounded-2xl p-6 transition-all duration-300 hover:shadow-xl group h-[420px] flex flex-col overflow-hidden ${
+        theme === 'dark'
+          ? 'bg-gray-800/40 border-gray-700/50 hover:bg-gray-800/60 hover:shadow-blue-500/10'
+          : 'bg-white border-gray-200 hover:border-purple-200 hover:shadow-lg'
+      }`}
     >
       <div className="flex items-start justify-between mb-4 flex-shrink-0">
         <div className="flex items-center space-x-3 min-w-0 flex-1">
@@ -43,21 +49,27 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
             <Package className="w-6 h-6 text-white" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-semibold text-white group-hover:text-purple-400 transition-colors truncate">
+            <h3 className={`text-lg font-semibold group-hover:text-purple-400 transition-colors truncate ${
+              theme === 'dark' ? 'text-white' : 'text-gray-900'
+            }`}>
               {product.name}
             </h3>
-            <p className="text-sm text-gray-400">ID: #{product.prodId}</p>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>ID: #{product.prodId}</p>
             {/* Price and Stock badges */}
             <div className="flex items-center gap-2 mt-2">
-              <span className="inline-flex items-center px-2.5 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-semibold">
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                theme === 'dark'
+                  ? 'bg-emerald-500/20 text-emerald-400'
+                  : 'bg-emerald-100 text-emerald-900'
+              }`}>
                 {formatPrice(product.basePrice || 0)}
               </span>
               <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${
                 (product.stock || 0) > 10 
-                  ? 'bg-blue-500/20 text-blue-400' 
+                  ? theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-900'
                   : (product.stock || 0) > 0 
-                    ? 'bg-yellow-500/20 text-yellow-400' 
-                    : 'bg-red-500/20 text-red-400'
+                    ? theme === 'dark' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-100 text-yellow-900'
+                    : theme === 'dark' ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-900'
               }`}>
                 Stock: {product.stock || 0}
               </span>
@@ -145,15 +157,25 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
         </div>
       )}
 
-      <div className="mt-4 pt-4 border-t border-gray-700/50 flex-shrink-0">
+      <div className={`mt-4 pt-4 border-t flex-shrink-0 ${
+        theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200'
+      }`}>
         <div className="flex space-x-2">
           <button 
             onClick={() => handleViewDetails(product)}
-            className="flex-1 px-3 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 rounded-lg text-sm font-medium transition-colors"
+            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              theme === 'dark'
+                ? 'bg-purple-600/20 hover:bg-purple-600/30 text-purple-400'
+                : 'bg-purple-100 hover:bg-purple-200 text-purple-900'
+            }`}
           >
             View Details
           </button>
-          <button className="flex-1 px-3 py-2 bg-gray-700/50 hover:bg-gray-700 text-gray-300 rounded-lg text-sm font-medium transition-colors">
+          <button className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            theme === 'dark'
+              ? 'bg-gray-700/50 hover:bg-gray-700 text-gray-300'
+              : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+          }`}>
             Manage Stock
           </button>
         </div>

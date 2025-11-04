@@ -15,7 +15,7 @@ const PerformanceMonitor = ({ customers, currentPage, itemsPerPage, searchTerm, 
     const filteredCustomers = customers.filter(customer => {
       const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            customer.address.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
+      const matchesIndustry = !selectedIndustry || customer.industry?.name === selectedIndustry;
       return matchesSearch && matchesIndustry;
     }).length;
     

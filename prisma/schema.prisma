@@ -9,30 +9,40 @@ datasource db {
 
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model Customer {
-  customerId        Int             @id @default(autoincrement())
-  name      String
-  industry  String?
-  address   String
-  latitude  Float
-  longitude Float
-  phone     String?
-  regionId  Int?
-  blocked   Boolean @default(false)
-  isActive  Boolean @default(true)
-  createdAt String
-  region    Region?         @relation(fields: [regionId], references: [id], onDelete: SetNull)
-  invoices  InvoiceHeader[]
-  visits    Visit[]
+  customerId Int        @id @default(autoincrement())
+  name       String
+  address    String
+  latitude   Float
+  longitude  Float
+  phone      String?
+  regionId   Int?
+  industryId Int?
+  blocked    Boolean    @default(false)
+  isActive   Boolean    @default(true)
+  createdAt  String
+
+  region     Region?    @relation(fields: [regionId], references: [id], onDelete: SetNull)
+  industry   Industry?  @relation(fields: [industryId], references: [industryId], onDelete: SetNull)
+
+  invoices   InvoiceHeader[]
+  visits     Visit[]
 
   @@index([name])
-  @@index([industry])
+  @@index([industryId]) // <-- fixed
   @@index([createdAt])
   @@index([latitude, longitude])
-  @@index([name, industry])
+  @@index([name, industryId]) // <-- fixed
   @@index([createdAt, customerId])
   @@index([name, createdAt])
   @@index([regionId])
+
   @@map("customers")
+}
+
+model Industry {
+  industryId Int        @id @default(autoincrement())
+  name       String     @unique
+  customers  Customer[]
 }
 
 model Product {
@@ -53,7 +63,7 @@ model Product {
 
 model ProductUOM {
   prodId  Int
-  uom     String  @db.VarChar(3)
+  uom     String  @db.VarChar(6)
   uomName String
   barcode String  @unique
   num     Int
@@ -81,6 +91,7 @@ model Salesman {
   authorities SalesmanAuthority[]
   visits      Visit[]
   regions     SalesmanRegion[]
+  fillups     Fillup[]
 }
 
 model Authority {
@@ -241,7 +252,6 @@ model Journies {
   region       Region?   @relation(fields: [regionId], references: [id], onDelete: SetNull)     
   visits       Visit[]         @relation("VisitToJourney")
   invoiceHeaders InvoiceHeader[] @relation("InvoiceToJourney")
-  fillups      Fillup[]
   loadOrders   loadOrders[]
 
   @@id([journeyId, salesId])
@@ -249,15 +259,14 @@ model Journies {
 
 model Fillup {
   fillupId    Int            @id @default(autoincrement())
-  journeyId   Int
   salesId     Int
   createdAt   String
   updatedAt   String
   status      FillupStatus   @default(PENDING)
-  journey     Journies       @relation(fields: [journeyId, salesId], references: [journeyId, salesId], onDelete: Cascade)
+  salesman    Salesman       @relation(fields: [salesId], references: [salesId], onDelete: Cascade)
   items       FillupItem[]
 
-  @@index([journeyId, salesId])
+  @@index([salesId])
   @@index([status])
   @@index([createdAt])
   @@map("fillups")

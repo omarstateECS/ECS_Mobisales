@@ -60,13 +60,13 @@ const CustomerList = ({ customers, handleViewDetails, handleEditCustomer, handle
                 </span>
               </td>
               <td className="px-6 py-4">
-                {customer.industry ? (
+                {customer.industry?.name ? (
                   <span className={`inline-block text-xs px-3 py-1 rounded-full ${
                     theme === 'dark'
                       ? 'bg-blue-500/20 text-blue-400'
                       : 'bg-blue-100 text-blue-700'
                   }`}>
-                    {customer.industry}
+                    {customer.industry.name}
                   </span>
                 ) : (
                   <span className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>-</span>

@@ -11,6 +11,7 @@ const journeyRoute = require('../routes/journey');
 const regionRoute = require('../routes/region');
 const reasonsRoute = require('../routes/reasons');
 const fillupRoute = require('../routes/fillup');
+const industryRoute = require('../routes/industry');
 
 module.exports = function(app) { 
     app.use(express.json());
@@ -25,4 +26,5 @@ module.exports = function(app) {
     app.use('/api/regions', regionRoute);
     app.use('/api/reasons', reasonsRoute);
     app.use('/api/fillups', fillupRoute);
+    app.use('/api/industries', industryRoute);
 };

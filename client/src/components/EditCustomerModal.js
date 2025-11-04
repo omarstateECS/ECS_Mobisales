@@ -15,6 +15,14 @@ const EditCustomerModal = ({
   editingCustomer
 }) => {
   const [showMap, setShowMap] = useState(false);
+  const [industries, setIndustries] = useState([]);
+  
+  // Fetch industries when modal opens
+  useEffect(() => {
+    if (showEditCustomerModal) {
+      fetchIndustries();
+    }
+  }, [showEditCustomerModal]);
   
   // Reset map visibility when modal closes
   useEffect(() => {
@@ -22,6 +30,19 @@ const EditCustomerModal = ({
       setShowMap(false);
     }
   }, [showEditCustomerModal]);
+  
+  const fetchIndustries = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/industries');
+      if (response.ok) {
+        const result = await response.json();
+        const data = result.data || result || [];
+        setIndustries(data);
+      }
+    } catch (error) {
+      console.error('Error fetching industries:', error);
+    }
+  };
   
   if (!showEditCustomerModal) return null;
 
@@ -111,18 +132,18 @@ const EditCustomerModal = ({
                   Industry *
                 </label>
                 <select
-                  name="industry"
-                  value={editFormData.industry}
+                  name="industryId"
+                  value={editFormData.industryId}
                   onChange={handleEditInputChange}
                   required
                   className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                 >
                   <option value="">Select industry</option>
-                  <option value="Retail">Retail</option>
-                  <option value="Grocery Store">Grocery Store</option>
-                  <option value="Retail">Retail</option>
-                  <option value="Convenience Store">Convenience Store</option>
-                  <option value="Hypermarket">Hypermarket</option>
+                  {industries.map((industry) => (
+                    <option key={industry.industryId} value={industry.industryId}>
+                      {industry.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 

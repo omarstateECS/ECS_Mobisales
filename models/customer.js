@@ -4,7 +4,7 @@ const Joi = require('joi');
 function customerValidation(customer) {
   const schema = Joi.object({
     name: Joi.string().min(3).max(255).required(),
-    industry: Joi.string().optional().allow(null),
+    industryId: Joi.number().integer().positive().optional().allow(null),
     address: Joi.string().required(),
     latitude: Joi.number().required(),
     longitude: Joi.number().required(),

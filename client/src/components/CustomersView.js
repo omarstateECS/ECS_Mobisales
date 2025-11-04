@@ -33,7 +33,7 @@ const CustomersView = ({
   const [regions, setRegions] = useState([]);
 
   // Get unique industries for filter
-  const industries = [...new Set(customers.map(c => c.industry).filter(Boolean))].sort();
+  const industries = [...new Set(customers.map(c => c.industry?.name).filter(Boolean))].sort();
   
   // Get unique countries, cities from regions
   const countries = [...new Set(regions.map(r => r.country))].sort();
@@ -66,7 +66,7 @@ const CustomersView = ({
   const filteredCustomers = customers
     .filter(customer => {
       // Server handles text search; filter by industry and region on client
-      const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
+      const matchesIndustry = !selectedIndustry || customer.industry?.name === selectedIndustry;
       
       // Get customer's region details
       const customerRegion = regions.find(r => r.id === customer.regionId);

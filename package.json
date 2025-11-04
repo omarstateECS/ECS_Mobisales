@@ -11,7 +11,7 @@
     "seed:50000": "node seeders/customerSeeder.js 50000",
     "seed:100000": "node seeders/customerSeeder.js 100000",
     "seed:patterns": "node seeders/advancedCustomerSeeder.js",
-    "seed:products": "node seeders/productSeeder.js",
+    "seed:products": "node scripts/seedProducts.js",
     "test:performance": "node tests/performanceTest.js"
   },
   "keywords": [],

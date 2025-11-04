@@ -90,9 +90,13 @@ const CustomerCard = ({ customer, handleDeleteCustomer, deletingCustomerId, hand
         )}
 
         <div className={`flex items-center justify-between pt-2 border-t ${theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200'}`}>
-          {customer.industry && (
-            <span className="inline-block text-xs px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full">
-              {customer.industry}
+          {customer.industry?.name && (
+            <span className={`inline-block text-xs px-3 py-1 rounded-full ${
+              theme === 'dark'
+                ? 'bg-blue-500/20 text-blue-400'
+                : 'bg-blue-100 text-blue-900'
+            }`}>
+              {customer.industry.name}
             </span>
           )}
           <div className="flex items-center space-x-1">
@@ -104,15 +108,25 @@ const CustomerCard = ({ customer, handleDeleteCustomer, deletingCustomerId, hand
         </div>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-700/50 flex-shrink-0">
+      <div className={`mt-4 pt-4 border-t flex-shrink-0 ${
+        theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200'
+      }`}>
         <div className="flex space-x-2">
           <button 
             onClick={() => handleViewDetails(customer)}
-            className="flex-1 px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg text-sm font-medium transition-colors"
+            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              theme === 'dark'
+                ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-400'
+                : 'bg-blue-100 hover:bg-blue-200 text-blue-900'
+            }`}
           >
             View Details
           </button>
-          <button className="flex-1 px-3 py-2 bg-gray-700/50 hover:bg-gray-700 text-gray-300 rounded-lg text-sm font-medium transition-colors">
+          <button className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            theme === 'dark'
+              ? 'bg-gray-700/50 hover:bg-gray-700 text-gray-300'
+              : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+          }`}>
             Assign Rep
           </button>
         </div>

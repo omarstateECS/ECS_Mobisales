@@ -593,11 +593,11 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
                     <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{customer.address}</p>
                     <div className="flex items-center flex-wrap gap-2 mt-1">
                       <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>{customer.phone}</p>
-                      {customer.industry && (
+                      {customer.industry?.name && (
                         <span className={`text-xs px-2 py-1 rounded ${
                           theme === 'dark' ? 'bg-gray-700/50 text-gray-400' : 'bg-gray-100 text-gray-600'
                         }`}>
-                          {customer.industry}
+                          {customer.industry.name}
                         </span>
                       )}
                       {customer.regionId && regions.find(r => r.id === customer.regionId) && (

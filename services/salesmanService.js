@@ -405,7 +405,6 @@ class SalesmanService {
                         // Return unused stock when journey ends
                         const fillupService = require('./fillupService');
                         await fillupService.returnUnusedStock(
-                            Number(journeyId),
                             Number(salesmanId),
                             products,
                             tx
@@ -793,7 +792,7 @@ class SalesmanService {
                     address: visitData.address,
                     latitude: visitData.latitude,
                     longitude: visitData.longitude,
-                    industry: visitData.industry,
+                    industryId: visitData.industryId ? parseInt(visitData.industryId) : null,
                     createdAt: getLocalTimestamp()
                 }
             });

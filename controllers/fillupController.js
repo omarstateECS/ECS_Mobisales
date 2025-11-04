@@ -3,12 +3,12 @@ const fillupService = require('../services/fillupService');
 class FillupController {
     async create(req, res) {
         try {
-            const { journeyId, salesId, items } = req.body;
+            const { salesId, items } = req.body;
 
-            if (!journeyId || !salesId || !items || !Array.isArray(items) || items.length === 0) {
+            if (!salesId || !items || !Array.isArray(items) || items.length === 0) {
                 return res.status(400).json({
                     success: false,
-                    message: 'journeyId, salesId, and items array are required'
+                    message: 'salesId and items array are required'
                 });
             }
 
@@ -83,23 +83,7 @@ class FillupController {
         }
     }
 
-    async getByJourney(req, res) {
-        try {
-            const { journeyId, salesId } = req.params;
-            const fillups = await fillupService.getFillupsByJourney(journeyId, salesId);
-            
-            res.status(200).json({
-                success: true,
-                data: fillups
-            });
-        } catch (error) {
-            console.error('Error fetching fillups by journey:', error);
-            res.status(500).json({
-                success: false,
-                message: error.message || 'Internal server error'
-            });
-        }
-    }
+    // Method removed - fillups are now only associated with salesman, not journey
 
     async getBySalesman(req, res) {
         try {

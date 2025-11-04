@@ -18,7 +18,9 @@ import {
   ShoppingCart,
   Database,
   Building2,
-  Globe
+  FileText,
+  Globe,
+  Eye
 } from 'lucide-react';
 
 const SidebarItem = ({ item, isChild = false, expandedMenus, toggleMenu }) => {
@@ -178,6 +180,11 @@ const Sidebar = ({
           label: 'Salesman Analytics', 
           icon: BarChart3,
           onClick: () => handleNavigation('salesman-analytics')
+        },
+        { 
+          label: 'Stock', 
+          icon: Package,
+          onClick: () => handleNavigation('stock')
         }
       ]
     },
@@ -197,9 +204,19 @@ const Sidebar = ({
           onClick: () => handleNavigation('plan-routes')
         },
         { 
-          label: 'Fillup', 
+          label: 'Create Fillup', 
           icon: Package,
           onClick: () => handleNavigation('fillup')
+        },
+        { 
+          label: 'Fillup History', 
+          icon: Eye,
+          onClick: () => handleNavigation('fillup-history')
+        },
+        { 
+          label: 'Invoices', 
+          icon: FileText,
+          onClick: () => handleNavigation('invoices')
         },
         { 
           label: 'Load Orders', 

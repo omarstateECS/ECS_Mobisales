@@ -4,7 +4,7 @@ const { getLocalTimestamp } = require('../lib/dateUtils');
 class FillupService {
     async createFillup(data) {
         const prisma = getPrismaClient();
-        const { journeyId, salesId, items } = data;
+        const { salesId, items } = data;
 
         // Use transaction to create fillup and update product stock
         const fillup = await prisma.$transaction(async (tx) => {
@@ -43,7 +43,6 @@ class FillupService {
             // Create fillup with items
             const newFillup = await tx.fillup.create({
                 data: {
-                    journeyId: parseInt(journeyId),
                     salesId: parseInt(salesId),
                     createdAt: getLocalTimestamp(),
                     updatedAt: getLocalTimestamp(),
@@ -59,11 +58,7 @@ class FillupService {
                 },
                 include: {
                     items: true,
-                    journey: {
-                        include: {
-                            salesman: true
-                        }
-                    }
+                    salesman: true
                 }
             });
 
@@ -91,12 +86,12 @@ class FillupService {
         const prisma = getPrismaClient();
         return await prisma.fillup.findMany({
             include: {
-                items: true,
-                journey: {
+                items: {
                     include: {
-                        salesman: true
+                        product: true
                     }
-                }
+                },
+                salesman: true
             },
             orderBy: {
                 createdAt: 'desc'
@@ -109,31 +104,17 @@ class FillupService {
         return await prisma.fillup.findUnique({
             where: { fillupId: parseInt(fillupId) },
             include: {
-                items: true,
-                journey: {
+                items: {
                     include: {
-                        salesman: true
+                        product: true
                     }
-                }
+                },
+                salesman: true
             }
         });
     }
 
-    async getFillupsByJourney(journeyId, salesId) {
-        const prisma = getPrismaClient();
-        return await prisma.fillup.findMany({
-            where: {
-                journeyId: parseInt(journeyId),
-                salesId: parseInt(salesId)
-            },
-            include: {
-                items: true
-            },
-            orderBy: {
-                createdAt: 'desc'
-            }
-        });
-    }
+    // Method removed - fillups are now only associated with salesman, not journey
 
     async getFillupsBySalesman(salesId) {
         const prisma = getPrismaClient();
@@ -142,8 +123,12 @@ class FillupService {
                 salesId: parseInt(salesId)
             },
             include: {
-                items: true,
-                journey: true
+                items: {
+                    include: {
+                        product: true
+                    }
+                },
+                salesman: true
             },
             orderBy: {
                 createdAt: 'desc'
@@ -201,14 +186,13 @@ class FillupService {
         });
     }
 
-    async getFillupItemsByJourney(journeyId, salesId) {
+    async getFillupItemsBySalesman(salesId) {
         const prisma = getPrismaClient();
         
-        // Get all fillup items for the given journey with product details and UOMs
+        // Get all fillup items for the given salesman with product details and UOMs
         const fillupItems = await prisma.fillupItem.findMany({
             where: {
                 fillup: {
-                    journeyId: parseInt(journeyId),
                     salesId: parseInt(salesId)
                 }
             },
@@ -234,14 +218,13 @@ class FillupService {
        }));
     }
 
-    async returnUnusedStock(journeyId, salesId, returnedProducts, tx) {
+    async returnUnusedStock(salesId, returnedProducts, tx) {
         const prismaClient = tx || getPrismaClient();
         
-        // Get all fillup items for this journey
+        // Get all fillup items for this salesman
         const fillupItems = await prismaClient.fillupItem.findMany({
             where: {
                 fillup: {
-                    journeyId: parseInt(journeyId),
                     salesId: parseInt(salesId)
                 }
             },
@@ -291,7 +274,7 @@ class FillupService {
                 )
             );
             
-            console.log(`✅ Returned ${stockUpdates.length} products to stock for journey ${journeyId}`);
+            console.log(`✅ Returned ${stockUpdates.length} products to stock for salesman ${salesId}`);
         }
 
         return stockUpdates;

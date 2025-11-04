@@ -54,7 +54,13 @@ class CustomerService {
             select: {
                 customerId: true,
                 name: true,
-                industry: true,
+                industryId: true,
+                industry: {
+                    select: {
+                        industryId: true,
+                        name: true
+                    }
+                },
                 address: true,
                 latitude: true,
                 longitude: true,
@@ -106,7 +112,13 @@ class CustomerService {
             select: {
             customerId: true,
             name: true,
-            industry: true,
+            industryId: true,
+            industry: {
+                select: {
+                    industryId: true,
+                    name: true
+                }
+            },
             address: true,
             latitude: true,
             longitude: true,
@@ -146,7 +158,13 @@ class CustomerService {
             select: {
                 customerId: true,
                 name: true,
-                industry: true,
+                industryId: true,
+                industry: {
+                    select: {
+                        industryId: true,
+                        name: true
+                    }
+                },
                 address: true,
                 latitude: true,
                 longitude: true,

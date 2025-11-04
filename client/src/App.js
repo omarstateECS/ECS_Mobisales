@@ -19,7 +19,11 @@ import ToursView from './components/ToursView';
 import TourDetailsPage from './components/TourDetailsPage';
 import CancelReasonsView from './components/CancelReasonsView';
 import AuthoritiesView from './components/AuthoritiesView';
+import IndustriesView from './components/IndustriesView';
 import FillupView from './components/FillupView';
+import FillupHistoryView from './components/FillupHistoryView';
+import InvoicesView from './components/InvoicesView';
+import StockView from './components/StockView';
 import LoadOrdersView from './components/LoadOrdersView';
 import ConfirmationModal from './components/common/ConfirmationModal';
 import NotificationModal from './components/common/NotificationModal';
@@ -58,7 +62,7 @@ const Dashboard = () => {
     name: '',
     latitude: '',
     longitude: '',
-    industry: '',
+    industryId: '',
     phone: '',
     address: '',
     regionId: ''
@@ -74,7 +78,7 @@ const Dashboard = () => {
     name: '',
     latitude: '',
     longitude: '',
-    industry: '',
+    industryId: '',
     phone: '',
     address: ''
   });
@@ -273,7 +277,7 @@ const Dashboard = () => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!formData.name || !formData.latitude || !formData.longitude || !formData.industry) {
+    if (!formData.name || !formData.latitude || !formData.longitude || !formData.industryId) {
       showWarning('Please fill in all required fields');
       return;
     }
@@ -296,7 +300,7 @@ const Dashboard = () => {
             name: formData.name.trim(),
             latitude: parseFloat(formData.latitude),
             longitude: parseFloat(formData.longitude),
-            industry: formData.industry || null,
+            industryId: formData.industryId ? parseInt(formData.industryId) : null,
             phone: formData.phone.trim() || null,
             address: formData.address.trim(),
             regionId: formData.regionId || null
@@ -378,13 +382,15 @@ const Dashboard = () => {
       name: formData.name.trim(),
       latitude: parseFloat(formData.latitude),
       longitude: parseFloat(formData.longitude),
-      industry: formData.industry || null,
+      industryId: formData.industryId ? parseInt(formData.industryId) : null,
       phone: formData.phone.trim() || null,
       address: formData.address.trim(),
       regionId: formData.regionId || null
     };
     
     try {
+      console.log('📤 Sending customer data:', newCustomer);
+      
       const response = await fetch('http://localhost:3000/api/customers', {
         method: 'POST',
         headers: {
@@ -398,7 +404,9 @@ const Dashboard = () => {
         setCustomers(prev => [...prev, apiCustomer]);
         showSuccess('Customer added successfully!');
       } else {
-        throw new Error(`API failed with status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ API Error:', errorData);
+        throw new Error(errorData.message || `API failed with status: ${response.status}`);
       }
     } catch (error) {
       const localCustomer = {
@@ -422,7 +430,7 @@ const Dashboard = () => {
       name: '',
       latitude: '',
       longitude: '',
-      industry: '',
+      industryId: '',
       phone: '',
       address: '',
       regionId: ''
@@ -548,7 +556,7 @@ const Dashboard = () => {
       name: customer.name || '',
       latitude: customer.latitude?.toString() || '',
       longitude: customer.longitude?.toString() || '',
-      industry: customer.industry || '',
+      industryId: customer.industryId?.toString() || '',
       phone: customer.phone || '',
       address: customer.address || ''
     });
@@ -578,7 +586,7 @@ const Dashboard = () => {
       name: customer.name || '',
       latitude: customer.latitude?.toString() || '',
       longitude: customer.longitude?.toString() || '',
-      industry: customer.industry || '',
+      industryId: customer.industryId?.toString() || '',
       phone: customer.phone || '',
       address: customer.address || ''
     });
@@ -696,7 +704,7 @@ const Dashboard = () => {
       name: editFormData.name.trim(),
       latitude: parseFloat(editFormData.latitude),
       longitude: parseFloat(editFormData.longitude),
-      industry: editFormData.industry || null,
+      industryId: editFormData.industryId ? parseInt(editFormData.industryId) : null,
       phone: editFormData.phone.trim() || null,
       address: editFormData.address.trim()
     };
@@ -752,7 +760,7 @@ const Dashboard = () => {
       name: '',
       latitude: '',
       longitude: '',
-      industry: '',
+      industryId: '',
       phone: '',
       address: ''
     });
@@ -956,6 +964,19 @@ const Dashboard = () => {
           </motion.div>
         );
 
+      case 'industries':
+        return (
+          <motion.div
+            key="industries"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <IndustriesView />
+          </motion.div>
+        );
+
       case 'fillup':
         return (
           <motion.div
@@ -966,6 +987,45 @@ const Dashboard = () => {
             transition={{ duration: 0.4, ease: "easeOut" }}
           >
             <FillupView />
+          </motion.div>
+        );
+
+      case 'fillup-history':
+        return (
+          <motion.div
+            key="fillup-history"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <FillupHistoryView />
+          </motion.div>
+        );
+
+      case 'invoices':
+        return (
+          <motion.div
+            key="invoices"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <InvoicesView />
+          </motion.div>
+        );
+
+      case 'stock':
+        return (
+          <motion.div
+            key="stock"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <StockView />
           </motion.div>
         );
 

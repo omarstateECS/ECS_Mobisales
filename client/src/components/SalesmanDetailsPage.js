@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, User, MapPin, Phone, Calendar, Shield, Globe, Edit, UserCheck } from 'lucide-react';
 import ManageAuthoritiesModal from './ManageAuthoritiesModal';
 import ManageRegionsModal from './ManageRegionsModal';
+import { useTheme } from '../contexts/ThemeContext';
 
 const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNavigation }) => {
+  const { theme } = useTheme();
   const [showAuthoritiesModal, setShowAuthoritiesModal] = useState(false);
   const [showRegionsModal, setShowRegionsModal] = useState(false);
   const [salesmanData, setSalesmanData] = useState(salesman);
@@ -120,22 +122,34 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className={`min-h-screen ${
+      theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'
+    }`}>
       {/* Header */}
-      <div className="bg-gray-800/50 border-b border-gray-700/50">
+      <div className={`border-b ${
+        theme === 'dark' ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-300'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-6">
             <div className="flex items-center space-x-4">
               <button
                 onClick={onBack}
-                className="p-2 rounded-xl hover:bg-gray-700/50 text-gray-400 hover:text-white transition-colors"
+                className={`p-2 rounded-xl transition-colors ${
+                  theme === 'dark'
+                    ? 'hover:bg-gray-700/50 text-gray-400 hover:text-white'
+                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
+                }`}
                 title="Go back"
               >
                 <ArrowLeft size={24} />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-white">Salesman Details</h1>
-                <p className="text-gray-400">Viewing complete information for {salesmanData.name}</p>
+                <h1 className={`text-2xl font-bold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>Salesman Details</h1>
+                <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                  Viewing complete information for {salesmanData.name}
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -143,8 +157,12 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                 <User className="w-6 h-6 text-white" />
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-400">Salesman ID</div>
-                <div className="text-lg font-semibold text-white">#{salesmanData.salesId}</div>
+                <div className={`text-sm ${
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                }`}>Salesman ID</div>
+                <div className={`text-lg font-semibold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>#{salesmanData.salesId}</div>
               </div>
             </div>
           </div>
@@ -365,13 +383,23 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-4">Quick Actions</h3>
+            <div className={`backdrop-blur-sm border rounded-2xl p-6 ${
+              theme === 'dark'
+                ? 'bg-gray-800/40 border-gray-700/50'
+                : 'bg-white border-gray-300'
+            }`}>
+              <h3 className={`text-xl font-semibold mb-4 ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>Quick Actions</h3>
               
               <div className="space-y-3">
                 <button 
                   onClick={() => onEdit(salesmanData)}
-                  className="w-full px-4 py-3 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 rounded-xl font-medium transition-colors border border-emerald-600/30 flex items-center justify-center space-x-2"
+                  className={`w-full px-4 py-3 rounded-xl font-medium transition-colors border flex items-center justify-center space-x-2 ${
+                    theme === 'dark'
+                      ? 'bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border-emerald-600/30'
+                      : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border-emerald-300'
+                  }`}
                 >
                   <Edit className="w-5 h-5" />
                   <span>Edit Salesman</span>
@@ -379,7 +407,11 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                 
                 <button 
                   onClick={() => handleNavigation && handleNavigation('plan-routes')}
-                  className="w-full px-4 py-3 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-xl font-medium transition-colors border border-blue-600/30 flex items-center justify-center space-x-2"
+                  className={`w-full px-4 py-3 rounded-xl font-medium transition-colors border flex items-center justify-center space-x-2 ${
+                    theme === 'dark'
+                      ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border-blue-600/30'
+                      : 'bg-blue-100 hover:bg-blue-200 text-blue-900 border-blue-300'
+                  }`}
                 >
                   <Globe className="w-5 h-5" />
                   <span>Plan Routes</span>
@@ -387,7 +419,11 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                 
                 <button 
                   onClick={handleManageAuthorities}
-                  className="w-full px-4 py-3 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 rounded-xl font-medium transition-colors border border-purple-600/30 flex items-center justify-center space-x-2"
+                  className={`w-full px-4 py-3 rounded-xl font-medium transition-colors border flex items-center justify-center space-x-2 ${
+                    theme === 'dark'
+                      ? 'bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 border-purple-600/30'
+                      : 'bg-purple-100 hover:bg-purple-200 text-purple-900 border-purple-300'
+                  }`}
                 >
                   <Shield className="w-5 h-5" />
                   <span>Manage Authorities</span>
@@ -395,13 +431,21 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                 
                 <button 
                   onClick={handleManageRegions}
-                  className="w-full px-4 py-3 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 rounded-xl font-medium transition-colors border border-cyan-600/30 flex items-center justify-center space-x-2"
+                  className={`w-full px-4 py-3 rounded-xl font-medium transition-colors border flex items-center justify-center space-x-2 ${
+                    theme === 'dark'
+                      ? 'bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 border-cyan-600/30'
+                      : 'bg-cyan-100 hover:bg-cyan-200 text-cyan-900 border-cyan-300'
+                  }`}
                 >
                   <Globe className="w-5 h-5" />
                   <span>Manage Regions</span>
                 </button>
                 
-                <button className="w-full px-4 py-3 bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-400 rounded-xl font-medium transition-colors border border-yellow-600/30 flex items-center justify-center space-x-2">
+                <button className={`w-full px-4 py-3 rounded-xl font-medium transition-colors border flex items-center justify-center space-x-2 ${
+                  theme === 'dark'
+                    ? 'bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-400 border-yellow-600/30'
+                    : 'bg-yellow-100 hover:bg-yellow-200 text-yellow-900 border-yellow-300'
+                }`}>
                   <UserCheck className="w-5 h-5" />
                   <span>Assign Customers</span>
                 </button>

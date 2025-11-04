@@ -7,6 +7,7 @@ const journeyService = require('../services/journeyService');
 const settingsService = require('../services/settingsService');
 const customerService = require('../services/customerService');
 const fillupService = require('../services/fillupService');
+const industryService = require('../services/industryService');
 
 module.exports = {
     async syncData(req, res) {
@@ -17,22 +18,20 @@ module.exports = {
           return res.status(400).json({ error: 'Salesman ID is required' });
         }
   
-        const [visits, reasons, lastInvoice, latestJourney, settings, allProducts] = await Promise.all([
+        const [visits, reasons, lastInvoice, latestJourney, settings, allProducts, industries] = await Promise.all([
           visitService.getTodayVisits(salesmanId),
           reasonService.getAllReasons(),
           invoiceService.getLastInvoice(salesmanId),
           journeyService.getLatestJourney(salesmanId),
           settingsService.getSettings(),
           productService.getAllProducts(),
+          industryService.getAllIndustriesForLoadData(),
         ]);
         
-        // Get fillup items with product details for the latest journey
+        // Get fillup items with product details for the salesman
         let products = [];
-        if (latestJourney?.journeyId) {
-          products = await fillupService.getFillupItemsByJourney(
-            latestJourney.journeyId,
-            salesmanId
-          );
+        if (salesmanId) {
+          products = await fillupService.getFillupItemsBySalesman(salesmanId);
         }
         
         // Get customers based on filterCustomersByRegion setting
@@ -75,15 +74,41 @@ module.exports = {
           startIdInvoice = `${last5Digits}${invoiceSequence}`;
         }
   
+        // Transform customers to ensure they have industryId
+        const customersWithIndustryId = customers.map(customer => ({
+          customerId: customer.customerId,
+          name: customer.name,
+          industryId: customer.industryId,
+          address: customer.address,
+          latitude: customer.latitude,
+          longitude: customer.longitude,
+          phone: customer.phone
+        }));
+
+        // Transform visits to flatten customer's industry structure
+        const visitsWithFlatCustomer = visits.map(visit => ({
+          ...visit,
+          customer: {
+            customerId: visit.customer.customerId,
+            name: visit.customer.name,
+            address: visit.customer.address,
+            phone: visit.customer.phone,
+            industryId: visit.customer.industry?.industryId || visit.customer.industryId,
+            latitude: visit.customer.latitude,
+            longitude: visit.customer.longitude
+          }
+        }));
+
         return res.json({
-          visits,
+          visits: visitsWithFlatCustomer,
           products,
           reasons,
           startIdInvoice,
           startIdVisit: nextVisitId,
           journeyId: latestJourney?.journeyId || null,
-          customers,
+          customers: customersWithIndustryId,
           allProducts,
+          industries: industries || [],
           settings: {
             customInvoice: settings?.customInvoice || false,
             visitSequence: settings?.visitSequence || false,
