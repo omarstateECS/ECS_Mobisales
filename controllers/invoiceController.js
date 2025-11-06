@@ -3,13 +3,18 @@ const invoiceService = require('../services/invoiceService');
 class InvoiceController {
     async getAll(req, res) {
         try {
-            const { page = 1, limit = 50, q = '' } = req.query;
-            const data = await invoiceService.getAllInvoices(
-                parseInt(page),
-                parseInt(limit),
-                q
-            );
-            res.json(data); // includes { invoices, page, limit, hasMore }
+            const { salesId, custId, invType, paymentMethod, dateFrom, dateTo } = req.query;
+            
+            const filters = {};
+            if (salesId) filters.salesId = salesId;
+            if (custId) filters.custId = custId;
+            if (invType) filters.invType = invType;
+            if (paymentMethod) filters.paymentMethod = paymentMethod;
+            if (dateFrom) filters.dateFrom = dateFrom;
+            if (dateTo) filters.dateTo = dateTo;
+            
+            const data = await invoiceService.getAllInvoices(filters);
+            res.json(data);
         } catch (error) {
             console.error('Error fetching invoices:', error);
             res.status(500).json({ error: error.message });

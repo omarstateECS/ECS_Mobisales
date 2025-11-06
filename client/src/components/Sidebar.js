@@ -23,7 +23,7 @@ import {
   Eye
 } from 'lucide-react';
 
-const SidebarItem = ({ item, isChild = false, expandedMenus, toggleMenu }) => {
+const SidebarItem = ({ item, isChild = false, expandedMenus, toggleMenu, isActive = false }) => {
   const hasChildren = item.children && item.children.length > 0;
   const isExpanded = Boolean(expandedMenus[item.id]);
   const Icon = item.icon;
@@ -37,9 +37,13 @@ const SidebarItem = ({ item, isChild = false, expandedMenus, toggleMenu }) => {
     <div className="mb-1">
       <motion.div
         className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-300 group ${
-          isChild 
-            ? 'ml-4 text-gray-300 hover:text-white hover:bg-gray-700/50' 
-            : 'text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20 hover:shadow-lg'
+          isActive
+            ? isChild
+              ? 'ml-4 bg-blue-600/30 text-white border-l-4 border-blue-500'
+              : 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-white shadow-lg border-l-4 border-blue-500'
+            : isChild 
+              ? 'ml-4 text-gray-300 hover:text-white hover:bg-gray-700/50' 
+              : 'text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20 hover:shadow-lg'
         }`}
         onClick={() => {
           if (hasChildren) {
@@ -91,6 +95,7 @@ const SidebarItem = ({ item, isChild = false, expandedMenus, toggleMenu }) => {
                 isChild={true} 
                 expandedMenus={expandedMenus}
                 toggleMenu={toggleMenu}
+                isActive={child.isActive}
               />
             ))}
           </motion.div>
@@ -108,14 +113,40 @@ const Sidebar = ({
   handleNavigation,
   openAddCustomerModal,
   openAddProductModal,
-  openAddSalesmanModal
+  openAddSalesmanModal,
+  currentView
 }) => {
+  // Map views to menu item IDs
+  const viewToMenuMap = {
+    'dashboard': 'dashboard',
+    'all-customers': 'all-customers',
+    'customer-analytics': 'customer-analytics',
+    'products': 'products',
+    'product-analytics': 'product-analytics',
+    'all-salesmen': 'all-salesmen',
+    'stock': 'stock',
+    'salesman-analytics': 'salesman-analytics',
+    'tours': 'tours',
+    'plan-routes': 'plan-routes',
+    'fillup': 'fillup',
+    'fillup-history': 'fillup-history',
+    'invoices': 'invoices',
+    'loadorders': 'loadorders',
+    'regions': 'regions',
+    'industries': 'industries',
+    'authorities': 'authorities',
+    'cancel-reasons': 'cancel-reasons',
+    'settings': 'settings'
+  };
+  
+  const activeMenuId = viewToMenuMap[currentView];
   const sidebarItems = [
     {
       id: 'dashboard',
       label: 'Dashboard',
       icon: Home,
-      onClick: () => handleNavigation('dashboard')
+      onClick: () => handleNavigation('dashboard'),
+      isActive: activeMenuId === 'dashboard'
     },
     {
       id: 'customers',
@@ -123,19 +154,25 @@ const Sidebar = ({
       icon: Store,
       children: [
         { 
+          id: 'all-customers',
           label: 'All Customers', 
           icon: Store,
-          onClick: () => handleNavigation('all-customers')
+          onClick: () => handleNavigation('all-customers'),
+          isActive: activeMenuId === 'all-customers'
         },
         { 
+          id: 'add-customer',
           label: 'Add New Customer', 
           icon: Plus,
-          onClick: openAddCustomerModal
+          onClick: openAddCustomerModal,
+          isActive: false
         },
         { 
+          id: 'customer-analytics',
           label: 'Customer Analytics', 
           icon: BarChart3,
-          onClick: () => handleNavigation('customer-analytics')
+          onClick: () => handleNavigation('customer-analytics'),
+          isActive: activeMenuId === 'customer-analytics'
         }
       ]
     },
@@ -145,19 +182,25 @@ const Sidebar = ({
       icon: Package,
       children: [
         { 
+          id: 'products',
           label: 'All Products', 
           icon: Package,
-          onClick: () => handleNavigation('products')
+          onClick: () => handleNavigation('products'),
+          isActive: activeMenuId === 'products'
         },
         { 
+          id: 'add-product',
           label: 'Add New Product', 
           icon: Plus,
-          onClick: openAddProductModal
+          onClick: openAddProductModal,
+          isActive: false
         },
         { 
+          id: 'product-analytics',
           label: 'Product Analytics', 
           icon: BarChart3,
-          onClick: () => handleNavigation('product-analytics')
+          onClick: () => handleNavigation('product-analytics'),
+          isActive: activeMenuId === 'product-analytics'
         }
       ]
     },
@@ -167,24 +210,32 @@ const Sidebar = ({
       icon: User,
       children: [
         { 
+          id: 'all-salesmen',
           label: 'All Salesmen', 
           icon: User,
-          onClick: () => handleNavigation('all-salesmen')
+          onClick: () => handleNavigation('all-salesmen'),
+          isActive: activeMenuId === 'all-salesmen'
         },
         { 
+          id: 'add-salesman',
           label: 'Add New Salesman', 
           icon: Plus,
-          onClick: openAddSalesmanModal
+          onClick: openAddSalesmanModal,
+          isActive: false
         },
-        { 
-          label: 'Salesman Analytics', 
-          icon: BarChart3,
-          onClick: () => handleNavigation('salesman-analytics')
-        },
-        { 
+         { 
+          id: 'stock',
           label: 'Stock', 
           icon: Package,
-          onClick: () => handleNavigation('stock')
+          onClick: () => handleNavigation('stock'),
+          isActive: activeMenuId === 'stock'
+        },
+        { 
+          id: 'salesman-analytics',
+          label: 'Salesman Analytics', 
+          icon: BarChart3,
+          onClick: () => handleNavigation('salesman-analytics'),
+          isActive: activeMenuId === 'salesman-analytics'
         }
       ]
     },
@@ -194,34 +245,46 @@ const Sidebar = ({
       icon: Route,
       children: [
         { 
+          id: 'tours',
           label: 'All Tours', 
           icon: Route,
-          onClick: () => handleNavigation('tours')
+          onClick: () => handleNavigation('tours'),
+          isActive: activeMenuId === 'tours'
         },
         { 
+          id: 'plan-routes',
           label: 'Plan Routes', 
           icon: MapPin,
-          onClick: () => handleNavigation('plan-routes')
+          onClick: () => handleNavigation('plan-routes'),
+          isActive: activeMenuId === 'plan-routes'
         },
         { 
+          id: 'fillup',
           label: 'Create Fillup', 
           icon: Package,
-          onClick: () => handleNavigation('fillup')
+          onClick: () => handleNavigation('fillup'),
+          isActive: activeMenuId === 'fillup'
         },
         { 
+          id: 'fillup-history',
           label: 'Fillup History', 
           icon: Eye,
-          onClick: () => handleNavigation('fillup-history')
+          onClick: () => handleNavigation('fillup-history'),
+          isActive: activeMenuId === 'fillup-history'
         },
         { 
+          id: 'invoices',
           label: 'Invoices', 
           icon: FileText,
-          onClick: () => handleNavigation('invoices')
+          onClick: () => handleNavigation('invoices'),
+          isActive: activeMenuId === 'invoices'
         },
         { 
+          id: 'loadorders',
           label: 'Load Orders', 
           icon: ShoppingCart,
-          onClick: () => handleNavigation('loadorders')
+          onClick: () => handleNavigation('loadorders'),
+          isActive: activeMenuId === 'loadorders'
         }
       ]
     },
@@ -231,24 +294,32 @@ const Sidebar = ({
       icon: Database,
       children: [
         { 
-          label: 'Cancel Reasons', 
-          icon: XCircle,
-          onClick: () => handleNavigation('cancel-reasons')
-        },
-        { 
-          label: 'Authorities', 
-          icon: Shield,
-          onClick: () => handleNavigation('authorities')
-        },
-        { 
-          label: 'Industries', 
-          icon: Building2,
-          onClick: () => handleNavigation('industries')
-        },
-        { 
+          id: 'regions',
           label: 'Regions', 
           icon: Globe,
-          onClick: () => handleNavigation('regions')
+          onClick: () => handleNavigation('regions'),
+          isActive: activeMenuId === 'regions'
+        },
+        { 
+          id: 'industries',
+          label: 'Industries', 
+          icon: Building2,
+          onClick: () => handleNavigation('industries'),
+          isActive: activeMenuId === 'industries'
+        },
+        { 
+          id: 'authorities',
+          label: 'Authorities', 
+          icon: Shield,
+          onClick: () => handleNavigation('authorities'),
+          isActive: activeMenuId === 'authorities'
+        },
+        { 
+          id: 'cancel-reasons',
+          label: 'Return Reasons', 
+          icon: XCircle,
+          onClick: () => handleNavigation('cancel-reasons'),
+          isActive: activeMenuId === 'cancel-reasons'
         }
       ]
     },
@@ -256,7 +327,8 @@ const Sidebar = ({
       id: 'settings',
       label: 'Settings',
       icon: Settings,
-      onClick: () => handleNavigation('settings')
+      onClick: () => handleNavigation('settings'),
+      isActive: activeMenuId === 'settings'
     }
   ];
 
@@ -303,6 +375,7 @@ const Sidebar = ({
                   item={item} 
                   expandedMenus={expandedMenus}
                   toggleMenu={toggleMenu}
+                  isActive={item.isActive}
                 />
               ))}
             </nav>

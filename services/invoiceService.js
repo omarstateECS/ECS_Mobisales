@@ -70,42 +70,54 @@ class InvoiceService {
             return null; // Fall back to default
         }
     }
-    async getAllInvoices(page = 1, limit = 50, query = '') {
+    async getAllInvoices(filters = {}) {
         const prisma = getPrismaClient();
-        const [total, invoices] = await prisma.$transaction([
-            prisma.invoiceHeader.count({
-                where: {
-                    OR: [
-                        { customer: { name: { contains: query } } },
-                        { customer: { phone: { contains: query } } },
-                        { customer: { address: { contains: query } } }
-                    ]
-                }
-            }),
-            prisma.invoiceHeader.findMany({
-                where: {
-                    OR: [
-                        { customer: { name: { contains: query } } },
-                        { customer: { phone: { contains: query } } },
-                        { customer: { address: { contains: query } } }
-                    ]
-                },
-                include: {
-                    customer: true,
-                    salesman: true
-                },
-                orderBy: { createdAt: 'desc' },
-                skip: (page - 1) * limit,
-                take: limit
-            })
-        ]);
-        return { invoices, total, page };
+        
+        const where = {};
+        
+        // Apply filters
+        if (filters.salesId) {
+            where.salesId = parseInt(filters.salesId);
+        }
+        
+        if (filters.custId) {
+            where.custId = parseInt(filters.custId);
+        }
+        
+        if (filters.invType) {
+            where.invType = filters.invType;
+        }
+        
+        if (filters.paymentMethod) {
+            where.paymentMethod = filters.paymentMethod;
+        }
+        
+        if (filters.dateFrom || filters.dateTo) {
+            where.createdAt = {};
+            if (filters.dateFrom) {
+                where.createdAt.gte = filters.dateFrom;
+            }
+            if (filters.dateTo) {
+                where.createdAt.lte = filters.dateTo + ' 23:59:59.999';
+            }
+        }
+        
+        const invoices = await prisma.invoiceHeader.findMany({
+            where,
+            include: {
+                customer: true,
+                salesman: true
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        
+        return { data: invoices };
     }
     
     async getInvoiceById(id) {
         const prisma = getPrismaClient();
         return await prisma.invoiceHeader.findUnique({
-            where: { invId: Number(id) },
+            where: { invId: String(id) },
             include: {
                 customer: true,
                 salesman: true

@@ -20,6 +20,7 @@ import TourDetailsPage from './components/TourDetailsPage';
 import CancelReasonsView from './components/CancelReasonsView';
 import AuthoritiesView from './components/AuthoritiesView';
 import IndustriesView from './components/IndustriesView';
+import RegionsView from './components/RegionsView';
 import FillupView from './components/FillupView';
 import FillupHistoryView from './components/FillupHistoryView';
 import InvoicesView from './components/InvoicesView';
@@ -977,6 +978,19 @@ const Dashboard = () => {
           </motion.div>
         );
 
+      case 'regions':
+        return (
+          <motion.div
+            key="regions"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <RegionsView />
+          </motion.div>
+        );
+
       case 'fillup':
         return (
           <motion.div
@@ -1157,6 +1171,7 @@ const Dashboard = () => {
         openAddCustomerModal={openAddCustomerModal}
         openAddProductModal={openAddProductModal}
         openAddSalesmanModal={openAddSalesmanModal}
+        currentView={currentView}
       />
 
       {/* Main Content */}

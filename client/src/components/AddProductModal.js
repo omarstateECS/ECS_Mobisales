@@ -360,22 +360,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                                     disabled={loading}
                                 />
                             </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Non-Sellable Quantity
-                                </label>
-                                <input
-                                    type="number"
-                                    value={formData.nonSellableQty}
-                                    onChange={(e) => handleInputChange('nonSellableQty', parseInt(e.target.value) || 0)}
-                                    min="0"
-                                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
-                                    placeholder="Enter non-sellable quantity"
-                                    disabled={loading}
-                                />
-                            </div>
-
+                            
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
                                     Base Price <span className="text-red-400">*</span>

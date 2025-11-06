@@ -7,6 +7,7 @@ import ConfirmationModal from './common/ConfirmationModal';
 import NotificationModal from './common/NotificationModal';
 import { useNotification } from '../hooks/useNotification';
 import CancelReasonsList from './CancelReasonsList';
+import AddReasonModal from './AddReasonModal';
 
 // Set axios base URL
 axios.defaults.baseURL = 'http://localhost:3000';
@@ -111,6 +112,7 @@ const CancelReasonsView = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [deletingReasonId, setDeletingReasonId] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [confirmationModal, setConfirmationModal] = useState({
     isOpen: false,
     title: '',
@@ -140,10 +142,22 @@ const CancelReasonsView = () => {
     }
   };
 
+  const handleAddReason = async (formData) => {
+    try {
+      const response = await axios.post('/api/reasons', formData);
+      setReasons(prev => [...prev, response.data]);
+      showSuccess('Return reason has been added successfully!');
+      setIsAddModalOpen(false);
+    } catch (error) {
+      console.error('Error adding reason:', error);
+      throw new Error(error.response?.data?.error || 'Failed to add reason');
+    }
+  };
+
   const handleDeleteReason = (reasonId, description) => {
     setConfirmationModal({
       isOpen: true,
-      title: 'Delete Cancel Reason',
+      title: 'Delete Return Reason',
       message: `Are you sure you want to delete "${description}"? This action cannot be undone.`,
       onConfirm: () => confirmDeleteReason(reasonId),
       loading: false,
@@ -160,7 +174,7 @@ const CancelReasonsView = () => {
       await axios.delete(`/api/reasons/${reasonId}`);
       setReasons(prev => prev.filter(reason => reason.reasonId !== reasonId));
       setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false, confirmText: 'Delete', type: 'danger' });
-      showDelete('Cancel reason has been deleted successfully!');
+      showDelete('Return reason has been deleted successfully!');
     } catch (error) {
       console.error('Error deleting reason:', error);
       setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false, confirmText: 'Delete', type: 'danger' });
@@ -185,13 +199,16 @@ const CancelReasonsView = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-            Cancel Reasons
+            Return Reasons
           </h1>
           <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            Manage cancellation reasons for visits and orders
+            Manage return reasons for visits and orders
           </p>
         </div>
-        <button className="px-6 py-3 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl">
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="px-6 py-3 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
+        >
           <Plus size={20} />
           <span>Add Reason</span>
         </button>
@@ -236,10 +253,10 @@ const CancelReasonsView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Sellable
+                Headers
               </p>
               <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {reasons.filter(r => r.sellable).length}
+                {reasons.filter(r => r.isHeader).length}
               </p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
@@ -261,10 +278,10 @@ const CancelReasonsView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Headers
+                Items
               </p>
               <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {reasons.filter(r => r.isHeader).length}
+                {reasons.filter(r => !r.isHeader).length}
               </p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
@@ -287,7 +304,7 @@ const CancelReasonsView = () => {
             }`} size={20} />
             <input
               type="text"
-              placeholder="Search cancel reasons..."
+              placeholder="Search return reasons..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-colors ${
@@ -342,7 +359,7 @@ const CancelReasonsView = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-            Loading cancel reasons...
+            Loading return reasons...
           </div>
         </div>
       ) : filteredReasons.length === 0 ? (
@@ -357,10 +374,10 @@ const CancelReasonsView = () => {
           <h3 className={`text-xl font-semibold mb-2 ${
             theme === 'dark' ? 'text-white' : 'text-gray-900'
           }`}>
-            No Cancel Reasons Found
+            No return reasons found
           </h3>
           <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-            {searchTerm ? 'Try adjusting your search.' : 'Get started by adding your first cancel reason.'}
+            {searchTerm ? 'Try adjusting your search.' : 'Get started by adding your first return reason.'}
           </p>
         </div>
       ) : viewMode === 'list' ? (
@@ -407,6 +424,13 @@ const CancelReasonsView = () => {
         message={notification.message}
         autoClose={notification.autoClose}
         autoCloseDelay={notification.autoCloseDelay}
+      />
+
+      {/* Add Reason Modal */}
+      <AddReasonModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddReason}
       />
     </div>
   );

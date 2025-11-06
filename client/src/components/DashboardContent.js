@@ -77,7 +77,7 @@ const DashboardContent = ({
       color: 'from-orange-500 to-orange-600'
     },
     {
-      title: 'Routes Completed',
+      title: 'Tours Completed',
       value: '1,247',
       change: '+8%',
       changeType: 'increase',

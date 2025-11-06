@@ -19,9 +19,7 @@ const StockView = () => {
   const [selectedSalesman, setSelectedSalesman] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSalesman, setFilterSalesman] = useState('');
-  const [filterProduct, setFilterProduct] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [productSearchTerm, setProductSearchTerm] = useState('');
 
   useEffect(() => {
     fetchInitialData();
@@ -31,7 +29,7 @@ const StockView = () => {
     if (!selectedSalesman) {
       fetchFillups();
     }
-  }, [filterSalesman, filterProduct, dateFrom, dateTo]);
+  }, [filterSalesman]);
 
   const fetchInitialData = async () => {
     try {
@@ -127,7 +125,8 @@ const StockView = () => {
   const filteredSalesmen = salesmenWithStock.filter(salesman => {
     if (!searchTerm) return true;
     const search = searchTerm.toLowerCase();
-    return salesman.salesmanName.toLowerCase().includes(search);
+    return salesman.salesmanName.toLowerCase().includes(search) ||
+           salesman.salesId.toString().includes(search);
   });
 
   const getFilteredStock = () => {
@@ -135,14 +134,9 @@ const StockView = () => {
     
     const stockMap = new Map();
     
-    selectedSalesman.fillups.forEach(fillup => {
-      if (dateFrom && new Date(fillup.createdAt) < new Date(dateFrom)) return;
-      if (dateTo && new Date(fillup.createdAt) > new Date(dateTo)) return;
-      
+    selectedSalesman.fillups.forEach(fillup => {      
       if (fillup.items && Array.isArray(fillup.items)) {
         fillup.items.forEach(item => {
-          if (filterProduct && item.prodId !== parseInt(filterProduct)) return;
-          
           const key = item.prodId;
           if (stockMap.has(key)) {
             const existing = stockMap.get(key);
@@ -162,7 +156,18 @@ const StockView = () => {
       }
     });
     
-    return Array.from(stockMap.values()).sort((a, b) => b.quantity - a.quantity);
+    let stockArray = Array.from(stockMap.values());
+    
+    // Filter by product search term
+    if (productSearchTerm) {
+      const search = productSearchTerm.toLowerCase();
+      stockArray = stockArray.filter(item => 
+        item.productName.toLowerCase().includes(search) ||
+        item.prodId.toString().includes(search)
+      );
+    }
+    
+    return stockArray.sort((a, b) => b.quantity - a.quantity);
   };
 
   if (!selectedSalesman) {
@@ -193,7 +198,7 @@ const StockView = () => {
                 }`} size={20} />
                 <input
                   type="text"
-                  placeholder="Search salesmen..."
+                  placeholder="Search by name or ID..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
@@ -203,63 +208,6 @@ const StockView = () => {
                   } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                 />
               </div>
-            </div>
-
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <User className="w-4 h-4 inline mr-2" />
-                Filter by Salesman
-              </label>
-              <select
-                value={filterSalesman}
-                onChange={(e) => setFilterSalesman(e.target.value)}
-                className={`w-full px-4 py-2 rounded-lg border ${
-                  theme === 'dark'
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
-                } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-              >
-                <option value="">All Salesmen</option>
-                {salesmen.map(salesman => (
-                  <option key={salesman.salesId} value={salesman.salesId}>
-                    {salesman.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <Calendar className="w-4 h-4 inline mr-2" />
-                From Date
-              </label>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className={`w-full px-4 py-2 rounded-lg border ${
-                  theme === 'dark'
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
-                } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-              />
-            </div>
-
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <Calendar className="w-4 h-4 inline mr-2" />
-                To Date
-              </label>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className={`w-full px-4 py-2 rounded-lg border ${
-                  theme === 'dark'
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
-                } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-              />
             </div>
           </div>
         </div>
@@ -422,59 +370,25 @@ const StockView = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              <Package className="w-4 h-4 inline mr-2" />
-              Filter by Product
+              <Search className="w-4 h-4 inline mr-2" />
+              Search Products
             </label>
-            <select
-              value={filterProduct}
-              onChange={(e) => setFilterProduct(e.target.value)}
-              className={`w-full px-4 py-2 rounded-lg border ${
-                theme === 'dark'
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-            >
-              <option value="">All Products</option>
-              {products.map(product => (
-                <option key={product.prodId} value={product.prodId}>
-                  {product.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              <Calendar className="w-4 h-4 inline mr-2" />
-              From Date
-            </label>
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className={`w-full px-4 py-2 rounded-lg border ${
-                theme === 'dark'
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-            />
-          </div>
-
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              <Calendar className="w-4 h-4 inline mr-2" />
-              To Date
-            </label>
-            <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className={`w-full px-4 py-2 rounded-lg border ${
-                theme === 'dark'
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-            />
+            <div className="relative">
+              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+              }`} size={20} />
+              <input
+                type="text"
+                placeholder="Search by product name or ID..."
+                value={productSearchTerm}
+                onChange={(e) => setProductSearchTerm(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
+                  theme === 'dark'
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Search, Filter, Calendar, DollarSign, User, Package, ChevronDown, ChevronRight, Eye } from 'lucide-react';
+import { FileText, Search, Filter, Calendar, DollarSign, User, Package, ChevronRight, Eye } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotification } from '../hooks/useNotification';
+import InvoiceDetailsPage from './InvoiceDetailsPage';
 import axios from 'axios';
 
 axios.defaults.baseURL = 'http://localhost:3000';
@@ -23,7 +24,7 @@ const InvoicesView = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [expandedInvoices, setExpandedInvoices] = useState({});
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   useEffect(() => {
     fetchInitialData();
@@ -72,11 +73,13 @@ const InvoicesView = () => {
     }
   };
 
-  const toggleInvoice = (invId) => {
-    setExpandedInvoices(prev => ({
-      ...prev,
-      [invId]: !prev[invId]
-    }));
+  const handleInvoiceClick = (invoice) => {
+    setSelectedInvoice(invoice);
+  };
+
+  const handleBackToList = () => {
+    setSelectedInvoice(null);
+    fetchInvoices(); // Refresh the list
   };
 
   const filteredInvoices = invoices.filter(invoice => {
@@ -132,6 +135,11 @@ const InvoicesView = () => {
         return theme === 'dark' ? 'bg-gray-500/20 text-gray-400' : 'bg-gray-100 text-gray-700';
     }
   };
+
+  // Show invoice details if an invoice is selected
+  if (selectedInvoice) {
+    return <InvoiceDetailsPage invoice={selectedInvoice} onBack={handleBackToList} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -325,31 +333,21 @@ const InvoicesView = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredInvoices.map((invoice) => {
-            const isExpanded = expandedInvoices[invoice.invId];
-            
-            return (
+          {filteredInvoices.map((invoice) => (
               <motion.div
                 key={invoice.invId}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`rounded-xl overflow-hidden ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-sm`}
+                onClick={() => handleInvoiceClick(invoice)}
+                className={`rounded-xl overflow-hidden cursor-pointer transition-all ${
+                  theme === 'dark' 
+                    ? 'bg-gray-800 hover:bg-gray-750 hover:shadow-xl' 
+                    : 'bg-white hover:bg-gray-50 hover:shadow-xl'
+                } shadow-sm`}
               >
-                {/* Invoice Header */}
-                <div
-                  onClick={() => toggleInvoice(invoice.invId)}
-                  className={`p-6 cursor-pointer transition-colors ${
-                    theme === 'dark' ? 'hover:bg-gray-750' : 'hover:bg-gray-50'
-                  }`}
-                >
+                <div className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 flex-1">
-                      {isExpanded ? (
-                        <ChevronDown className="w-5 h-5 text-blue-500" />
-                      ) : (
-                        <ChevronRight className="w-5 h-5 text-gray-500" />
-                      )}
-                      
                       <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-50'}`}>
                         <FileText className="w-6 h-6 text-blue-500" />
                       </div>
@@ -383,70 +381,21 @@ const InvoicesView = () => {
                       </div>
                     </div>
                     
-                    <div className="text-right ml-4">
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        {formatCurrency(invoice.totalAmt)}
-                      </p>
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                        Net: {formatCurrency(invoice.netAmt)}
-                      </p>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                          {formatCurrency(invoice.totalAmt)}
+                        </p>
+                        <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                          Net: {formatCurrency(invoice.netAmt)}
+                        </p>
+                      </div>
+                      <ChevronRight className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                     </div>
                   </div>
                 </div>
-
-                {/* Invoice Details (Expanded) */}
-                {isExpanded && (
-                  <div className={`border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} p-6`}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                      <div>
-                        <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                          Journey ID
-                        </p>
-                        <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          {invoice.journeyId || 'N/A'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                          Visit ID
-                        </p>
-                        <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          {invoice.visitId || 'N/A'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                          Tax Amount
-                        </p>
-                        <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          {formatCurrency(invoice.taxAmt)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                          Discount Amount
-                        </p>
-                        <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          {formatCurrency(invoice.disAmt)}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {invoice.invRef && (
-                      <div className="mt-2">
-                        <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                          Reference
-                        </p>
-                        <p className={`text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          {invoice.invRef}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
               </motion.div>
-            );
-          })}
+          ))}
         </div>
       )}
     </div>

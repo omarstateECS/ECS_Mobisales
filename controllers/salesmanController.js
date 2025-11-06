@@ -258,7 +258,7 @@ class SalesmanController {
           });
         }
     }
-    
+
     async createVisit(req, res) {
         const visitData = req.body;
         

@@ -242,15 +242,6 @@ const FillupHistoryView = () => {
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="text-right">
-                      <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                        Total Quantity
-                      </p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
-                        {totalQuantity}
-                      </p>
-                    </div>
                   </div>
                 </div>
 
