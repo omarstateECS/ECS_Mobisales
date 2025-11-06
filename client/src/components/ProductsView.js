@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Plus, Search, Package, Eye, Settings, Trash2, Edit, ChevronLeft, ChevronRight, BarChart3, Tag, ArrowUpDown, FileText } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Package, Eye, Settings, Trash2, Edit, ChevronLeft, ChevronRight, BarChart3, Tag, ArrowUpDown, FileText, XCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import axios from 'axios';
 import AddProductModal from './AddProductModal';
@@ -44,8 +44,17 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
           : 'bg-white border border-gray-200 hover:border-purple-300 hover:shadow-2xl'
       }`}
     >
-      {/* Stock Badge - Top Right */}
-      <div className="absolute top-3 right-3">
+      {/* Status Badges - Top Right */}
+      <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
+        {/* Deactivated Badge */}
+        {!product.isActive && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium backdrop-blur-sm border bg-red-500 text-black-400 border-gray-500/30">
+            <XCircle size={12} />
+            Deactivated
+          </div>
+        )}
+        
+        {/* Stock Badge */}
         <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium backdrop-blur-sm border ${
           (product.stock || 0) > 10
             ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
@@ -181,12 +190,12 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
                 ? 'bg-gray-700/50 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border border-gray-600/50 hover:border-red-500/40'
                 : 'bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 border border-gray-200'
             }`}
-            title="Delete"
+            title="Deactivate"
           >
             {deletingProductId === product.prodId ? (
               <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin"></div>
             ) : (
-              <Trash2 size={16} />
+              <XCircle size={16} />
             )}
           </button>
         </div>
@@ -209,6 +218,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
     const [deletingProductId, setDeletingProductId] = useState(null);
     const [viewMode, setViewMode] = useState('grid');
     const [sortBy, setSortBy] = useState('name-asc');
+    const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'active', 'deactivated'
     const [confirmationModal, setConfirmationModal] = useState({
         isOpen: false,
         title: '',
@@ -315,8 +325,8 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
     const handleDeleteProduct = async (productId, productName) => {
         setConfirmationModal({
             isOpen: true,
-            title: 'Delete Product',
-            message: `Are you sure you want to delete "${productName}"? This action cannot be undone.`,
+            title: 'Deactivate Product',
+            message: `Are you sure you want to deactivate "${productName}"? This product will be hidden from all lists but can be reactivated later.`,
             onConfirm: () => confirmDeleteProduct(productId),
             loading: false
         });
@@ -328,14 +338,14 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
         
         try {
             await axios.delete(`/api/products/${productId}`);
-            setProducts(prev => prev.filter(product => product.prodId !== productId));
-            setTotalProducts(prev => prev - 1);
+            // Refresh products to show deactivated status instead of removing
+            fetchProducts();
             setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
-            showDelete('Product has been deleted successfully!');
+            showDelete('Product has been deactivated successfully!', 'Deactivated');
         } catch (error) {
-            console.error('Error deleting product:', error);
+            console.error('Error deactivating product:', error);
             setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
-            showError('Error Deleting Product', error.response?.data?.error || error.message);
+            showError('Error Deactivating Product', error.response?.data?.error || error.message);
         } finally {
             setDeletingProductId(null);
         }
@@ -352,25 +362,32 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
         setSortBy(sortOption);
     };
 
-    // Sort products based on selected option
-    const sortedProducts = [...products].sort((a, b) => {
-        switch (sortBy) {
-            case 'name-asc':
-                return a.name.localeCompare(b.name);
-            case 'name-desc':
-                return b.name.localeCompare(a.name);
-            case 'price-asc':
-                return (a.basePrice || 0) - (b.basePrice || 0);
-            case 'price-desc':
-                return (b.basePrice || 0) - (a.basePrice || 0);
-            case 'stock-asc':
-                return (a.stock || 0) - (b.stock || 0);
-            case 'stock-desc':
-                return (b.stock || 0) - (a.stock || 0);
-            default:
-                return 0;
-        }
-    });
+    // Filter products by status and then sort
+    const filteredAndSortedProducts = [...products]
+        .filter(product => {
+            // Filter by status
+            if (statusFilter === 'active') return product.isActive === true;
+            if (statusFilter === 'deactivated') return product.isActive === false;
+            return true; // 'all' - show everything
+        })
+        .sort((a, b) => {
+            switch (sortBy) {
+                case 'name-asc':
+                    return a.name.localeCompare(b.name);
+                case 'name-desc':
+                    return b.name.localeCompare(a.name);
+                case 'price-asc':
+                    return (a.basePrice || 0) - (b.basePrice || 0);
+                case 'price-desc':
+                    return (b.basePrice || 0) - (a.basePrice || 0);
+                case 'stock-asc':
+                    return (a.stock || 0) - (b.stock || 0);
+                case 'stock-desc':
+                    return (b.stock || 0) - (a.stock || 0);
+                default:
+                    return 0;
+            }
+        });
 
     if (loading && products.length === 0) {
         return (
@@ -432,6 +449,15 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                                 <option key={category} value={category}>{category}</option>
                             ))}
                         </select>
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                        >
+                            <option value="all">All Products</option>
+                            <option value="active">Active Only</option>
+                            <option value="deactivated">Deactivated Only</option>
+                        </select>
                         <div className="relative">
                             <ArrowUpDown className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                             <select
@@ -464,9 +490,11 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                     {/* Results Summary */}
                     <div className="flex items-center justify-between text-sm text-gray-400">
                         <div>
-                            Showing {((currentPage - 1) * limit) + 1}-{Math.min(currentPage * limit, totalProducts)} of {totalProducts} products
+                            Showing {filteredAndSortedProducts.length} of {totalProducts} products
                             {searchQuery && ` matching "${searchQuery}"`}
                             {selectedCategory !== 'all' && ` in ${selectedCategory} category`}
+                            {statusFilter === 'active' && ` (Active only)`}
+                            {statusFilter === 'deactivated' && ` (Deactivated only)`}
                         </div>
                     </div>
                 </div>
@@ -501,7 +529,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                  </div>
             ) : viewMode === 'list' ? (
                 <ProductsList
-                    products={sortedProducts}
+                    products={filteredAndSortedProducts}
                     handleViewDetails={handleViewDetails}
                     handleEditProduct={handleEditProduct}
                     handleDeleteProduct={handleDeleteProduct}
@@ -522,7 +550,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                          }
                      }}
                  >
-                     {sortedProducts.map((product, index) => (
+                     {filteredAndSortedProducts.map((product, index) => (
                          <motion.div
                              key={product.prodId}
                              variants={{
@@ -630,7 +658,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                 message={confirmationModal.message}
                 loading={confirmationModal.loading}
                 type="danger"
-                confirmText="Delete"
+                confirmText="Deactivate"
                 cancelText="Cancel"
             />
         </div>

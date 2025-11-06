@@ -6,6 +6,7 @@ class ProductService {
     async getAllProducts() {
         const prisma = getPrismaClient();
         const products = await prisma.product.findMany({
+            where: { isActive: true },
             include: {
                 units: {
                     orderBy: { uom: 'asc' }
@@ -31,6 +32,7 @@ class ProductService {
     async getAllProductsWithStock() {
         const prisma = getPrismaClient();
         const products = await prisma.product.findMany({
+            where: { isActive: true },
             include: {
                 units: {
                     orderBy: { uom: 'asc' }
@@ -156,12 +158,13 @@ class ProductService {
         return updatedProduct;
     }
 
-    // Delete a product by ID
+    // Deactivate a product by ID (soft delete)
     async deleteProduct(id) {
         const prisma = getPrismaClient();
-        // Hard delete since isActive field no longer exists
-        return await prisma.product.delete({
-            where: { prodId: Number(id) }
+        // Soft delete by setting isActive to false
+        return await prisma.product.update({
+            where: { prodId: Number(id) },
+            data: { isActive: false }
         });
     }
 
@@ -170,7 +173,7 @@ class ProductService {
         const prisma = getPrismaClient();
         const skip = (page - 1) * limit;
         
-        // Build where clause
+        // Build where clause - show all products (including deactivated)
         let whereClause = {};
         
         if (category && category !== 'all') {
@@ -222,7 +225,8 @@ class ProductService {
         const [products, total] = await Promise.all([
             prisma.product.findMany({
                 where: { 
-                    category: category
+                    category: category,
+                    isActive: true
                 },
                 include: {
                     units: {
@@ -235,7 +239,8 @@ class ProductService {
             }),
             prisma.product.count({
                 where: { 
-                    category: category
+                    category: category,
+                    isActive: true
                 }
             })
         ]);
@@ -261,6 +266,7 @@ class ProductService {
         const [products, total] = await Promise.all([
             prisma.product.findMany({
                 where: {
+                    isActive: true,
                     OR: [
                         { name: { contains: query, mode: 'insensitive' } },
                         { category: { contains: query, mode: 'insensitive' } }

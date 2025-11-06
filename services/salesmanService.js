@@ -970,17 +970,17 @@ class SalesmanService {
             throw new Error('Search data is required');
         }
         
-        const { invoiceId, date, customerId} = data;
+        const { invoiceId, startDate, endDate, customerId} = data;
 
         if (!customerId) {
             throw new Error('customerId is required to search invoices');
         }
 
-        if (!invoiceId && !date) {
+        if (!invoiceId && !startDate && !endDate) {
             throw new Error('No search criteria provided. Please provide either invoiceId or date');
         }
 
-        if (invoiceId && !date) {
+        if (invoiceId && !startDate && !endDate) {
             try {
                 const invoices = await prisma.invoiceHeader.findMany({
                     where: {
@@ -1011,12 +1011,13 @@ class SalesmanService {
             }
         }
 
-        if (date && !invoiceId) {
+        if (startDate && endDate && !invoiceId) {
             try {
-                // Build where clause - salesId is always required
+                // Build where clause for date range
                 const whereClause = {
                     createdAt: {
-                        startsWith: date  // Matches any timestamp starting with the date
+                        gte: startDate,  // Greater than or equal to start date
+                        lte: endDate + ' 23:59:59.999'  // Less than or equal to end date (end of day)
                     },
                     custId: customerId,
                     invType: 'SALE'
@@ -1047,13 +1048,14 @@ class SalesmanService {
         }
     }
 
-    if (invoiceId && date) {
+    if (invoiceId && startDate && endDate) {
         try {
-            // Build where clause - salesId is always required
+            // Build where clause for specific invoice within date range
             const whereClause = {
                 invId: invoiceId,
                 createdAt: {
-                    startsWith: date  // Matches any timestamp starting with the date
+                    gte: startDate,  // Greater than or equal to start date
+                    lte: endDate + ' 23:59:59.999'  // Less than or equal to end date (end of day)
                 },
                 custId: customerId,
                 invType: 'SALE'

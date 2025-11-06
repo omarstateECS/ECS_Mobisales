@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, Trash2, Ban, CheckCircle } from 'lucide-react';
+import { AlertTriangle, Trash2, Ban, CheckCircle, XCircle } from 'lucide-react';
 
 const ConfirmationModal = ({ 
   isOpen, 
@@ -87,6 +87,8 @@ const ConfirmationModal = ({
               >
                 {type === 'danger' && confirmText === 'Block' ? (
                   <Ban className={`w-8 h-8 ${styles.iconColor} stroke-[2.5]`} />
+                ) : type === 'danger' && confirmText === 'Deactivate' ? (
+                  <XCircle className={`w-8 h-8 ${styles.iconColor} stroke-[2.5]`} />
                 ) : type === 'success' || (type === 'warning' && confirmText === 'Unblock') ? (
                   <CheckCircle className={`w-8 h-8 ${styles.iconColor} stroke-[2.5]`} />
                 ) : type === 'danger' ? (

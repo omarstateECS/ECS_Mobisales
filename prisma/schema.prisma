@@ -51,6 +51,7 @@ model Product {
   category       String
   stock          Int
   nonSellableQty Int
+  isActive       Boolean      @default(true)
   baseUom        String
   basePrice      Decimal      @db.Decimal(18, 5)
   units          ProductUOM[]
