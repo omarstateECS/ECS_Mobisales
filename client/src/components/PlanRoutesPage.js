@@ -19,6 +19,8 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const customersRef = useRef(null);
+  const [showRegionDropdown, setShowRegionDropdown] = useState(false);
+  const [regionSearch, setRegionSearch] = useState('');
 
   // Fetch salesmen on component mount and when salesmenRefreshKey changes
   useEffect(() => {
@@ -26,6 +28,18 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
     fetchCustomers();
     fetchRegions();
   }, [salesmenRefreshKey]);
+
+  // Close region dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.region-filter-container')) {
+        setShowRegionDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const fetchSalesmen = async () => {
     try {
@@ -500,64 +514,139 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
             />
           </div>
           
-          {/* Region Filter - Multi-select */}
-          <div>
+          {/* Region Filter - Multi-select with tags inside input */}
+          <div className="relative region-filter-container">
             <div className="relative">
-              <Globe className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
-              <select
-                value=""
-                onChange={(e) => {
-                  const regionId = parseInt(e.target.value);
-                  if (regionId && !salesmanRegionFilter.includes(regionId)) {
-                    setSalesmanRegionFilter(prev => [...prev, regionId]);
-                  }
-                }}
-                className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all appearance-none ${
+              <Globe className={`absolute left-3 top-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
+              <div
+                onClick={() => setShowRegionDropdown(!showRegionDropdown)}
+                className={`min-h-[42px] w-full pl-10 pr-4 py-2 rounded-xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all ${
                   theme === 'dark'
                     ? 'bg-gray-800/50 border border-gray-700/50 text-white'
                     : 'bg-gray-50 border border-gray-200 text-gray-900'
                 }`}
               >
-                <option value="">Add Region Filter...</option>
-                {regions.filter(r => !salesmanRegionFilter.includes(r.id)).map((region) => (
-                  <option key={region.id} value={region.id}>
-                    {region.region} - {region.city}, {region.country}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            {/* Selected Regions Badges */}
-            {salesmanRegionFilter.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {salesmanRegionFilter.map(regionId => {
-                  const region = regions.find(r => r.id === regionId);
-                  if (!region) return null;
-                  return (
-                    <div
-                      key={regionId}
-                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                {/* Selected Region Tags */}
+                <div className="flex flex-wrap gap-1.5">
+                  {salesmanRegionFilter.length > 0 ? (
+                    salesmanRegionFilter.map(regionId => {
+                      const region = regions.find(r => r.id === regionId);
+                      if (!region) return null;
+                      return (
+                        <div
+                          key={regionId}
+                          className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ${
+                            theme === 'dark'
+                              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                              : 'bg-purple-100 text-purple-700 border border-purple-300'
+                          }`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span>{region.region}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSalesmanRegionFilter(prev => prev.filter(id => id !== regionId));
+                            }}
+                            className="hover:bg-red-500/20 rounded p-0.5 transition-colors"
+                          >
+                            <XCircle size={12} className="text-red-400" />
+                          </button>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}>
+                      Select regions to filter...
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              {/* Dropdown with checkboxes */}
+              {showRegionDropdown && (
+                <div className={`absolute top-full left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-xl border shadow-2xl z-[9999] ${
+                  theme === 'dark'
+                    ? 'bg-gray-800 border-gray-700'
+                    : 'bg-white border-gray-200'
+                }`}>
+                  {/* Search input */}
+                  <div className="p-2 border-b border-gray-700">
+                    <input
+                      type="text"
+                      value={regionSearch}
+                      onChange={(e) => setRegionSearch(e.target.value)}
+                      placeholder="Search regions..."
+                      className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${
                         theme === 'dark'
-                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                          : 'bg-purple-100 text-purple-700 border border-purple-300'
+                          ? 'bg-gray-700 border border-gray-600 text-white placeholder-gray-400'
+                          : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-500'
+                      }`}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  
+                  {/* Clear All button */}
+                  {salesmanRegionFilter.length > 0 && (
+                    <button
+                      onClick={() => {
+                        setSalesmanRegionFilter([]);
+                        setRegionSearch('');
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors border-b ${
+                        theme === 'dark'
+                          ? 'text-red-400 hover:bg-gray-700/50 border-gray-700'
+                          : 'text-red-600 hover:bg-gray-50 border-gray-200'
                       }`}
                     >
-                      <Globe size={14} />
-                      <span>{region.region} - {region.city}</span>
-                      <button
-                        onClick={() => {
-                          setSalesmanRegionFilter(prev => prev.filter(id => id !== regionId));
-                        }}
-                        className="hover:bg-red-500/20 rounded p-0.5 transition-colors"
-                        title="Remove region filter"
-                      >
-                        <XCircle size={14} className="text-red-400" />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                      Clear All Filters
+                    </button>
+                  )}
+                  
+                  {/* Region options with checkboxes */}
+                  <div className="max-h-48 overflow-y-auto">
+                    {regions
+                      .filter(r => !regionSearch || r.region.toLowerCase().includes(regionSearch.toLowerCase()) || r.city.toLowerCase().includes(regionSearch.toLowerCase()))
+                      .map((region) => {
+                        const isSelected = salesmanRegionFilter.includes(region.id);
+                        return (
+                          <label
+                            key={region.id}
+                            className={`flex items-center gap-3 px-4 py-2 cursor-pointer transition-colors ${
+                              isSelected
+                                ? theme === 'dark'
+                                  ? 'bg-purple-500/20 text-purple-300'
+                                  : 'bg-purple-50 text-purple-700'
+                                : theme === 'dark'
+                                  ? 'text-gray-300 hover:bg-gray-700/50'
+                                  : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSalesmanRegionFilter(prev => [...prev, region.id]);
+                                } else {
+                                  setSalesmanRegionFilter(prev => prev.filter(id => id !== region.id));
+                                }
+                              }}
+                              className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            />
+                            <div className="flex-1">
+                              <div className="text-sm font-medium">{region.region}</div>
+                              <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                                {region.city}, {region.country}
+                              </div>
+                            </div>
+                          </label>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

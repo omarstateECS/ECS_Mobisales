@@ -1,18 +1,48 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Menu, Search, Bell, User, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
-const Header = ({ currentView, setSidebarOpen }) => {
+const Header = ({ setSidebarOpen }) => {
   const { theme, toggleTheme } = useTheme();
+  const location = useLocation();
+  
+  // Map routes to titles and descriptions
+  const getPageInfo = (pathname) => {
+    const routes = {
+      '/': { title: 'Dashboard Overview', description: 'Manage your sales operations efficiently' },
+      '/customers': { title: 'All Customers', description: 'Manage your customers' },
+      '/products': { title: 'Products Management', description: 'Manage your product catalog and inventory' },
+      '/salesmen': { title: 'All Salesmen', description: 'Manage your sales team' },
+      '/tours': { title: 'Tours', description: 'View and manage sales tours' },
+      '/plan-routes': { title: 'Plan Routes', description: 'Plan and assign customer routes' },
+      '/fillup': { title: 'Create Fillup', description: 'Assign products to salesmen' },
+      '/fillup-history': { title: 'Fillup History', description: 'View fillup history' },
+      '/invoices': { title: 'Invoices', description: 'Manage invoices' },
+      '/stock': { title: 'Stock Management', description: 'Manage salesman stock' },
+      '/loadorders': { title: 'Load Orders', description: 'Manage load orders' },
+      '/regions': { title: 'Regions', description: 'Manage regions' },
+      '/industries': { title: 'Industries', description: 'Manage industries' },
+      '/authorities': { title: 'Authorities', description: 'Manage user authorities' },
+      '/cancel-reasons': { title: 'Return Reasons', description: 'Manage return reasons' },
+      '/settings': { title: 'Settings', description: 'Configure system settings' }
+    };
+    
+    return routes[pathname] || { title: 'MobiSales', description: 'Admin Dashboard' };
+  };
+  
+  const pageInfo = getPageInfo(location.pathname);
+  const isDashboard = location.pathname === '/';
+  
   return (
     <motion.header 
-      className="bg-gray-900/80 backdrop-blur-xl border-b border-gray-700/50 sticky top-0 z-30"
+      className="bg-gray-900/10 backdrop-blur-xl border-b border-gray-700/50 sticky top-0 z-30 h-[73px]"
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
     >
-      <div className="flex items-center justify-between px-6 py-4">
+      <div className="flex items-center justify-between h-full px-6">
         <div className="flex items-center space-x-4">
           <motion.button
             onClick={() => setSidebarOpen(true)}
@@ -23,24 +53,24 @@ const Header = ({ currentView, setSidebarOpen }) => {
           >
             <Menu size={20} />
           </motion.button>
-          <motion.div
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-          >
-            <h2 className="text-2xl font-bold text-white">
-              {currentView === 'all-customers' ? 'All Customers' : 
-               currentView === 'products' ? 'Products Management' : 'Dashboard Overview'}
-            </h2>
-            <p className="text-gray-400">
-              {currentView === 'all-customers' ? 'Manage your customers' : 
-               currentView === 'products' ? 'Manage your product catalog and inventory' : 'Manage your sales operations efficiently'}
-            </p>
-          </motion.div>
+          {isDashboard && (
+            <motion.div
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <h2 className="text-2xl font-bold text-white">
+                {pageInfo.title}
+              </h2>
+              <p className="text-gray-400">
+                {pageInfo.description}
+              </p>
+            </motion.div>
+          )}
         </div>
 
         <motion.div 
-          className="flex items-center space-x-4"
+          className="flex items-center space-x-3"
           initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.2 }}
@@ -51,14 +81,14 @@ const Header = ({ currentView, setSidebarOpen }) => {
             <input
               type="text"
               placeholder="Search..."
-              className="w-64 pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+              className="w-64 h-10 pl-10 pr-4 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
             />
           </div>
 
           {/* Theme Toggle */}
           <motion.button 
             onClick={toggleTheme}
-            className="relative p-2 rounded-xl hover:bg-gray-800/50 text-gray-400 hover:text-white transition-colors"
+            className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-800/50 text-gray-400 hover:text-white transition-colors"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.2 }}
@@ -69,14 +99,14 @@ const Header = ({ currentView, setSidebarOpen }) => {
 
           {/* Notifications */}
           <motion.button 
-            className="relative p-2 rounded-xl hover:bg-gray-800/50 text-gray-400 hover:text-white transition-colors"
+            className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-800/50 text-gray-400 hover:text-white transition-colors"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.2 }}
           >
             <Bell size={20} />
             <motion.span 
-              className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"
+              className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.5, type: "spring", stiffness: 500 }}
@@ -85,12 +115,12 @@ const Header = ({ currentView, setSidebarOpen }) => {
 
           {/* User Menu */}
           <motion.div 
-            className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:shadow-lg transition-shadow"
+            className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:shadow-lg transition-shadow"
             whileHover={{ scale: 1.05, rotate: 5 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.2 }}
           >
-            <User size={16} className="text-white" />
+            <User size={18} className="text-white" />
           </motion.div>
         </motion.div>
       </div>

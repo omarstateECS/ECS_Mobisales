@@ -25,6 +25,7 @@ const AddSalesmanModal = ({
   const [errors, setErrors] = useState({});
   const [hasLoadedId, setHasLoadedId] = useState(false);
   const [regions, setRegions] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
 
   // Fetch next available ID and regions when modal opens
@@ -241,6 +242,7 @@ const AddSalesmanModal = ({
         regionIds: []
       });
       setErrors({});
+      setSelectedCountry(''); // Reset country filter
       setSelectedCity(''); // Reset city filter
       setHasLoadedId(false); // Reset so next open will fetch new ID
       onClose();
@@ -370,48 +372,77 @@ const AddSalesmanModal = ({
               {errors.address && <p className="mt-2 text-sm text-red-400">{errors.address}</p>}
             </div>
 
-            {/* Region Selection (Multiple) */}
+            {/* Region Selection (Multiple) with Cascading Filters */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-3">
                 <Globe size={16} className="inline mr-2" />
                 Assigned Regions *
               </label>
               
-              {/* City Filter Dropdown */}
-              <select
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
-                disabled={loading}
-                className="w-full px-4 py-2.5 mb-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <option value="">All Cities</option>
-                {[...new Set(regions.map(r => r.city))].sort().map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </select>
+              {/* Cascading Filter Dropdowns */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                {/* Country Filter */}
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5">Country</label>
+                  <select
+                    value={selectedCountry}
+                    onChange={(e) => {
+                      setSelectedCountry(e.target.value);
+                      setSelectedCity(''); // Reset city when country changes
+                    }}
+                    disabled={loading}
+                    className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all disabled:opacity-50"
+                  >
+                    <option value="">All Countries</option>
+                    {[...new Set(regions.map(r => r.country))].sort().map((country) => (
+                      <option key={country} value={country}>{country}</option>
+                    ))}
+                  </select>
+                </div>
 
-              {/* Regions Grid */}
-              <div className="max-h-64 overflow-y-auto bg-gray-800/50 border border-gray-700/50 rounded-xl p-3">
+                {/* City Filter */}
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5">City</label>
+                  <select
+                    value={selectedCity}
+                    onChange={(e) => setSelectedCity(e.target.value)}
+                    disabled={loading || !selectedCountry}
+                    className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all disabled:opacity-50"
+                  >
+                    <option value="">All Cities</option>
+                    {[...new Set(
+                      regions
+                        .filter(r => !selectedCountry || r.country === selectedCountry)
+                        .map(r => r.city)
+                    )].sort().map((city) => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Regions List */}
+              <div className="max-h-56 overflow-y-auto bg-gray-700/30 border border-gray-600/50 rounded-lg p-2">
                 {regions.length === 0 ? (
-                  <p className="text-sm text-gray-500 text-center py-4">No regions available</p>
+                  <p className="text-sm text-gray-500 text-center py-8">No regions available</p>
                 ) : (
                   (() => {
-                    const filteredRegions = selectedCity 
-                      ? regions.filter(r => r.city === selectedCity)
-                      : regions;
+                    const filteredRegions = regions.filter(r => {
+                      if (selectedCountry && r.country !== selectedCountry) return false;
+                      if (selectedCity && r.city !== selectedCity) return false;
+                      return true;
+                    });
                     
                     if (filteredRegions.length === 0) {
                       return (
-                        <p className="text-sm text-gray-500 text-center py-4">
-                          No regions found in {selectedCity}
+                        <p className="text-sm text-gray-500 text-center py-8">
+                          No regions found for selected filters
                         </p>
                       );
                     }
                     
                     return (
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1.5">
                         {filteredRegions.map((region) => {
                           const isSelected = formData.regionIds.includes(region.id);
                           return (
@@ -428,29 +459,32 @@ const AddSalesmanModal = ({
                                   }));
                                 }
                               }}
-                              className={`relative p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                              className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                                 isSelected
-                                  ? 'border-green-500 bg-green-500/10 shadow-lg shadow-green-500/20'
-                                  : 'border-gray-700/50 bg-gray-700/30 hover:border-gray-600 hover:bg-gray-700/50'
+                                  ? 'bg-green-500/20 border-2 border-green-500/50'
+                                  : 'bg-gray-800/50 border-2 border-transparent hover:bg-gray-700/50 hover:border-gray-600/50'
                               } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
-                              {/* Selection indicator */}
-                              {isSelected && (
-                                <div className="absolute top-2 right-2 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                                  <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path d="M5 13l4 4L19 7"></path>
-                                  </svg>
-                                </div>
-                              )}
-                              
-                              {/* Region info */}
-                              <div className="pr-6">
-                                <div className={`text-sm font-semibold mb-1 ${isSelected ? 'text-green-400' : 'text-gray-200'}`}>
+                              <div className="flex-1 min-w-0">
+                                <div className={`text-sm font-semibold truncate ${isSelected ? 'text-green-400' : 'text-gray-200'}`}>
                                   {region.region}
                                 </div>
-                                <div className="text-xs text-gray-400">
+                                <div className="text-xs text-gray-400 truncate">
                                   {region.city}, {region.country}
                                 </div>
+                              </div>
+                              
+                              {/* Checkbox */}
+                              <div className={`ml-3 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                isSelected 
+                                  ? 'bg-green-500 border-green-500' 
+                                  : 'border-gray-500'
+                              }`}>
+                                {isSelected && (
+                                  <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M5 13l4 4L19 7"></path>
+                                  </svg>
+                                )}
                               </div>
                             </div>
                           );
@@ -460,13 +494,20 @@ const AddSalesmanModal = ({
                   })()
                 )}
               </div>
-              <p className="mt-2 text-xs text-gray-500">
-                {formData.regionIds.length > 0 
-                  ? `${formData.regionIds.length} region${formData.regionIds.length !== 1 ? 's' : ''} selected`
-                  : selectedCity 
-                    ? `Filter by city, then select regions`
-                    : 'Select a city to filter regions, then choose one or more'}
-              </p>
+              
+              {/* Selection Summary */}
+              <div className="mt-2 flex items-center justify-between text-xs">
+                <span className="text-gray-500">
+                  {selectedCountry && selectedCity 
+                    ? `Showing regions in ${selectedCity}, ${selectedCountry}`
+                    : selectedCountry 
+                      ? `Showing regions in ${selectedCountry}`
+                      : 'Showing all regions'}
+                </span>
+                <span className={`font-medium ${formData.regionIds.length > 0 ? 'text-green-400' : 'text-gray-500'}`}>
+                  {formData.regionIds.length} selected
+                </span>
+              </div>
             </div>
 
             {/* Password */}

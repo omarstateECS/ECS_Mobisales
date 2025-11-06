@@ -1,40 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Sidebar from './components/Sidebar';
-import Header from './components/Header';
-import DashboardContent from './components/DashboardContent';
-import CustomersView from './components/CustomersView';
-import ProductsView from './components/ProductsView';
-import SalesmenView from './components/SalesmenView';
-import PlanRoutesPage from './components/PlanRoutesPage';
-import SettingsPage from './components/SettingsPage';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import MainLayout from './layout/MainLayout';
+import DashboardPage from './pages/DashboardPage';
+import CustomersPage from './pages/CustomersPage';
+import ProductsPage from './pages/ProductsPage';
+import SalesmenPage from './pages/SalesmenPage';
+import PlanRoutesPage from './pages/PlanRoutesPage';
+import ToursPage from './pages/ToursPage';
+import AuthoritiesPage from './pages/AuthoritiesPage';
+import IndustriesPage from './pages/IndustriesPage';
+import RegionsPage from './pages/RegionsPage';
+import FillupPage from './pages/FillupPage';
+import FillupHistoryPage from './pages/FillupHistoryPage';
+import InvoicesPage from './pages/InvoicesPage';
+import StockPage from './pages/StockPage';
+import LoadOrdersPage from './pages/LoadOrdersPage';
+import CancelReasonsPage from './pages/CancelReasonsPage';
+import SettingsPage from './pages/SettingsPage';
+import CustomerDetailsPage from './pages/CustomerDetailsPage';
+import SalesmanDetailsPage from './pages/SalesmanDetailsPage';
+import TourDetailsPage from './pages/TourDetailsPage';
 import AddCustomerModal from './components/AddCustomerModal';
 import EditCustomerModal from './components/EditCustomerModal';
-import CustomerDetailsPage from './components/CustomerDetailsPage';
 import AddProductModal from './components/AddProductModal';
 import AddSalesmanModal from './components/AddSalesmanModal';
 import EditSalesmanModal from './components/EditSalesmanModal';
-import SalesmanDetailsPage from './components/SalesmanDetailsPage';
-import ToursView from './components/ToursView';
-import TourDetailsPage from './components/TourDetailsPage';
-import CancelReasonsView from './components/CancelReasonsView';
-import AuthoritiesView from './components/AuthoritiesView';
-import IndustriesView from './components/IndustriesView';
-import RegionsView from './components/RegionsView';
-import FillupView from './components/FillupView';
-import FillupHistoryView from './components/FillupHistoryView';
-import InvoicesView from './components/InvoicesView';
-import StockView from './components/StockView';
-import LoadOrdersView from './components/LoadOrdersView';
 import ConfirmationModal from './components/common/ConfirmationModal';
 import NotificationModal from './components/common/NotificationModal';
 import { useNotification } from './hooks/useNotification';
 import { useTheme } from './contexts/ThemeContext';
 import './theme.css';
 
-const Dashboard = () => {
+const AppContent = () => {
   const { theme } = useTheme();
   const { notification, showSuccess, showDelete, showError, showWarning, hideNotification } = useNotification();
+  const navigate = useNavigate();
+  
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState({
     customers: false,
@@ -56,7 +57,6 @@ const Dashboard = () => {
   const [pendingCustomerData, setPendingCustomerData] = useState(null);
 
   const [loading, setLoading] = useState(false);
-  const [currentView, setCurrentView] = useState('dashboard');
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [addCustomerLoading, setAddCustomerLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -86,15 +86,12 @@ const Dashboard = () => {
   const [editSelectedLocation, setEditSelectedLocation] = useState(null);
 
   // Customer details view states
-  const [showCustomerDetails, setShowCustomerDetails] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
 
   // Salesman details view states
-  const [showSalesmanDetails, setShowSalesmanDetails] = useState(false);
   const [selectedSalesman, setSelectedSalesman] = useState(null);
 
   // Tour details view states
-  const [showTourDetails, setShowTourDetails] = useState(false);
   const [selectedTour, setSelectedTour] = useState(null);
 
   // Add Product Modal states
@@ -270,7 +267,7 @@ const Dashboard = () => {
   // View salesman details function
   const handleViewSalesmanDetails = (salesman) => {
     setSelectedSalesman(salesman);
-    setShowSalesmanDetails(true);
+    navigate(`/salesmen/${salesman.salesId}`);
   };
 
   // Add new customer function
@@ -574,14 +571,10 @@ const Dashboard = () => {
 
   const handleViewDetails = (customer) => {
     setSelectedCustomer(customer);
-    setShowCustomerDetails(true);
+    navigate(`/customers/${customer.customerId}`);
   };
 
   const handleEditFromDetails = (customer) => {
-    // Don't close customer details - keep it open in background
-    // setShowCustomerDetails(false);
-    // setSelectedCustomer(null);
-    
     setEditingCustomer(customer);
     setEditFormData({
       name: customer.name || '',
@@ -602,32 +595,16 @@ const Dashboard = () => {
     setShowEditCustomerModal(true);
   };
 
-  const handleBackFromDetails = () => {
-    setShowCustomerDetails(false);
-    setSelectedCustomer(null);
-  };
-
   // Salesman details functions
   const handleEditSalesmanFromDetails = (salesman) => {
-    // Keep salesman details open in background
     setEditingSalesman(salesman);
     setShowEditSalesmanModal(true);
-  };
-
-  const handleBackFromSalesmanDetails = () => {
-    setShowSalesmanDetails(false);
-    setSelectedSalesman(null);
   };
 
   // Tour details functions
   const handleViewTourDetails = (tour) => {
     setSelectedTour(tour);
-    setShowTourDetails(true);
-  };
-
-  const handleBackFromTourDetails = () => {
-    setShowTourDetails(false);
-    setSelectedTour(null);
+    navigate(`/tours/${tour.journeyId}`);
   };
 
   // Function to refresh selected salesman data
@@ -774,12 +751,7 @@ const Dashboard = () => {
     fetchCustomers();
   }, []);
 
-  // Fetch salesmen when navigating to salesmen view
-  useEffect(() => {
-    if (currentView === 'all-salesmen') {
-      fetchSalesmen();
-    }
-  }, [currentView, salesmenRefreshKey]);
+  // Removed useEffect for currentView - now handled by page components
 
   const toggleMenu = (menuId) => {
     setExpandedMenus(prev => ({
@@ -788,320 +760,6 @@ const Dashboard = () => {
     }));
   };
 
-  const handleNavigation = (view) => {
-    setCurrentView(view);
-    setSidebarOpen(false);
-    // Close any open detail pages when navigating
-    setShowCustomerDetails(false);
-    setShowSalesmanDetails(false);
-    setShowTourDetails(false);
-    setSelectedCustomer(null);
-    setSelectedSalesman(null);
-    setSelectedTour(null);
-  };
-
-  // Render different views based on currentView state
-  const renderMainContent = () => {
-    if (showCustomerDetails && selectedCustomer) {
-      return (
-        <motion.div
-          key="customer-details"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-        >
-          <CustomerDetailsPage
-            customer={selectedCustomer}
-            onBack={handleBackFromDetails}
-            onEdit={handleEditFromDetails}
-          />
-        </motion.div>
-      );
-    }
-
-    if (showSalesmanDetails && selectedSalesman) {
-      return (
-        <motion.div
-          key="salesman-details"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-        >
-          <SalesmanDetailsPage
-            salesman={selectedSalesman}
-            onBack={handleBackFromSalesmanDetails}
-            onEdit={handleEditSalesmanFromDetails}
-            onRefresh={refreshSelectedSalesman}
-            handleNavigation={handleNavigation}
-          />
-        </motion.div>
-      );
-    }
-
-    if (showTourDetails && selectedTour) {
-      return (
-        <motion.div
-          key="tour-details"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-        >
-          <TourDetailsPage
-            journey={selectedTour}
-            onBack={handleBackFromTourDetails}
-          />
-        </motion.div>
-      );
-    }
-
-    switch (currentView) {
-      case 'all-customers':
-        return (
-          <motion.div
-            key="customers"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <CustomersView
-              handleNavigation={handleNavigation}
-              openAddCustomerModal={openAddCustomerModal}
-              fetchCustomers={fetchCustomers}
-              loading={loading}
-              customers={customers}
-              handleDeleteCustomer={handleDeleteCustomer}
-              deletingCustomerId={deletingCustomerId}
-              handleEditCustomer={handleEditCustomer}
-              handleViewDetails={handleViewDetails}
-            />
-          </motion.div>
-        );
-      
-      case 'products':
-        return (
-          <motion.div
-            key="products"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <ProductsView
-              openAddProductModal={openAddProductModal}
-              refreshKey={productsRefreshKey}
-            />
-          </motion.div>
-        );
-      
-      case 'all-salesmen':
-        return (
-          <motion.div
-            key="salesmen"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <SalesmenView
-              handleNavigation={handleNavigation}
-              openAddSalesmanModal={openAddSalesmanModal}
-              fetchSalesmen={fetchSalesmen}
-              loading={loading}
-              salesmen={salesmen}
-              handleDeleteSalesman={handleDeleteSalesman}
-              deletingSalesmanId={deletingSalesmanId}
-              handleEditSalesman={handleEditSalesman}
-              handleViewDetails={handleViewSalesmanDetails}
-            />
-          </motion.div>
-        );
-      
-      case 'plan-routes':
-        return (
-          <motion.div
-            key="plan-routes"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <PlanRoutesPage
-              handleNavigation={handleNavigation}
-              salesmenRefreshKey={salesmenRefreshKey}
-            />
-          </motion.div>
-        );
-      
-      case 'tours':
-        return (
-          <motion.div
-            key="tours"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <ToursView
-              handleNavigation={handleNavigation}
-              onViewTourDetails={handleViewTourDetails}
-            />
-          </motion.div>
-        );
-      
-      case 'authorities':
-        return (
-          <motion.div
-            key="authorities"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <AuthoritiesView />
-          </motion.div>
-        );
-
-      case 'industries':
-        return (
-          <motion.div
-            key="industries"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <IndustriesView />
-          </motion.div>
-        );
-
-      case 'regions':
-        return (
-          <motion.div
-            key="regions"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <RegionsView />
-          </motion.div>
-        );
-
-      case 'fillup':
-        return (
-          <motion.div
-            key="fillup"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <FillupView />
-          </motion.div>
-        );
-
-      case 'fillup-history':
-        return (
-          <motion.div
-            key="fillup-history"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <FillupHistoryView />
-          </motion.div>
-        );
-
-      case 'invoices':
-        return (
-          <motion.div
-            key="invoices"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <InvoicesView />
-          </motion.div>
-        );
-
-      case 'stock':
-        return (
-          <motion.div
-            key="stock"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <StockView />
-          </motion.div>
-        );
-
-      case 'loadorders':
-        return (
-          <motion.div
-            key="loadorders"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <LoadOrdersView />
-          </motion.div>
-        );
-
-      case 'cancel-reasons':
-        return (
-          <motion.div
-            key="cancel-reasons"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <CancelReasonsView />
-          </motion.div>
-        );
-      
-      case 'settings':
-        return (
-          <motion.div
-            key="settings"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <SettingsPage />
-          </motion.div>
-        );
-      
-      default:
-        return (
-          <motion.div
-            key="dashboard"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <DashboardContent
-              customers={customers}
-              loading={loading}
-              openAddCustomerModal={openAddCustomerModal}
-              fetchCustomers={fetchCustomers}
-              handleNavigation={handleNavigation}
-            />
-          </motion.div>
-        );
-    }
-  };
 
   return (
     <div className={`min-h-screen ${
@@ -1161,34 +819,100 @@ const Dashboard = () => {
           onSuccess={(title, message) => showSuccess(title, message)}
         />
 
-      {/* Sidebar */}
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        expandedMenus={expandedMenus}
-        toggleMenu={toggleMenu}
-        handleNavigation={handleNavigation}
-        openAddCustomerModal={openAddCustomerModal}
-        openAddProductModal={openAddProductModal}
-        openAddSalesmanModal={openAddSalesmanModal}
-        currentView={currentView}
-      />
-
-      {/* Main Content */}
-      <div className="lg:ml-72">
-        {/* Top Navigation */}
-        <Header
-          currentView={currentView}
-          setSidebarOpen={setSidebarOpen}
-        />
-
-        {/* Main Content Area */}
-        <main className="p-6">
-          <AnimatePresence mode="wait">
-            {renderMainContent()}
-          </AnimatePresence>
-        </main>
-      </div>
+      {/* Routes */}
+      <Routes>
+        <Route path="/" element={
+          <MainLayout
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            expandedMenus={expandedMenus}
+            toggleMenu={toggleMenu}
+            openAddCustomerModal={openAddCustomerModal}
+            openAddProductModal={openAddProductModal}
+            openAddSalesmanModal={openAddSalesmanModal}
+          />
+        }>
+          <Route index element={
+            <DashboardPage
+              customers={customers}
+              loading={loading}
+              openAddCustomerModal={openAddCustomerModal}
+              fetchCustomers={fetchCustomers}
+            />
+          } />
+          
+          <Route path="customers" element={
+            <CustomersPage
+              openAddCustomerModal={openAddCustomerModal}
+              fetchCustomers={fetchCustomers}
+              loading={loading}
+              customers={customers}
+              handleDeleteCustomer={handleDeleteCustomer}
+              deletingCustomerId={deletingCustomerId}
+              handleEditCustomer={handleEditCustomer}
+              handleViewDetails={handleViewDetails}
+            />
+          } />
+          
+          <Route path="customers/:id" element={
+            <CustomerDetailsPage
+              selectedCustomer={selectedCustomer}
+              handleEditFromDetails={handleEditFromDetails}
+            />
+          } />
+          
+          <Route path="products" element={
+            <ProductsPage
+              openAddProductModal={openAddProductModal}
+              refreshKey={productsRefreshKey}
+            />
+          } />
+          
+          <Route path="salesmen" element={
+            <SalesmenPage
+              openAddSalesmanModal={openAddSalesmanModal}
+              fetchSalesmen={fetchSalesmen}
+              loading={loading}
+              salesmen={salesmen}
+              handleDeleteSalesman={handleDeleteSalesman}
+              deletingSalesmanId={deletingSalesmanId}
+              handleEditSalesman={handleEditSalesman}
+              handleViewDetails={handleViewSalesmanDetails}
+            />
+          } />
+          
+          <Route path="salesmen/:id" element={
+            <SalesmanDetailsPage
+              selectedSalesman={selectedSalesman}
+              handleEditSalesmanFromDetails={handleEditSalesmanFromDetails}
+              refreshSelectedSalesman={refreshSelectedSalesman}
+            />
+          } />
+          
+          <Route path="plan-routes" element={
+            <PlanRoutesPage salesmenRefreshKey={salesmenRefreshKey} />
+          } />
+          
+          <Route path="tours" element={
+            <ToursPage onViewTourDetails={handleViewTourDetails} />
+          } />
+          
+          <Route path="tours/:id" element={
+            <TourDetailsPage selectedTour={selectedTour} />
+          } />
+          
+          <Route path="authorities" element={<AuthoritiesPage />} />
+          <Route path="industries" element={<IndustriesPage />} />
+          <Route path="regions" element={<RegionsPage />} />
+          <Route path="fillup" element={<FillupPage />} />
+          <Route path="fillup-history" element={<FillupHistoryPage />} />
+          <Route path="invoices" element={<InvoicesPage />} />
+          <Route path="stock" element={<StockPage />} />
+          <Route path="loadorders" element={<LoadOrdersPage />} />
+          <Route path="cancel-reasons" element={<CancelReasonsPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+        </Route>
+      </Routes>
 
       {/* Notification Modal */}
       <NotificationModal
@@ -1217,6 +941,15 @@ const Dashboard = () => {
         cancelText="Cancel"
       />
     </div>
+  );
+};
+
+// Wrapper component with BrowserRouter
+const Dashboard = () => {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 };
 

@@ -2,6 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Search, ChevronLeft, ChevronRight, Calendar, MapPin, User, TrendingUp, Clock, Globe } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
+// Helper function to get default date range (1 month ago to today)
+const getDefaultDateRange = () => {
+  const today = new Date();
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(today.getMonth() - 1);
+  
+  return {
+    from: oneMonthAgo.toISOString().split('T')[0],
+    to: today.toISOString().split('T')[0]
+  };
+};
+
 const ToursView = ({ handleNavigation, onViewTourDetails }) => {
   const { theme } = useTheme();
   const [journeys, setJourneys] = useState([]);
@@ -12,11 +24,12 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   
+  const defaultDates = getDefaultDateRange();
   // Date filtering
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [appliedStartDate, setAppliedStartDate] = useState('');
-  const [appliedEndDate, setAppliedEndDate] = useState('');
+  const [startDate, setStartDate] = useState(defaultDates.from);
+  const [endDate, setEndDate] = useState(defaultDates.to);
+  const [appliedStartDate, setAppliedStartDate] = useState(defaultDates.from);
+  const [appliedEndDate, setAppliedEndDate] = useState(defaultDates.to);
   
   // Salesman filtering
   const [salesmen, setSalesmen] = useState([]);
@@ -33,8 +46,8 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
   // Tour ID search
   const [tourIdSearch, setTourIdSearch] = useState('');
   
-  // Status filter
-  const [selectedStatus, setSelectedStatus] = useState('');
+  // Status filter - now supports multiple selections
+  const [selectedStatuses, setSelectedStatuses] = useState([]);
 
   // Fetch salesmen and regions
   useEffect(() => {
@@ -163,7 +176,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
     setSalesmanSearch('');
     setSelectedRegion('');
     setTourIdSearch('');
-    setSelectedStatus('');
+    setSelectedStatuses([]);
     setCurrentPage(1);
   };
 
@@ -278,24 +291,39 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
           </div>
           <div className="flex-1">
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Status
+              Status {selectedStatuses.length > 0 && <span className="text-blue-400">({selectedStatuses.length})</span>}
             </label>
-            <div className="relative">
-              <Clock className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all appearance-none ${
-                  theme === 'dark'
-                    ? 'bg-gray-800/50 border border-gray-700/50 text-white'
-                    : 'bg-gray-50 border border-gray-200 text-gray-900'
-                }`}
-              >
-                <option value="">All Statuses</option>
-                <option value="not_started">Not Started</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
+            <div className="flex gap-2">
+              {[
+                { value: 'not_started', label: 'Not Started' },
+                { value: 'in_progress', label: 'In Progress'},
+                { value: 'completed', label: 'Completed'}
+              ].map((status) => {
+                const isSelected = selectedStatuses.includes(status.value);
+                return (
+                  <button
+                    key={status.value}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedStatuses(selectedStatuses.filter(s => s !== status.value));
+                      } else {
+                        setSelectedStatuses([...selectedStatuses, status.value]);
+                      }
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all ${
+                      isSelected
+                        ? 'bg-blue-500/20 text-blue-400 border-2 border-blue-500/50 shadow-lg shadow-blue-500/10'
+                        : theme === 'dark'
+                          ? 'bg-gray-800/50 text-gray-400 border-2 border-gray-700/50 hover:border-gray-600 hover:bg-gray-700/50'
+                          : 'bg-gray-50 text-gray-600 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span className="text-base">{status.icon}</span>
+                    <span>{status.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -462,19 +490,23 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
               // Tour ID filter
               const matchesTourId = !tourIdSearch || journey.journeyId.toString().includes(tourIdSearch);
               
-              // Status filter
+              // Status filter - supports multiple selections
               let matchesStatus = true;
-              if (selectedStatus) {
+              if (selectedStatuses.length > 0) {
                 const hasStarted = journey.startJourney !== null;
                 const hasEnded = journey.endJourney !== null;
                 
-                if (selectedStatus === 'not_started') {
-                  matchesStatus = !hasStarted;
-                } else if (selectedStatus === 'in_progress') {
-                  matchesStatus = hasStarted && !hasEnded;
-                } else if (selectedStatus === 'completed') {
-                  matchesStatus = hasEnded;
-                }
+                // Check if journey matches any of the selected statuses
+                matchesStatus = selectedStatuses.some(status => {
+                  if (status === 'not_started') {
+                    return !hasStarted;
+                  } else if (status === 'in_progress') {
+                    return hasStarted && !hasEnded;
+                  } else if (status === 'completed') {
+                    return hasEnded;
+                  }
+                  return false;
+                });
               }
               
               return matchesRegion && matchesTourId && matchesStatus;

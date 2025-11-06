@@ -17,24 +17,31 @@ const ConfirmationModal = ({
     switch (type) {
       case 'danger':
         return {
-          cardGradient: 'from-red-400 via-rose-400 to-pink-500',
-          iconBg: 'bg-white/20',
+          iconBg: 'bg-red-500/20',
+          iconColor: 'text-red-400',
           confirmBtn: 'bg-red-600 hover:bg-red-700',
-          cancelBtn: 'bg-gray-700/50 hover:bg-gray-600/50'
+          cancelBtn: 'bg-gray-700 hover:bg-gray-600'
         };
       case 'warning':
         return {
-          cardGradient: 'from-orange-400 via-amber-400 to-yellow-500',
-          iconBg: 'bg-white/20',
+          iconBg: 'bg-orange-500/20',
+          iconColor: 'text-orange-400',
           confirmBtn: 'bg-orange-600 hover:bg-orange-700',
-          cancelBtn: 'bg-gray-700/50 hover:bg-gray-600/50'
+          cancelBtn: 'bg-gray-700 hover:bg-gray-600'
+        };
+      case 'success':
+        return {
+          iconBg: 'bg-green-500/20',
+          iconColor: 'text-green-400',
+          confirmBtn: 'bg-green-600 hover:bg-green-700',
+          cancelBtn: 'bg-gray-700 hover:bg-gray-600'
         };
       default:
         return {
-          cardGradient: 'from-blue-400 via-cyan-400 to-sky-500',
-          iconBg: 'bg-white/20',
+          iconBg: 'bg-blue-500/20',
+          iconColor: 'text-blue-400',
           confirmBtn: 'bg-blue-600 hover:bg-blue-700',
-          cancelBtn: 'bg-gray-700/50 hover:bg-gray-600/50'
+          cancelBtn: 'bg-gray-700 hover:bg-gray-600'
         };
     }
   };
@@ -61,7 +68,7 @@ const ConfirmationModal = ({
               duration: 0.5,
               bounce: 0.3
             }}
-            className={`bg-gradient-to-br ${styles.cardGradient} rounded-3xl w-full max-w-md overflow-hidden shadow-2xl`}
+            className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Content */}
@@ -76,16 +83,16 @@ const ConfirmationModal = ({
                   stiffness: 200,
                   damping: 15
                 }}
-                className={`inline-flex items-center justify-center w-20 h-20 ${styles.iconBg} backdrop-blur-xl rounded-full mb-6 border border-white/30`}
+                className={`inline-flex items-center justify-center w-16 h-16 ${styles.iconBg} rounded-full mb-6 border border-gray-700`}
               >
                 {type === 'danger' && confirmText === 'Block' ? (
-                  <Ban className="w-12 h-12 text-white stroke-[2.5]" />
-                ) : type === 'warning' && confirmText === 'Unblock' ? (
-                  <CheckCircle className="w-12 h-12 text-white stroke-[2.5]" />
+                  <Ban className={`w-8 h-8 ${styles.iconColor} stroke-[2.5]`} />
+                ) : type === 'success' || (type === 'warning' && confirmText === 'Unblock') ? (
+                  <CheckCircle className={`w-8 h-8 ${styles.iconColor} stroke-[2.5]`} />
                 ) : type === 'danger' ? (
-                  <Trash2 className="w-12 h-12 text-white stroke-[2.5]" />
+                  <Trash2 className={`w-8 h-8 ${styles.iconColor} stroke-[2.5]`} />
                 ) : (
-                  <AlertTriangle className="w-12 h-12 text-white stroke-[2.5]" />
+                  <AlertTriangle className={`w-8 h-8 ${styles.iconColor} stroke-[2.5]`} />
                 )}
               </motion.div>
               
@@ -94,7 +101,7 @@ const ConfirmationModal = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-2xl font-bold text-white mb-4"
+                className="text-xl font-bold text-white mb-3"
               >
                 {title}
               </motion.h3>
@@ -104,7 +111,7 @@ const ConfirmationModal = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-white/90 text-sm leading-relaxed mb-8"
+                className="text-gray-300 text-sm leading-relaxed mb-6"
               >
                 {message}
               </motion.p>
@@ -119,14 +126,14 @@ const ConfirmationModal = ({
                 <button
                   onClick={onClose}
                   disabled={loading}
-                  className={`${styles.cancelBtn} backdrop-blur-xl text-white font-semibold px-6 py-3 rounded-xl border border-white/20 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`${styles.cancelBtn} text-white font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {cancelText}
                 </button>
                 <button
                   onClick={onConfirm}
                   disabled={loading}
-                  className={`${styles.confirmBtn} text-white font-semibold px-6 py-3 rounded-xl border border-white/20 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2`}
+                  className={`${styles.confirmBtn} text-white font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2`}
                 >
                   {loading ? (
                     <>

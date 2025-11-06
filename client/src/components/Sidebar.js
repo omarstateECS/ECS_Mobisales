@@ -1,4 +1,5 @@
 import React from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronDown, 
@@ -27,52 +28,56 @@ const SidebarItem = ({ item, isChild = false, expandedMenus, toggleMenu, isActiv
   const hasChildren = item.children && item.children.length > 0;
   const isExpanded = Boolean(expandedMenus[item.id]);
   const Icon = item.icon;
-  
-  // Debug logging for menu state
-  if (hasChildren) {
-    console.log(`Menu ${item.id} expanded state:`, isExpanded, 'expandedMenus:', expandedMenus);
-  }
+
+  const content = (
+    <motion.div
+      className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-300 group ${
+        isActive
+          ? isChild
+            ? 'ml-4 bg-blue-600/30 text-white border-l-4 border-blue-500'
+            : 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-white shadow-lg border-l-4 border-blue-500'
+          : isChild 
+            ? 'ml-4 text-gray-300 hover:text-white hover:bg-gray-700/50' 
+            : 'text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20 hover:shadow-lg'
+      }`}
+      onClick={() => {
+        if (hasChildren) {
+          toggleMenu(item.id);
+        } else if (item.onClick) {
+          item.onClick();
+        }
+      }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.2 }}
+    >
+      <div className="flex items-center space-x-3">
+        <Icon size={isChild ? 16 : 20} className="transition-colors duration-200" />
+        <span className={`font-medium transition-all duration-200 ${isChild ? 'text-sm' : ''}`}>
+          {item.label}
+        </span>
+      </div>
+      {hasChildren && (
+        <motion.div 
+          className="transform transition-transform duration-200"
+          animate={{ rotate: isExpanded ? 90 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronRight size={16} />
+        </motion.div>
+      )}
+    </motion.div>
+  );
 
   return (
     <div className="mb-1">
-      <motion.div
-        className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-300 group ${
-          isActive
-            ? isChild
-              ? 'ml-4 bg-blue-600/30 text-white border-l-4 border-blue-500'
-              : 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-white shadow-lg border-l-4 border-blue-500'
-            : isChild 
-              ? 'ml-4 text-gray-300 hover:text-white hover:bg-gray-700/50' 
-              : 'text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20 hover:shadow-lg'
-        }`}
-        onClick={() => {
-          if (hasChildren) {
-            console.log(`Toggling menu: ${item.id}, current state:`, expandedMenus[item.id]);
-            toggleMenu(item.id);
-          } else if (item.onClick) {
-            item.onClick();
-          }
-        }}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ duration: 0.2 }}
-      >
-        <div className="flex items-center space-x-3">
-          <Icon size={isChild ? 16 : 20} className="transition-colors duration-200" />
-          <span className={`font-medium transition-all duration-200 ${isChild ? 'text-sm' : ''}`}>
-            {item.label}
-          </span>
-        </div>
-        {hasChildren && (
-          <motion.div 
-            className="transform transition-transform duration-200"
-            animate={{ rotate: isExpanded ? 90 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <ChevronRight size={16} />
-          </motion.div>
-        )}
-      </motion.div>
+      {item.to && !hasChildren ? (
+        <NavLink to={item.to} className="block">
+          {content}
+        </NavLink>
+      ) : (
+        content
+      )}
       <AnimatePresence mode="wait" key={`${item.id}-${isExpanded}`}>
         {hasChildren && isExpanded && (
           <motion.div 
@@ -110,43 +115,23 @@ const Sidebar = ({
   setSidebarOpen, 
   expandedMenus, 
   toggleMenu, 
-  handleNavigation,
   openAddCustomerModal,
   openAddProductModal,
-  openAddSalesmanModal,
-  currentView
+  openAddSalesmanModal
 }) => {
-  // Map views to menu item IDs
-  const viewToMenuMap = {
-    'dashboard': 'dashboard',
-    'all-customers': 'all-customers',
-    'customer-analytics': 'customer-analytics',
-    'products': 'products',
-    'product-analytics': 'product-analytics',
-    'all-salesmen': 'all-salesmen',
-    'stock': 'stock',
-    'salesman-analytics': 'salesman-analytics',
-    'tours': 'tours',
-    'plan-routes': 'plan-routes',
-    'fillup': 'fillup',
-    'fillup-history': 'fillup-history',
-    'invoices': 'invoices',
-    'loadorders': 'loadorders',
-    'regions': 'regions',
-    'industries': 'industries',
-    'authorities': 'authorities',
-    'cancel-reasons': 'cancel-reasons',
-    'settings': 'settings'
-  };
-  
-  const activeMenuId = viewToMenuMap[currentView];
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  // Helper to check if path is active
+  const isPathActive = (path) => currentPath === path;
+
   const sidebarItems = [
     {
       id: 'dashboard',
       label: 'Dashboard',
       icon: Home,
-      onClick: () => handleNavigation('dashboard'),
-      isActive: activeMenuId === 'dashboard'
+      to: '/',
+      isActive: isPathActive('/')
     },
     {
       id: 'customers',
@@ -157,8 +142,8 @@ const Sidebar = ({
           id: 'all-customers',
           label: 'All Customers', 
           icon: Store,
-          onClick: () => handleNavigation('all-customers'),
-          isActive: activeMenuId === 'all-customers'
+          to: '/customers',
+          isActive: isPathActive('/customers')
         },
         { 
           id: 'add-customer',
@@ -171,8 +156,8 @@ const Sidebar = ({
           id: 'customer-analytics',
           label: 'Customer Analytics', 
           icon: BarChart3,
-          onClick: () => handleNavigation('customer-analytics'),
-          isActive: activeMenuId === 'customer-analytics'
+          to: '/customer-analytics',
+          isActive: isPathActive('/customer-analytics')
         }
       ]
     },
@@ -185,8 +170,8 @@ const Sidebar = ({
           id: 'products',
           label: 'All Products', 
           icon: Package,
-          onClick: () => handleNavigation('products'),
-          isActive: activeMenuId === 'products'
+          to: '/products',
+          isActive: isPathActive('/products')
         },
         { 
           id: 'add-product',
@@ -199,8 +184,8 @@ const Sidebar = ({
           id: 'product-analytics',
           label: 'Product Analytics', 
           icon: BarChart3,
-          onClick: () => handleNavigation('product-analytics'),
-          isActive: activeMenuId === 'product-analytics'
+          to: '/product-analytics',
+          isActive: isPathActive('/product-analytics')
         }
       ]
     },
@@ -213,8 +198,8 @@ const Sidebar = ({
           id: 'all-salesmen',
           label: 'All Salesmen', 
           icon: User,
-          onClick: () => handleNavigation('all-salesmen'),
-          isActive: activeMenuId === 'all-salesmen'
+          to: '/salesmen',
+          isActive: isPathActive('/salesmen')
         },
         { 
           id: 'add-salesman',
@@ -227,15 +212,15 @@ const Sidebar = ({
           id: 'stock',
           label: 'Stock', 
           icon: Package,
-          onClick: () => handleNavigation('stock'),
-          isActive: activeMenuId === 'stock'
+          to: '/stock',
+          isActive: isPathActive('/stock')
         },
         { 
           id: 'salesman-analytics',
           label: 'Salesman Analytics', 
           icon: BarChart3,
-          onClick: () => handleNavigation('salesman-analytics'),
-          isActive: activeMenuId === 'salesman-analytics'
+          to: '/salesman-analytics',
+          isActive: isPathActive('/salesman-analytics')
         }
       ]
     },
@@ -248,43 +233,43 @@ const Sidebar = ({
           id: 'tours',
           label: 'All Tours', 
           icon: Route,
-          onClick: () => handleNavigation('tours'),
-          isActive: activeMenuId === 'tours'
+          to: '/tours',
+          isActive: isPathActive('/tours')
         },
         { 
           id: 'plan-routes',
           label: 'Plan Routes', 
           icon: MapPin,
-          onClick: () => handleNavigation('plan-routes'),
-          isActive: activeMenuId === 'plan-routes'
+          to: '/plan-routes',
+          isActive: isPathActive('/plan-routes')
         },
         { 
           id: 'fillup',
           label: 'Create Fillup', 
           icon: Package,
-          onClick: () => handleNavigation('fillup'),
-          isActive: activeMenuId === 'fillup'
+          to: '/fillup',
+          isActive: isPathActive('/fillup')
         },
         { 
           id: 'fillup-history',
           label: 'Fillup History', 
           icon: Eye,
-          onClick: () => handleNavigation('fillup-history'),
-          isActive: activeMenuId === 'fillup-history'
+          to: '/fillup-history',
+          isActive: isPathActive('/fillup-history')
         },
         { 
           id: 'invoices',
           label: 'Invoices', 
           icon: FileText,
-          onClick: () => handleNavigation('invoices'),
-          isActive: activeMenuId === 'invoices'
+          to: '/invoices',
+          isActive: isPathActive('/invoices')
         },
         { 
           id: 'loadorders',
           label: 'Load Orders', 
           icon: ShoppingCart,
-          onClick: () => handleNavigation('loadorders'),
-          isActive: activeMenuId === 'loadorders'
+          to: '/loadorders',
+          isActive: isPathActive('/loadorders')
         }
       ]
     },
@@ -297,29 +282,29 @@ const Sidebar = ({
           id: 'regions',
           label: 'Regions', 
           icon: Globe,
-          onClick: () => handleNavigation('regions'),
-          isActive: activeMenuId === 'regions'
+          to: '/regions',
+          isActive: isPathActive('/regions')
         },
         { 
           id: 'industries',
           label: 'Industries', 
           icon: Building2,
-          onClick: () => handleNavigation('industries'),
-          isActive: activeMenuId === 'industries'
+          to: '/industries',
+          isActive: isPathActive('/industries')
         },
         { 
           id: 'authorities',
           label: 'Authorities', 
           icon: Shield,
-          onClick: () => handleNavigation('authorities'),
-          isActive: activeMenuId === 'authorities'
+          to: '/authorities',
+          isActive: isPathActive('/authorities')
         },
         { 
           id: 'cancel-reasons',
           label: 'Return Reasons', 
           icon: XCircle,
-          onClick: () => handleNavigation('cancel-reasons'),
-          isActive: activeMenuId === 'cancel-reasons'
+          to: '/cancel-reasons',
+          isActive: isPathActive('/cancel-reasons')
         }
       ]
     },
@@ -327,8 +312,8 @@ const Sidebar = ({
       id: 'settings',
       label: 'Settings',
       icon: Settings,
-      onClick: () => handleNavigation('settings'),
-      isActive: activeMenuId === 'settings'
+      to: '/settings',
+      isActive: isPathActive('/settings')
     }
   ];
 
@@ -343,12 +328,12 @@ const Sidebar = ({
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-gray-900/95 backdrop-blur-xl border-r border-gray-700/50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-gray-900/95 backdrop-blur-xl border-r-2 border-gray-600 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-700/50">
+          <div className="flex items-center justify-between px-6 border-b border-gray-700/50 h-[73px]">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                 <BarChart3 className="w-6 h-6 text-white" />

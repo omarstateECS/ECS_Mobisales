@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Plus, Search, Package, Eye, Settings, Trash2, Edit, ChevronLeft, ChevronRight, BarChart3, Tag, ArrowUpDown } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Package, Eye, Settings, Trash2, Edit, ChevronLeft, ChevronRight, BarChart3, Tag, ArrowUpDown, FileText } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import axios from 'axios';
 import AddProductModal from './AddProductModal';
@@ -37,146 +37,157 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className={`product-card backdrop-blur-sm border rounded-2xl p-6 transition-all duration-300 hover:shadow-xl group h-[420px] flex flex-col overflow-hidden ${
+      whileHover={{ y: -4 }}
+      className={`group relative overflow-hidden rounded-2xl transition-all duration-300 ${
         theme === 'dark'
-          ? 'bg-gray-800/40 border-gray-700/50 hover:bg-gray-800/60 hover:shadow-blue-500/10'
-          : 'bg-white border-gray-200 hover:border-purple-200 hover:shadow-lg'
+          ? 'bg-gray-800/90 border border-gray-700/50 hover:border-purple-500/50 hover:shadow-2xl hover:shadow-purple-500/10'
+          : 'bg-white border border-gray-200 hover:border-purple-300 hover:shadow-2xl'
       }`}
     >
-      <div className="flex items-start justify-between mb-4 flex-shrink-0">
-        <div className="flex items-center space-x-3 min-w-0 flex-1">
-          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+      {/* Stock Badge - Top Right */}
+      <div className="absolute top-3 right-3">
+        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium backdrop-blur-sm border ${
+          (product.stock || 0) > 10
+            ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+            : (product.stock || 0) > 0
+              ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+              : 'bg-red-500/20 text-red-400 border-red-500/30'
+        }`}>
+          <div className={`w-1.5 h-1.5 rounded-full ${
+            (product.stock || 0) > 10 ? 'bg-blue-400' : (product.stock || 0) > 0 ? 'bg-yellow-400' : 'bg-red-400'
+          } animate-pulse`}></div>
+          Stock: {product.stock || 0}
+        </div>
+      </div>
+
+      <div className="p-5">
+        {/* Header Section */}
+        <div className="flex items-start gap-3 mb-4 pr-24">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg flex-shrink-0">
             <Package className="w-6 h-6 text-white" />
           </div>
-          <div className="min-w-0 flex-1">
-            <h3 className={`text-lg font-semibold group-hover:text-purple-400 transition-colors truncate ${
+          
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <h3 className={`text-lg font-bold mb-0.5 truncate group-hover:text-purple-400 transition-colors ${
               theme === 'dark' ? 'text-white' : 'text-gray-900'
-            }`}>
+            }`} title={product.name}>
               {product.name}
             </h3>
-            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>ID: #{product.prodId}</p>
-            {/* Price and Stock badges */}
-            <div className="flex items-center gap-2 mt-2">
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                theme === 'dark'
-                  ? 'bg-emerald-500/20 text-emerald-400'
-                  : 'bg-emerald-100 text-emerald-900'
+            <p className={`text-xs font-medium truncate ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+              ID: #{product.prodId}
+            </p>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className={`text-lg font-bold ${
+                theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
               }`}>
                 {formatPrice(product.basePrice || 0)}
               </span>
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                (product.stock || 0) > 10 
-                  ? theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-900'
-                  : (product.stock || 0) > 0 
-                    ? theme === 'dark' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-100 text-yellow-900'
-                    : theme === 'dark' ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-900'
+            </div>
+          </div>
+        </div>
+
+        {/* Info Grid */}
+        <div className="space-y-2.5 mb-4">
+          {product.brand && (
+            <div className={`flex items-center gap-2.5 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'
               }`}>
-                Stock: {product.stock || 0}
+                <Tag size={14} className="text-purple-400" />
+              </div>
+              <span className="text-sm font-medium">{product.brand}</span>
+            </div>
+          )}
+          
+          {product.category && (
+            <div className={`flex items-center gap-2.5 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'
+              }`}>
+                <BarChart3 size={14} className="text-pink-400" />
+              </div>
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg ${
+                theme === 'dark'
+                  ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                  : 'bg-purple-50 text-purple-700 border border-purple-200'
+              }`}>
+                {product.category}
               </span>
             </div>
-          </div>
-        </div>
-        <div className="flex space-x-1 flex-shrink-0 ml-2">
-          <button 
-            onClick={() => handleViewDetails(product)}
-            className="p-2 rounded-lg hover:bg-gray-700/50 text-gray-400 hover:text-white transition-colors flex-shrink-0"
-            title="View details"
-          >
-            <Eye size={16} />
-          </button>
-          <button 
-            onClick={() => handleEditProduct(product)}
-            className="p-2 rounded-lg hover:bg-emerald-600/20 text-gray-400 hover:text-emerald-400 transition-colors flex-shrink-0"
-            title="Edit product"
-          >
-            <Edit size={16} />
-          </button>
-          <button className="p-2 rounded-lg hover:bg-gray-700/50 text-gray-400 hover:text-white transition-colors flex-shrink-0">
-            <Settings size={16} />
-          </button>
-          <button 
-            onClick={() => handleDeleteProduct(product.prodId, product.name)}
-            disabled={deletingProductId === product.prodId}
-            className="p-2 rounded-lg hover:bg-red-600/20 text-gray-400 hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-            title="Delete product"
-          >
-            {deletingProductId === product.prodId ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-red-400/30 border-t-red-400"></div>
-            ) : (
-              <Trash2 size={16} />
-            )}
-          </button>
-        </div>
-      </div>
+          )}
 
-      <div className="space-y-3 flex-1 min-h-0">
-        {product.description && (
-          <div className="flex items-start space-x-2 text-gray-300">
-            <BarChart3 size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
-            <span className="text-sm description line-clamp-2">{product.description}</span>
-          </div>
-        )}
-        
-        {product.brand && (
-          <div className="flex items-center space-x-2 text-gray-300">
-            <Tag size={16} className="text-gray-400" />
-            <span className="text-sm">{product.brand}</span>
-          </div>
-        )}
+          {product.description && (
+            <div className={`flex items-start gap-2.5 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100'
+              }`}>
+                <FileText size={14} className="text-blue-400" />
+              </div>
+              <span className="text-xs line-clamp-2">{product.description}</span>
+            </div>
+          )}
+        </div>
 
-        {product.category && (
-          <div className="flex items-center justify-between pt-2 border-t border-gray-700/50">
-            <span className="inline-block text-xs px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full">
-              {product.category}
-            </span>
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-              <span className="text-xs text-emerald-400">Active</span>
+        {/* Product Units Summary */}
+        {product.productUnits && product.productUnits.length > 0 && (
+          <div className="mb-4 p-3 rounded-xl bg-gray-700/30 border border-gray-600/30">
+            <h4 className="text-xs font-semibold text-gray-400 mb-2">Available Units</h4>
+            <div className="space-y-1.5">
+              {product.productUnits.slice(0, 2).map(unit => (
+                <div key={unit.id} className="flex items-center justify-between">
+                  <span className="text-xs text-gray-300">{unit.unitName}</span>
+                  <span className="text-xs font-bold text-purple-400">{formatPrice(unit.price)}</span>
+                </div>
+              ))}
+              {product.productUnits.length > 2 && (
+                <div className="text-xs text-gray-500 text-center pt-1">
+                  +{product.productUnits.length - 2} more
+                </div>
+              )}
             </div>
           </div>
         )}
-      </div>
 
-      {/* Product Units Summary */}
-      {product.productUnits && product.productUnits.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-700/50 flex-shrink-0">
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium text-gray-300">Available Units:</h4>
-            {product.productUnits.slice(0, 2).map(unit => (
-              <div key={unit.id} className="flex items-center justify-between text-xs">
-                <span className="text-gray-400">{unit.unitName}</span>
-                <span className="text-purple-400 font-medium">{formatPrice(unit.price)}</span>
-              </div>
-            ))}
-            {product.productUnits.length > 2 && (
-              <div className="text-xs text-gray-500 text-center">
-                +{product.productUnits.length - 2} more units
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      <div className={`mt-4 pt-4 border-t flex-shrink-0 ${
-        theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200'
-      }`}>
-        <div className="flex space-x-2">
+        {/* Action Buttons */}
+        <div className="flex gap-2 pt-3 border-t border-gray-700/30">
           <button 
             onClick={() => handleViewDetails(product)}
-            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex-1 py-2.5 px-3 rounded-xl font-semibold text-sm transition-all duration-200 ${
               theme === 'dark'
-                ? 'bg-purple-600/20 hover:bg-purple-600/30 text-purple-400'
-                : 'bg-purple-100 hover:bg-purple-200 text-purple-900'
+                ? 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 hover:border-purple-500/40'
+                : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200'
             }`}
           >
             View Details
           </button>
-          <button className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-            theme === 'dark'
-              ? 'bg-gray-700/50 hover:bg-gray-700 text-gray-300'
-              : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
-          }`}>
-            Manage Stock
+          
+          <button 
+            onClick={() => handleEditProduct(product)}
+            className={`p-2.5 rounded-xl transition-all duration-200 ${
+              theme === 'dark'
+                ? 'bg-gray-700/50 hover:bg-blue-500/20 text-gray-400 hover:text-blue-400 border border-gray-600/50 hover:border-blue-500/40'
+                : 'bg-gray-100 hover:bg-blue-50 text-gray-600 hover:text-blue-600 border border-gray-200'
+            }`}
+            title="Edit"
+          >
+            <Edit size={16} />
+          </button>
+          
+          <button 
+            onClick={() => handleDeleteProduct(product.prodId, product.name)}
+            disabled={deletingProductId === product.prodId}
+            className={`p-2.5 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+              theme === 'dark'
+                ? 'bg-gray-700/50 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border border-gray-600/50 hover:border-red-500/40'
+                : 'bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 border border-gray-200'
+            }`}
+            title="Delete"
+          >
+            {deletingProductId === product.prodId ? (
+              <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin"></div>
+            ) : (
+              <Trash2 size={16} />
+            )}
           </button>
         </div>
       </div>

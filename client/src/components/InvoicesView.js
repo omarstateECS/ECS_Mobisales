@@ -8,6 +8,18 @@ import axios from 'axios';
 
 axios.defaults.baseURL = 'http://localhost:3000';
 
+// Helper function to get default date range (1 month ago to today)
+const getDefaultDateRange = () => {
+  const today = new Date();
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(today.getMonth() - 1);
+  
+  return {
+    from: oneMonthAgo.toISOString().split('T')[0],
+    to: today.toISOString().split('T')[0]
+  };
+};
+
 const InvoicesView = () => {
   const { theme } = useTheme();
   const { showError } = useNotification();
@@ -17,13 +29,14 @@ const InvoicesView = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   
+  const defaultDates = getDefaultDateRange();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSalesman, setSelectedSalesman] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom, setDateFrom] = useState(defaultDates.from);
+  const [dateTo, setDateTo] = useState(defaultDates.to);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   useEffect(() => {

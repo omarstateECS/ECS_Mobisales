@@ -31,6 +31,8 @@ const CustomersView = ({
   const [hasMorePages, setHasMorePages] = useState(true);
   const [viewMode, setViewMode] = useState('grid');
   const [regions, setRegions] = useState([]);
+  const [regionSearch, setRegionSearch] = useState('');
+  const [showRegionDropdown, setShowRegionDropdown] = useState(false);
 
   // Get unique industries for filter
   const industries = [...new Set(customers.map(c => c.industry?.name).filter(Boolean))].sort();
@@ -59,6 +61,18 @@ const CustomersView = ({
       }
     };
     fetchRegions();
+  }, []);
+
+  // Close region dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.region-search-container')) {
+        setShowRegionDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Note: For server-side pagination, we treat `customers` as the current page from server.
@@ -160,14 +174,14 @@ const CustomersView = ({
       </div>
 
       {/* Search and Filter Bar */}
-      <div className={`backdrop-blur-sm rounded-2xl p-4 ${
+      <div className={`backdrop-blur-sm rounded-2xl p-4 relative z-50 ${
         theme === 'dark'
           ? 'bg-gray-800/40 border border-gray-700/50'
           : 'bg-white border border-gray-200'
       }`}>
         <div className="flex flex-col gap-4">
           {/* Search and Basic Filters */}
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-4 relative z-10">
             <div className="flex-1 relative">
               <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
               <input
@@ -243,23 +257,92 @@ const CustomersView = ({
                 <option key={city} value={city}>{city}</option>
               ))}
             </select>
-            <select
-              value={selectedRegion}
-              onChange={(e) => setSelectedRegion(e.target.value)}
-              disabled={!selectedCity && !selectedCountry}
-              className={`px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
-                theme === 'dark'
-                  ? 'bg-gray-800/50 border border-gray-700/50 text-white'
-                  : 'bg-gray-50 border border-gray-200 text-gray-900'
-              } ${!selectedCity && !selectedCountry ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <option value="">All Regions</option>
-              {filteredRegions.map(region => (
-                <option key={region.id} value={region.id}>
-                  {region.region}
-                </option>
-              ))}
-            </select>
+            <div className="relative region-search-container">
+              <input
+                type="text"
+                value={regionSearch}
+                onChange={(e) => {
+                  setRegionSearch(e.target.value);
+                  setShowRegionDropdown(true);
+                }}
+                onFocus={() => setShowRegionDropdown(true)}
+                disabled={!selectedCity && !selectedCountry}
+                placeholder={selectedRegion ? regions.find(r => r.id === parseInt(selectedRegion))?.region || "Search regions..." : "Search regions..."}
+                className={`w-full px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-500'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400'
+                } ${!selectedCity && !selectedCountry ? 'opacity-50 cursor-not-allowed' : ''}`}
+              />
+              
+              {/* Region Dropdown Results */}
+              {showRegionDropdown && (selectedCity || selectedCountry) && (
+                <div className={`absolute top-full left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-xl border shadow-2xl z-[9999] ${
+                  theme === 'dark'
+                    ? 'bg-gray-800 border-gray-700'
+                    : 'bg-white border-gray-200'
+                }`}>
+                  {/* Clear Selection Option */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedRegion('');
+                      setRegionSearch('');
+                      setShowRegionDropdown(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm transition-colors border-b ${
+                      theme === 'dark'
+                        ? 'text-gray-400 hover:bg-gray-700/50 border-gray-700'
+                        : 'text-gray-600 hover:bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    All Regions (Clear filter)
+                  </button>
+                  
+                  {(() => {
+                    const searchFiltered = filteredRegions.filter(r => 
+                      !regionSearch || r.region.toLowerCase().includes(regionSearch.toLowerCase())
+                    );
+                    
+                    if (searchFiltered.length === 0) {
+                      return (
+                        <div className={`p-4 text-sm text-center ${
+                          theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+                        }`}>
+                          No regions found
+                        </div>
+                      );
+                    }
+                    
+                    return searchFiltered.map(region => (
+                      <button
+                        key={region.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedRegion(region.id.toString());
+                          setRegionSearch(region.region);
+                          setShowRegionDropdown(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                          selectedRegion === region.id.toString()
+                            ? theme === 'dark'
+                              ? 'bg-blue-500/20 text-blue-400'
+                              : 'bg-blue-50 text-blue-600'
+                            : theme === 'dark'
+                              ? 'text-gray-300 hover:bg-gray-700/50'
+                              : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="font-medium">{region.region}</div>
+                        <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                          {region.city}, {region.country}
+                        </div>
+                      </button>
+                    ));
+                  })()}
+                </div>
+              )}
+            </div>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}

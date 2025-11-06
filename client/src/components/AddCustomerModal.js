@@ -17,6 +17,9 @@ const AddCustomerModal = ({
   const [showMap, setShowMap] = useState(false);
   const [regions, setRegions] = useState([]);
   const [industries, setIndustries] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
+  const [regionSearch, setRegionSearch] = useState('');
   
   // Fetch regions and industries when modal opens
   useEffect(() => {
@@ -194,26 +197,117 @@ const AddCustomerModal = ({
               </div>
             </div>
 
-            {/* Region Selection */}
+            {/* Region Selection with Cascading Filters */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
+              <label className="block text-sm font-medium text-gray-300 mb-3 flex items-center">
                 <Globe size={16} className="mr-2" />
-                Region
+                Region (Optional)
               </label>
-              <select
-                name="regionId"
-                value={formData.regionId || ''}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-              >
-                <option value="">Select region (optional)</option>
-                {regions.map((region) => (
-                  <option key={region.id} value={region.id}>
-                    {region.region} - {region.city}, {region.country}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-xs text-gray-500">Assign this customer to a specific region</p>
+              
+              {/* Cascading Filter Dropdowns */}
+              <div className="grid grid-cols-3 gap-3 mb-3">
+                {/* Country Filter */}
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5">Country</label>
+                  <select
+                    value={selectedCountry}
+                    onChange={(e) => {
+                      setSelectedCountry(e.target.value);
+                      setSelectedCity(''); // Reset city when country changes
+                      handleInputChange({ target: { name: 'regionId', value: '' } }); // Reset region
+                    }}
+                    className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  >
+                    <option value="">All Countries</option>
+                    {[...new Set(regions.map(r => r.country))].sort().map((country) => (
+                      <option key={country} value={country}>{country}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* City Filter */}
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5">City</label>
+                  <select
+                    value={selectedCity}
+                    onChange={(e) => {
+                      setSelectedCity(e.target.value);
+                      handleInputChange({ target: { name: 'regionId', value: '' } }); // Reset region
+                    }}
+                    disabled={!selectedCountry}
+                    className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all disabled:opacity-50"
+                  >
+                    <option value="">All Cities</option>
+                    {[...new Set(
+                      regions
+                        .filter(r => !selectedCountry || r.country === selectedCountry)
+                        .map(r => r.city)
+                    )].sort().map((city) => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Region Search */}
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5">Region</label>
+                  <input
+                    type="text"
+                    value={regionSearch}
+                    onChange={(e) => setRegionSearch(e.target.value)}
+                    disabled={!selectedCity}
+                    placeholder="Search region..."
+                    className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all disabled:opacity-50"
+                  />
+                </div>
+              </div>
+              
+              {/* Region Results Dropdown */}
+              {selectedCity && regionSearch && (
+                <div className="mt-2 max-h-48 overflow-y-auto bg-gray-700/50 border border-gray-600/50 rounded-lg">
+                  {(() => {
+                    const filteredRegions = regions.filter(r => {
+                      if (selectedCountry && r.country !== selectedCountry) return false;
+                      if (selectedCity && r.city !== selectedCity) return false;
+                      if (regionSearch && !r.region.toLowerCase().includes(regionSearch.toLowerCase())) return false;
+                      return true;
+                    });
+                    
+                    if (filteredRegions.length === 0) {
+                      return (
+                        <div className="p-3 text-sm text-gray-400 text-center">
+                          No regions found
+                        </div>
+                      );
+                    }
+                    
+                    return filteredRegions.map((region) => (
+                      <button
+                        key={region.id}
+                        type="button"
+                        onClick={() => {
+                          handleInputChange({ target: { name: 'regionId', value: region.id } });
+                          setRegionSearch(region.region);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                          formData.regionId === region.id
+                            ? 'bg-blue-500/20 text-blue-400'
+                            : 'text-gray-300 hover:bg-gray-600/50'
+                        }`}
+                      >
+                        <div className="font-medium">{region.region}</div>
+                        <div className="text-xs text-gray-400">{region.city}, {region.country}</div>
+                      </button>
+                    ));
+                  })()}
+                </div>
+              )}
+              
+              <p className="mt-2 text-xs text-gray-500">
+                {formData.regionId 
+                  ? `Selected: ${regions.find(r => r.id === parseInt(formData.regionId))?.region || 'Unknown'}`
+                  : 'Select country → city, then search for a region'}
+              </p>
             </div>
 
             {/* Address */}
