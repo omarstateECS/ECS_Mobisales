@@ -838,6 +838,7 @@ const AppContent = () => {
               loading={loading}
               openAddCustomerModal={openAddCustomerModal}
               fetchCustomers={fetchCustomers}
+              handleNavigation={(path) => navigate(`/${path}`)}
             />
           } />
           
@@ -851,6 +852,7 @@ const AppContent = () => {
               deletingCustomerId={deletingCustomerId}
               handleEditCustomer={handleEditCustomer}
               handleViewDetails={handleViewDetails}
+              handleNavigation={(path) => navigate(`/${path}`)}
             />
           } />
           

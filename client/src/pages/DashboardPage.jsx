@@ -6,7 +6,8 @@ const DashboardPage = ({
   customers, 
   loading, 
   openAddCustomerModal, 
-  fetchCustomers 
+  fetchCustomers,
+  handleNavigation
 }) => {
   return (
     <motion.div
@@ -21,6 +22,7 @@ const DashboardPage = ({
         loading={loading}
         openAddCustomerModal={openAddCustomerModal}
         fetchCustomers={fetchCustomers}
+        handleNavigation={handleNavigation}
       />
     </motion.div>
   );

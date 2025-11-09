@@ -168,6 +168,15 @@ class ProductService {
         });
     }
 
+    // Reactivate a product by ID
+    async reactivateProduct(id) {
+        const prisma = getPrismaClient();
+        return await prisma.product.update({
+            where: { prodId: Number(id) },
+            data: { isActive: true }
+        });
+    }
+
     // Get products with pagination
     async getProductsWithPagination(page = 1, limit = 10, category = null, searchQuery = null) {
         const prisma = getPrismaClient();

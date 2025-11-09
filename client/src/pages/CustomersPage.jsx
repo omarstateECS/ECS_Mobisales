@@ -10,7 +10,8 @@ const CustomersPage = ({
   handleDeleteCustomer,
   deletingCustomerId,
   handleEditCustomer,
-  handleViewDetails
+  handleViewDetails,
+  handleNavigation
 }) => {
   return (
     <motion.div
@@ -29,6 +30,7 @@ const CustomersPage = ({
         deletingCustomerId={deletingCustomerId}
         handleEditCustomer={handleEditCustomer}
         handleViewDetails={handleViewDetails}
+        handleNavigation={handleNavigation}
       />
     </motion.div>
   );

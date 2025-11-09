@@ -113,6 +113,7 @@ const CancelReasonsView = () => {
   const [deletingReasonId, setDeletingReasonId] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('all'); // 'all', 'headers', 'items'
   const [confirmationModal, setConfirmationModal] = useState({
     isOpen: false,
     title: '',
@@ -189,9 +190,14 @@ const CancelReasonsView = () => {
     console.log('Edit reason:', reason);
   };
 
-  const filteredReasons = reasons.filter(reason =>
-    reason.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredReasons = reasons.filter(reason => {
+    const matchesSearch = reason.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = 
+      selectedFilter === 'all' ? true :
+      selectedFilter === 'headers' ? reason.isHeader :
+      selectedFilter === 'items' ? !reason.isHeader : true;
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     <div className="space-y-6">
@@ -214,15 +220,22 @@ const CancelReasonsView = () => {
         </button>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - Clickable Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`backdrop-blur-sm border rounded-2xl p-6 ${
-            theme === 'dark'
-              ? 'bg-gray-800/40 border-gray-700/50'
-              : 'bg-white border-gray-200'
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setSelectedFilter('all')}
+          className={`backdrop-blur-sm border rounded-2xl p-6 cursor-pointer transition-all duration-300 ${
+            selectedFilter === 'all'
+              ? theme === 'dark'
+                ? 'bg-slate-500/30 border-slate-500 shadow-lg shadow-slate-500/20 ring-2 ring-slate-500'
+                : 'bg-slate-100 border-slate-400 shadow-lg shadow-slate-500/20 ring-2 ring-slate-500'
+              : theme === 'dark'
+                ? 'bg-gray-800/40 border-gray-700/50 hover:bg-gray-800/60'
+                : 'bg-white border-gray-200 hover:border-slate-300'
           }`}
         >
           <div className="flex items-center justify-between">
@@ -230,11 +243,19 @@ const CancelReasonsView = () => {
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                 Total Reasons
               </p>
-              <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              <p className={`text-3xl font-bold mt-2 transition-colors ${
+                selectedFilter === 'all'
+                  ? 'text-slate-400'
+                  : theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
                 {reasons.length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-r from-slate-500 to-slate-600 rounded-xl flex items-center justify-center">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+              selectedFilter === 'all'
+                ? 'bg-gradient-to-r from-slate-600 to-slate-700 shadow-lg'
+                : 'bg-gradient-to-r from-slate-500 to-slate-600'
+            }`}>
               <FileText className="w-6 h-6 text-white" />
             </div>
           </div>
@@ -244,10 +265,17 @@ const CancelReasonsView = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className={`backdrop-blur-sm border rounded-2xl p-6 ${
-            theme === 'dark'
-              ? 'bg-gray-800/40 border-gray-700/50'
-              : 'bg-white border-gray-200'
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setSelectedFilter('headers')}
+          className={`backdrop-blur-sm border rounded-2xl p-6 cursor-pointer transition-all duration-300 ${
+            selectedFilter === 'headers'
+              ? theme === 'dark'
+                ? 'bg-emerald-500/30 border-emerald-500 shadow-lg shadow-emerald-500/20 ring-2 ring-emerald-500'
+                : 'bg-emerald-100 border-emerald-400 shadow-lg shadow-emerald-500/20 ring-2 ring-emerald-500'
+              : theme === 'dark'
+                ? 'bg-gray-800/40 border-gray-700/50 hover:bg-gray-800/60'
+                : 'bg-white border-gray-200 hover:border-emerald-300'
           }`}
         >
           <div className="flex items-center justify-between">
@@ -255,11 +283,19 @@ const CancelReasonsView = () => {
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                 Headers
               </p>
-              <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              <p className={`text-3xl font-bold mt-2 transition-colors ${
+                selectedFilter === 'headers'
+                  ? 'text-emerald-400'
+                  : theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
                 {reasons.filter(r => r.isHeader).length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+              selectedFilter === 'headers'
+                ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 shadow-lg'
+                : 'bg-gradient-to-r from-emerald-500 to-emerald-600'
+            }`}>
               <CheckCircle className="w-6 h-6 text-white" />
             </div>
           </div>
@@ -269,10 +305,17 @@ const CancelReasonsView = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className={`backdrop-blur-sm border rounded-2xl p-6 ${
-            theme === 'dark'
-              ? 'bg-gray-800/40 border-gray-700/50'
-              : 'bg-white border-gray-200'
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setSelectedFilter('items')}
+          className={`backdrop-blur-sm border rounded-2xl p-6 cursor-pointer transition-all duration-300 ${
+            selectedFilter === 'items'
+              ? theme === 'dark'
+                ? 'bg-blue-500/30 border-blue-500 shadow-lg shadow-blue-500/20 ring-2 ring-blue-500'
+                : 'bg-blue-100 border-blue-400 shadow-lg shadow-blue-500/20 ring-2 ring-blue-500'
+              : theme === 'dark'
+                ? 'bg-gray-800/40 border-gray-700/50 hover:bg-gray-800/60'
+                : 'bg-white border-gray-200 hover:border-blue-300'
           }`}
         >
           <div className="flex items-center justify-between">
@@ -280,11 +323,19 @@ const CancelReasonsView = () => {
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                 Items
               </p>
-              <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              <p className={`text-3xl font-bold mt-2 transition-colors ${
+                selectedFilter === 'items'
+                  ? 'text-blue-400'
+                  : theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
                 {reasons.filter(r => !r.isHeader).length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+              selectedFilter === 'items'
+                ? 'bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg'
+                : 'bg-gradient-to-r from-blue-500 to-blue-600'
+            }`}>
               <AlertCircle className="w-6 h-6 text-white" />
             </div>
           </div>

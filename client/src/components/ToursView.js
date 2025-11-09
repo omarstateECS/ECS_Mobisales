@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Search, ChevronLeft, ChevronRight, Calendar, MapPin, User, TrendingUp, Clock, Globe } from 'lucide-react';
+import { ArrowLeft, Search, ChevronLeft, ChevronRight, Calendar, MapPin, User, TrendingUp, Clock, Globe, ChevronDown, XCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 // Helper function to get default date range (1 month ago to today)
@@ -48,6 +48,12 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
   
   // Status filter - now supports multiple selections
   const [selectedStatuses, setSelectedStatuses] = useState([]);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  
+  // Region dropdown state
+  const [showRegionDropdown, setShowRegionDropdown] = useState(false);
+  const [selectedRegions, setSelectedRegions] = useState([]);
+  const [regionSearch, setRegionSearch] = useState('');
 
   // Fetch salesmen and regions
   useEffect(() => {
@@ -93,11 +99,17 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
     }
   }, [salesmanSearch, salesmen]);
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest('.salesman-search-container')) {
         setShowSalesmanDropdown(false);
+      }
+      if (!event.target.closest('.status-dropdown-container')) {
+        setShowStatusDropdown(false);
+      }
+      if (!event.target.closest('.region-dropdown-container')) {
+        setShowRegionDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -175,6 +187,8 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
     setAppliedSalesman('');
     setSalesmanSearch('');
     setSelectedRegion('');
+    setSelectedRegions([]);
+    setRegionSearch('');
     setTourIdSearch('');
     setSelectedStatuses([]);
     setCurrentPage(1);
@@ -268,11 +282,151 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
           : 'bg-white border border-gray-200'
       }`}
       style={{ zIndex: 10 }}>
-        {/* First Row: Tour ID and Status */}
+        {/* First Row: Start Date, End Date, and Status */}
         <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <div className="flex-1">
+          <div className="w-full md:w-48">
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Search Tour ID
+              Start Date
+            </label>
+            <div className="relative">
+              <Calendar className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900'
+                }`}
+              />
+            </div>
+          </div>
+          <div className="w-full md:w-48">
+            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              End Date
+            </label>
+            <div className="relative">
+              <Calendar className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900'
+                }`}
+              />
+            </div>
+          </div>
+          <div className="w-full md:w-80 relative status-dropdown-container">
+            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              Status {selectedStatuses.length > 0 && <span className="text-blue-400">({selectedStatuses.length})</span>}
+            </label>
+            <div className="relative">
+              <div
+                onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                className={`min-h-[42px] w-full px-4 py-2 pr-10 rounded-xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
+                  theme === 'dark'
+                    ? 'bg-gray-800/50 border border-gray-700/50 text-white'
+                    : 'bg-gray-50 border border-gray-200 text-gray-900'
+                }`}
+              >
+                {/* Selected Status Tags */}
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedStatuses.length > 0 ? (
+                    selectedStatuses.map(statusValue => {
+                      const statusLabels = {
+                        'not_started': 'Not Started',
+                        'in_progress': 'In Progress',
+                        'completed': 'Completed'
+                      };
+                      return (
+                        <div
+                          key={statusValue}
+                          className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ${
+                            theme === 'dark'
+                              ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                              : 'bg-blue-100 text-blue-700 border border-blue-300'
+                          }`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span>{statusLabels[statusValue]}</span>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}>
+                      Select status...
+                    </span>
+                  )}
+                </div>
+              </div>
+              {/* Dropdown Arrow */}
+              <ChevronDown 
+                className={`absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none transition-transform ${
+                  showStatusDropdown ? 'rotate-180' : ''
+                } ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} 
+                size={16} 
+              />
+              
+              {showStatusDropdown && (
+                <div className={`absolute z-[9999] w-full mt-2 rounded-xl shadow-2xl overflow-hidden ${
+                  theme === 'dark'
+                    ? 'bg-gray-800 border border-gray-700'
+                    : 'bg-white border border-gray-200'
+                }`}>
+                  {[
+                    { value: 'not_started', label: 'Not Started' },
+                    { value: 'in_progress', label: 'In Progress'},
+                    { value: 'completed', label: 'Completed'}
+                  ].map((status) => {
+                    const isSelected = selectedStatuses.includes(status.value);
+                    return (
+                      <label
+                        key={status.value}
+                        className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-all ${
+                          isSelected
+                            ? 'bg-blue-500/20'
+                            : theme === 'dark'
+                              ? 'hover:bg-gray-700/50'
+                              : 'hover:bg-gray-100'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {
+                            if (isSelected) {
+                              setSelectedStatuses(selectedStatuses.filter(s => s !== status.value));
+                            } else {
+                              setSelectedStatuses([...selectedStatuses, status.value]);
+                            }
+                          }}
+                          className="w-4 h-4 rounded border-gray-600 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
+                        />
+                        <span className={`font-medium text-sm ${
+                          isSelected
+                            ? 'text-blue-400'
+                            : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                          {status.label}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Second Row: Tour ID, Salesman, and Region */}
+        <div className="flex flex-col md:flex-row gap-4 items-end overflow-visible">
+          <div className="w-full md:w-48">
+            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              Tour ID
             </label>
             <div className="relative">
               <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
@@ -289,50 +443,9 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
               />
             </div>
           </div>
-          <div className="flex-1">
+          <div className="w-full md:w-80 relative">
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Status {selectedStatuses.length > 0 && <span className="text-blue-400">({selectedStatuses.length})</span>}
-            </label>
-            <div className="flex gap-2">
-              {[
-                { value: 'not_started', label: 'Not Started' },
-                { value: 'in_progress', label: 'In Progress'},
-                { value: 'completed', label: 'Completed'}
-              ].map((status) => {
-                const isSelected = selectedStatuses.includes(status.value);
-                return (
-                  <button
-                    key={status.value}
-                    type="button"
-                    onClick={() => {
-                      if (isSelected) {
-                        setSelectedStatuses(selectedStatuses.filter(s => s !== status.value));
-                      } else {
-                        setSelectedStatuses([...selectedStatuses, status.value]);
-                      }
-                    }}
-                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all ${
-                      isSelected
-                        ? 'bg-blue-500/20 text-blue-400 border-2 border-blue-500/50 shadow-lg shadow-blue-500/10'
-                        : theme === 'dark'
-                          ? 'bg-gray-800/50 text-gray-400 border-2 border-gray-700/50 hover:border-gray-600 hover:bg-gray-700/50'
-                          : 'bg-gray-50 text-gray-600 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-100'
-                    }`}
-                  >
-                    <span className="text-base">{status.icon}</span>
-                    <span>{status.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-        
-        {/* Second Row: Other Filters */}
-        <div className="flex flex-col md:flex-row gap-4 items-end overflow-visible">
-          <div className="flex-1 relative">
-            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Search Salesman
+              Salesman
             </label>
             <div className="relative salesman-search-container">
               <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
@@ -385,64 +498,153 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
               )}
             </div>
           </div>
-          <div className="flex-1">
+          <div className="w-full md:w-80 relative region-dropdown-container">
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Start Date
+              Region {selectedRegions.length > 0 && <span className="text-blue-400">({selectedRegions.length})</span>}
             </label>
             <div className="relative">
-              <Calendar className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
-                  theme === 'dark'
-                    ? 'bg-gray-800/50 border border-gray-700/50 text-white'
-                    : 'bg-gray-50 border border-gray-200 text-gray-900'
-                }`}
-              />
-            </div>
-          </div>
-          <div className="flex-1">
-            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              End Date
-            </label>
-            <div className="relative">
-              <Calendar className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
-                  theme === 'dark'
-                    ? 'bg-gray-800/50 border border-gray-700/50 text-white'
-                    : 'bg-gray-50 border border-gray-200 text-gray-900'
-                }`}
-              />
-            </div>
-          </div>
-          <div className="flex-1">
-            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Region
-            </label>
-            <div className="relative">
-              <Globe className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
-              <select
-                value={selectedRegion}
-                onChange={(e) => setSelectedRegion(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all appearance-none ${
+              <Globe className={`absolute left-3 top-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
+              <div
+                onClick={() => setShowRegionDropdown(!showRegionDropdown)}
+                className={`min-h-[42px] w-full pl-10 pr-10 py-2 rounded-xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
                   theme === 'dark'
                     ? 'bg-gray-800/50 border border-gray-700/50 text-white'
                     : 'bg-gray-50 border border-gray-200 text-gray-900'
                 }`}
               >
-                <option value="">All Regions</option>
-                {regions.map(region => (
-                  <option key={region.id} value={region.id}>
-                    {region.region} - {region.city}, {region.country}
-                  </option>
-                ))}
-              </select>
+                {/* Selected Region Tags */}
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedRegions.length > 0 ? (
+                    selectedRegions.map(regionId => {
+                      const region = regions.find(r => r.id === regionId);
+                      if (!region) return null;
+                      return (
+                        <div
+                          key={regionId}
+                          className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ${
+                            theme === 'dark'
+                              ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                              : 'bg-blue-100 text-blue-700 border border-blue-300'
+                          }`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span>{region.region}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedRegions(prev => prev.filter(id => id !== regionId));
+                            }}
+                            className="hover:bg-red-500/20 rounded p-0.5 transition-colors"
+                          >
+                            <XCircle size={12} className="text-red-400" />
+                          </button>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}>
+                      Select regions...
+                    </span>
+                  )}
+                </div>
+              </div>
+              {/* Dropdown Arrow */}
+              <ChevronDown 
+                className={`absolute right-3 top-3 pointer-events-none transition-transform ${
+                  showRegionDropdown ? 'rotate-180' : ''
+                } ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} 
+                size={16} 
+              />
+              
+              {/* Dropdown with checkboxes */}
+              {showRegionDropdown && (
+                <div className={`absolute top-full left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-xl border shadow-2xl z-[9999] ${
+                  theme === 'dark'
+                    ? 'bg-gray-800 border-gray-700'
+                    : 'bg-white border-gray-200'
+                }`}>
+                  {/* Search input */}
+                  <div className={`p-2 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <input
+                      type="text"
+                      value={regionSearch}
+                      onChange={(e) => setRegionSearch(e.target.value)}
+                      placeholder="Search regions..."
+                      className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 border border-gray-600 text-white placeholder-gray-400'
+                          : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-500'
+                      }`}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  
+                  {/* Clear All button */}
+                  {selectedRegions.length > 0 && (
+                    <button
+                      onClick={() => {
+                        setSelectedRegions([]);
+                        setRegionSearch('');
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors border-b ${
+                        theme === 'dark'
+                          ? 'text-red-400 hover:bg-gray-700/50 border-gray-700'
+                          : 'text-red-600 hover:bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      Clear All
+                    </button>
+                  )}
+                  
+                  {/* Region checkboxes */}
+                  {regions
+                    .filter(region => 
+                      region.region.toLowerCase().includes(regionSearch.toLowerCase()) ||
+                      region.city.toLowerCase().includes(regionSearch.toLowerCase()) ||
+                      region.country.toLowerCase().includes(regionSearch.toLowerCase())
+                    )
+                    .map(region => {
+                      const isSelected = selectedRegions.includes(region.id);
+                      return (
+                        <label
+                          key={region.id}
+                          className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-all ${
+                            isSelected
+                              ? 'bg-blue-500/20'
+                              : theme === 'dark'
+                                ? 'hover:bg-gray-700/50'
+                                : 'hover:bg-gray-100'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {
+                              if (isSelected) {
+                                setSelectedRegions(prev => prev.filter(id => id !== region.id));
+                              } else {
+                                setSelectedRegions(prev => [...prev, region.id]);
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-gray-600 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
+                          />
+                          <div className="flex-1">
+                            <div className={`font-medium text-sm ${
+                              isSelected
+                                ? 'text-blue-400'
+                                : theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
+                              {region.region}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              {region.city}, {region.country}
+                            </div>
+                          </div>
+                        </label>
+                      );
+                    })}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex gap-2">
@@ -484,8 +686,8 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
         <div className="space-y-4">
           {journeys
             .filter(journey => {
-              // Region filter
-              const matchesRegion = !selectedRegion || journey.regionId === parseInt(selectedRegion);
+              // Region filter - supports multiple selections
+              const matchesRegion = selectedRegions.length === 0 || selectedRegions.includes(journey.regionId);
               
               // Tour ID filter
               const matchesTourId = !tourIdSearch || journey.journeyId.toString().includes(tourIdSearch);

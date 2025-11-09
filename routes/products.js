@@ -17,5 +17,6 @@ router.post('/', productController.create);
 router.get('/:id', productController.getById);
 router.put('/:id', productController.update);
 router.delete('/:id', productController.delete);
+router.patch('/:id/reactivate', productController.reactivate);
 
 module.exports = router;

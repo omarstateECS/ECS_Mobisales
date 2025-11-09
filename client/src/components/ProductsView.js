@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Plus, Search, Package, Eye, Settings, Trash2, Edit, ChevronLeft, ChevronRight, BarChart3, Tag, ArrowUpDown, FileText, XCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Package, Eye, Settings, Trash2, Edit, ChevronLeft, ChevronRight, BarChart3, Tag, ArrowUpDown, FileText, XCircle, CheckCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import axios from 'axios';
 import AddProductModal from './AddProductModal';
@@ -44,17 +44,24 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
           : 'bg-white border border-gray-200 hover:border-purple-300 hover:shadow-2xl'
       }`}
     >
-      {/* Status Badges - Top Right */}
-      <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
-        {/* Deactivated Badge */}
-        {!product.isActive && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium backdrop-blur-sm border bg-red-500 text-black-400 border-gray-500/30">
-            <XCircle size={12} />
-            Deactivated
+      {/* Deactivated Corner Indicator - Top Left */}
+      {!product.isActive && (
+        <div className="absolute top-0 left-0 z-10" title="Deactivated Product">
+          <div className="relative">
+            {/* Triangle background */}
+            <div className="w-0 h-0 border-l-[50px] border-l-red-500 border-b-[50px] border-b-transparent"></div>
+            {/* Icon */}
+            <XCircle 
+              size={18} 
+              className="absolute top-2 left-2 text-white" 
+              strokeWidth={2.5}
+            />
           </div>
-        )}
-        
-        {/* Stock Badge */}
+        </div>
+      )}
+
+      {/* Stock Badge - Top Right */}
+      <div className="absolute top-3 right-3">
         <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium backdrop-blur-sm border ${
           (product.stock || 0) > 10
             ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
@@ -183,19 +190,25 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
           </button>
           
           <button 
-            onClick={() => handleDeleteProduct(product.prodId, product.name)}
+            onClick={() => handleDeleteProduct(product.prodId, product.name, product.isActive)}
             disabled={deletingProductId === product.prodId}
             className={`p-2.5 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
-              theme === 'dark'
-                ? 'bg-gray-700/50 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border border-gray-600/50 hover:border-red-500/40'
-                : 'bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 border border-gray-200'
+              product.isActive
+                ? theme === 'dark'
+                  ? 'bg-gray-700/50 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border border-gray-600/50 hover:border-red-500/40'
+                  : 'bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 border border-gray-200'
+                : theme === 'dark'
+                  ? 'bg-gray-700/50 hover:bg-green-500/20 text-gray-400 hover:text-green-400 border border-gray-600/50 hover:border-green-500/40'
+                  : 'bg-gray-100 hover:bg-green-50 text-gray-600 hover:text-green-600 border border-gray-200'
             }`}
-            title="Deactivate"
+            title={product.isActive ? "Deactivate" : "Reactivate"}
           >
             {deletingProductId === product.prodId ? (
-              <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin"></div>
-            ) : (
+              <div className={`w-4 h-4 border-2 ${product.isActive ? 'border-red-400/30 border-t-red-400' : 'border-green-400/30 border-t-green-400'} rounded-full animate-spin`}></div>
+            ) : product.isActive ? (
               <XCircle size={16} />
+            ) : (
+              <CheckCircle size={16} />
             )}
           </button>
         </div>
@@ -322,30 +335,41 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
         console.log('Edit product:', product);
     };
 
-    const handleDeleteProduct = async (productId, productName) => {
+    const handleDeleteProduct = async (productId, productName, isActive) => {
         setConfirmationModal({
             isOpen: true,
-            title: 'Deactivate Product',
-            message: `Are you sure you want to deactivate "${productName}"? This product will be hidden from all lists but can be reactivated later.`,
-            onConfirm: () => confirmDeleteProduct(productId),
-            loading: false
+            title: isActive ? 'Deactivate Product' : 'Reactivate Product',
+            message: isActive 
+                ? `Are you sure you want to deactivate "${productName}"? This product will be hidden from active lists but can be reactivated later.`
+                : `Are you sure you want to reactivate "${productName}"? This product will be available for sale again.`,
+            onConfirm: () => confirmDeleteProduct(productId, isActive),
+            loading: false,
+            confirmText: isActive ? 'Deactivate' : 'Reactivate',
+            type: isActive ? 'danger' : 'success'
         });
     };
 
-    const confirmDeleteProduct = async (productId) => {
+    const confirmDeleteProduct = async (productId, isActive) => {
         setConfirmationModal(prev => ({ ...prev, loading: true }));
         setDeletingProductId(productId);
         
         try {
-            await axios.delete(`/api/products/${productId}`);
-            // Refresh products to show deactivated status instead of removing
+            if (isActive) {
+                // Deactivate product
+                await axios.delete(`/api/products/${productId}`);
+                showDelete('Product has been deactivated successfully!', 'Deactivated');
+            } else {
+                // Reactivate product
+                await axios.patch(`/api/products/${productId}/reactivate`);
+                showSuccess('Product has been reactivated successfully!', 'Reactivated');
+            }
+            // Refresh products to show updated status
             fetchProducts();
-            setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
-            showDelete('Product has been deactivated successfully!', 'Deactivated');
+            setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false, confirmText: '', type: 'danger' });
         } catch (error) {
-            console.error('Error deactivating product:', error);
-            setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false });
-            showError('Error Deactivating Product', error.response?.data?.error || error.message);
+            console.error(`Error ${isActive ? 'deactivating' : 'reactivating'} product:`, error);
+            setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false, confirmText: '', type: 'danger' });
+            showError(`Error ${isActive ? 'Deactivating' : 'Reactivating'} Product`, error.response?.data?.error || error.message);
         } finally {
             setDeletingProductId(null);
         }
@@ -652,13 +676,13 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
             {/* Confirmation Modal */}
             <ConfirmationModal
                 isOpen={confirmationModal.isOpen}
-                onClose={() => setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false })}
+                onClose={() => setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false, confirmText: '', type: 'danger' })}
                 onConfirm={confirmationModal.onConfirm}
                 title={confirmationModal.title}
                 message={confirmationModal.message}
                 loading={confirmationModal.loading}
-                type="danger"
-                confirmText="Deactivate"
+                type={confirmationModal.type || 'danger'}
+                confirmText={confirmationModal.confirmText || 'Confirm'}
                 cancelText="Cancel"
             />
         </div>

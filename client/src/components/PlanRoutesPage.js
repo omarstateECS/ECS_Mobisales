@@ -152,21 +152,21 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
 
       if (response.ok) {
         const data = await response.json();
-        let message = `Successfully created ${data.data.count} visit${data.data.count !== 1 ? 's' : ''}`;
+        let message = `Tour created with ${data.data.count} stop${data.data.count !== 1 ? 's' : ''}`;
         if (data.data.skipped > 0) {
           message += ` (${data.data.skipped} duplicate${data.data.skipped !== 1 ? 's' : ''} skipped)`;
         }
-        showSuccess(message, 'Visits Created');
+        showSuccess(message, 'Tour Created Successfully');
         setSelectedCustomers([]);
         setSelectedSalesman(null);
         setSalesmanRegionFilter([]);
       } else {
         const error = await response.json();
-        showError(error.message || 'Failed to create visits');
+        showError(error.message || 'Failed to plan tour');
       }
     } catch (error) {
-      console.error('Error creating visits:', error);
-      showError('Failed to create visits');
+      console.error('Error creating tour:', error);
+      showError('Failed creating tour');
     } finally {
       setCreating(false);
     }
@@ -725,7 +725,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
           className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/25 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Calendar size={16} />
-          <span>{creating ? 'Creating Visits...' : `Create ${selectedCustomers.length} Visit${selectedCustomers.length !== 1 ? 's' : ''}`}</span>
+          <span>{creating ? 'Creating Tour...' : `Create Tour`}</span>
         </button>
       </div>
 

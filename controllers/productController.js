@@ -56,6 +56,15 @@ class ProductController {
         }
     }
 
+    async reactivate(req, res) {
+        try {
+            const product = await productService.reactivateProduct(req.params.id);
+            res.json({ success: true, product });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
     async getWithPagination(req, res) {
         try {
             const page = parseInt(req.query.page) || 1;
