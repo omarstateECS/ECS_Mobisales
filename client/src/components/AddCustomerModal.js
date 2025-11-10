@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, MapPin, Map, Globe, ChevronDown, Search } from 'lucide-react';
 import GoogleMapSelector from './GoogleMapSelector';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const AddCustomerModal = ({
   showAddCustomerModal,
@@ -14,6 +15,7 @@ const AddCustomerModal = ({
   handleMapClick,
   handleClearLocationSelection
 }) => {
+  const { t, isRTL } = useLocalization();
   const [showMap, setShowMap] = useState(false);
   const [regions, setRegions] = useState([]);
   const [industries, setIndustries] = useState([]);
@@ -101,8 +103,8 @@ const AddCustomerModal = ({
         {/* Modal Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700/50">
           <div>
-            <h2 className="text-2xl font-bold text-white">Add New Customer</h2>
-            <p className="text-gray-400">Enter the details of the new customer</p>
+            <h2 className="text-2xl font-bold text-white">{t('customers.addNewCustomerTitle')}</h2>
+            <p className="text-gray-400">{t('customers.addNewCustomerSubtitle')}</p>
           </div>
           <button
             onClick={() => setShowAddCustomerModal(false)}
@@ -118,7 +120,7 @@ const AddCustomerModal = ({
             {/* Customer Name */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Customer Name
+                {t('customers.customerName')}
               </label>
               <input
                 type="text"
@@ -127,7 +129,7 @@ const AddCustomerModal = ({
                 onChange={handleInputChange}
                 required
                 className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                placeholder="Enter customer name"
+                placeholder={t('customers.enterCustomerName')}
               />
             </div>
 
@@ -137,7 +139,7 @@ const AddCustomerModal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Latitude *
+                  {t('customers.latitude')} *
                 </label>
                 <input
                   type="text"
@@ -149,13 +151,13 @@ const AddCustomerModal = ({
                   className={`w-full px-4 py-3 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
                     selectedLocation ? 'bg-gray-600/30 cursor-not-allowed' : 'bg-gray-700/50'
                   }`}
-                  placeholder="Enter latitude or select on map"
+                  placeholder={t('customers.enterLatitudeOrMap')}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Longitude *
+                  {t('customers.longitude')} *
                 </label>
                 <input
                   type="text"
@@ -167,7 +169,7 @@ const AddCustomerModal = ({
                   className={`w-full px-4 py-3 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
                     selectedLocation ? 'bg-gray-600/30 cursor-not-allowed' : 'bg-gray-700/50'
                   }`}
-                  placeholder="Enter longitude or select on map"
+                  placeholder={t('customers.enterLongitudeOrMap')}
                 />
               </div>
             </div>
@@ -176,7 +178,7 @@ const AddCustomerModal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Industry *
+                  {t('customers.industry')} *
                 </label>
                 <select
                   name="industryId"
@@ -185,7 +187,7 @@ const AddCustomerModal = ({
                   required
                   className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                 >
-                  <option value="">Select industry</option>
+                  <option value="">{t('customers.selectIndustry')}</option>
                   {industries.map((industry) => (
                     <option key={industry.industryId} value={industry.industryId}>
                       {industry.name}
@@ -196,7 +198,7 @@ const AddCustomerModal = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Phone Number
+                  {t('customers.phone')}
                 </label>
                 <input
                   type="tel"
@@ -204,7 +206,7 @@ const AddCustomerModal = ({
                   value={formData.phone}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                  placeholder="Enter phone number"
+                  placeholder={t('customers.enterPhoneNumber')}
                 />
               </div>
             </div>
@@ -212,15 +214,15 @@ const AddCustomerModal = ({
             {/* Region Selection with Cascading Filters */}
             <div className="region-dropdown-container">
               <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
-                <Globe size={16} className="mr-2" />
-                Region (Optional)
+                <Globe size={16} className={isRTL ? 'ml-2' : 'mr-2'} />
+                {t('customers.regionOptional')}
               </label>
               
               <div className="relative">
-                <Globe className="absolute left-3 top-3 text-gray-400" size={16} />
+                <Globe className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-3 text-gray-400`} size={16} />
                 <div
                   onClick={() => setShowRegionDropdown(!showRegionDropdown)}
-                  className="min-h-[42px] w-full pl-10 pr-10 py-2 bg-gray-700/50 border border-gray-600/50 rounded-xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-white"
+                  className={`min-h-[42px] w-full ${isRTL ? 'pr-10 pl-10' : 'pl-10 pr-10'} py-2 bg-gray-700/50 border border-gray-600/50 rounded-xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-white`}
                 >
                   {formData.regionId ? (
                     (() => {
@@ -230,11 +232,11 @@ const AddCustomerModal = ({
                           <span>{selectedRegion.region}</span>
                         </div>
                       ) : (
-                        <span className="text-gray-500">Select region...</span>
+                        <span className="text-gray-500">{t('customers.selectRegionPlaceholder')}</span>
                       );
                     })()
                   ) : (
-                    <span className="text-gray-500">Select region...</span>
+                    <span className="text-gray-500">{t('customers.selectRegionPlaceholder')}</span>
                   )}
                 </div>
                 <ChevronDown 
@@ -260,7 +262,7 @@ const AddCustomerModal = ({
                           className="px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500/50"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <option value="">All Countries</option>
+                          <option value="">{t('customers.allCountries')}</option>
                           {[...new Set(regions.map(r => r.country))].sort().map((country) => (
                             <option key={country} value={country}>{country}</option>
                           ))}
@@ -272,7 +274,7 @@ const AddCustomerModal = ({
                           className="px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500/50 disabled:opacity-50"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <option value="">All Cities</option>
+                          <option value="">{t('customers.allCities')}</option>
                           {[...new Set(
                             regions
                               .filter(r => !selectedCountry || r.country === selectedCountry)
@@ -287,7 +289,7 @@ const AddCustomerModal = ({
                         type="text"
                         value={regionSearch}
                         onChange={(e) => setRegionSearch(e.target.value)}
-                        placeholder="Search regions..."
+                        placeholder={t('customers.searchRegions')}
                         className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
                         onClick={(e) => e.stopPropagation()}
                       />
@@ -308,7 +310,7 @@ const AddCustomerModal = ({
                         if (filteredRegions.length === 0) {
                           return (
                             <div className="p-2 text-center text-gray-400 text-xs">
-                              No regions found
+                              {t('customers.noRegions')}
                             </div>
                           );
                         }
@@ -356,7 +358,7 @@ const AddCustomerModal = ({
             {/* Address */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Full Address
+                {t('customers.fullAddress')}
               </label>
               <textarea
                 name="address"
@@ -364,7 +366,7 @@ const AddCustomerModal = ({
                 onChange={handleInputChange}
                 rows="3"
                 className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
-                placeholder="Enter full address (auto-filled when location selected)"
+                placeholder={t('customers.enterFullAddressHint')}
               />
             </div>
           </div>
@@ -375,10 +377,10 @@ const AddCustomerModal = ({
               <button
                 type="button"
                 onClick={() => setShowMap(true)}
-                className="flex items-center space-x-2 px-6 py-3 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-xl text-sm font-medium transition-colors border border-blue-600/30"
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-xl text-sm font-medium transition-colors border border-blue-600/30"
               >
                 <Map size={18} />
-                <span>Select Location on Map</span>
+                <span>{t('customers.selectLocationOnMap')}</span>
               </button>
             </div>
           )}
@@ -388,15 +390,15 @@ const AddCustomerModal = ({
             <div className="mt-6">
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-300">
-                  Location Selection
+                  {t('customers.locationSelection')}
                 </label>
                 <button
                   type="button"
                   onClick={() => setShowMap(false)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gray-600/20 hover:bg-gray-600/30 text-gray-400 rounded-lg text-sm font-medium transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-600/20 hover:bg-gray-600/30 text-gray-400 rounded-lg text-sm font-medium transition-colors"
                 >
                   <X size={16} />
-                  <span>Hide Map</span>
+                  <span>{t('customers.hideMap')}</span>
                 </button>
               </div>
               
@@ -408,66 +410,41 @@ const AddCustomerModal = ({
                   onClearSelection={handleClearLocationSelection}
                 />
               </div>
-
-              {/* Location Status Display */}
-              {selectedLocation && (
-                <div className="mt-4 p-4 bg-emerald-600/20 border border-emerald-600/30 rounded-xl">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="w-5 h-5 text-emerald-400" />
-                      <div>
-                        <p className="text-emerald-400 font-medium text-sm">Location Selected</p>
-                        <p className="text-gray-300 text-xs">
-                          {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleClearLocationSelection}
-                      className="p-1 rounded-lg hover:bg-red-600/20 text-gray-400 hover:text-red-400 transition-colors"
-                      title="Clear location"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
           {/* Modal Footer */}
-          <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-700/50">
+          <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-700/50">
             <button
               type="button"
               onClick={() => setShowAddCustomerModal(false)}
               className="px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 border border-gray-600/50"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={addCustomerLoading}
-              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {addCustomerLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div>
-                  <span>Adding...</span>
+                  <span>{t('customers.adding')}</span>
                 </>
               ) : (
                 <>
                   <Plus size={16} />
-                  <span>Add Customer</span>
+                  <span>{t('customers.addCustomer')}</span>
                 </>
               )}
             </button>
           </div>
         </form>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+      </motion.div>
+    </motion.div>
+  )}
+  </AnimatePresence>
   );
 };
 

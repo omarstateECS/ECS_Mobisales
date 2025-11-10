@@ -212,7 +212,7 @@ model InvoiceItem {
   @@id([invoiceHeaderId, invItem], map: "invoice_items_pkey")
 }
 
-model Reasons {
+model ReturnReasons {
   reasonId             Int             @id @default(autoincrement())
   description    String
   sellable       Boolean
@@ -221,6 +221,14 @@ model Reasons {
   updatedAt      String
   invoiceHeaders InvoiceHeader[] @relation("InvoiceHeaderReason")
   invoiceItems   InvoiceItem[]   @relation("InvoiceItemReason")
+}
+
+model CancelReasons {
+  reasonId        Int    @id @default(autoincrement())
+  description     String
+  createdAt       String
+  updatedAt       String
+  visits          Visit[]
 }
 
 model Region {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocalization } from '../contexts/LocalizationContext';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -51,8 +52,8 @@ const SidebarItem = ({ item, isChild = false, expandedMenus, toggleMenu, isActiv
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.2 }}
     >
-      <div className="flex items-center space-x-3">
-        <Icon size={isChild ? 16 : 20} className="transition-colors duration-200" />
+      <div className="flex items-center gap-3">
+        <Icon size={isChild ? 16 : 20} className="transition-colors duration-200 flex-shrink-0" />
         <span className={`font-medium transition-all duration-200 ${isChild ? 'text-sm' : ''}`}>
           {item.label}
         </span>
@@ -121,6 +122,7 @@ const Sidebar = ({
 }) => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { t } = useLocalization();
 
   // Helper to check if path is active
   const isPathActive = (path) => currentPath === path;
@@ -128,33 +130,33 @@ const Sidebar = ({
   const sidebarItems = [
     {
       id: 'dashboard',
-      label: 'Dashboard',
+      label: t('nav.dashboard'),
       icon: Home,
       to: '/',
       isActive: isPathActive('/')
     },
     {
       id: 'customers',
-      label: 'Customers',
+      label: t('nav.customers'),
       icon: Store,
       children: [
         { 
           id: 'all-customers',
-          label: 'All Customers', 
+          label: t('customers.title'), 
           icon: Store,
           to: '/customers',
           isActive: isPathActive('/customers')
         },
         { 
           id: 'add-customer',
-          label: 'Add New Customer', 
+          label: t('customers.addCustomer'), 
           icon: Plus,
           onClick: openAddCustomerModal,
           isActive: false
         },
         { 
           id: 'customer-analytics',
-          label: 'Customer Analytics', 
+          label: t('customers.analytics'), 
           icon: BarChart3,
           to: '/customer-analytics',
           isActive: isPathActive('/customer-analytics')
@@ -163,26 +165,26 @@ const Sidebar = ({
     },
     {
       id: 'products',
-      label: 'Products',
+      label: t('nav.products'),
       icon: Package,
       children: [
         { 
           id: 'products',
-          label: 'All Products', 
+          label: t('products.title'), 
           icon: Package,
           to: '/products',
           isActive: isPathActive('/products')
         },
         { 
           id: 'add-product',
-          label: 'Add New Product', 
+          label: t('products.addProduct'), 
           icon: Plus,
           onClick: openAddProductModal,
           isActive: false
         },
         { 
           id: 'product-analytics',
-          label: 'Product Analytics', 
+          label: t('products.analytics'), 
           icon: BarChart3,
           to: '/product-analytics',
           isActive: isPathActive('/product-analytics')
@@ -191,33 +193,33 @@ const Sidebar = ({
     },
     {
       id: 'salesmen',
-      label: 'Salesmen',
+      label: t('nav.salesmen'),
       icon: User,
       children: [
         { 
           id: 'all-salesmen',
-          label: 'All Salesmen', 
+          label: t('salesmen.title'), 
           icon: User,
           to: '/salesmen',
           isActive: isPathActive('/salesmen')
         },
         { 
           id: 'add-salesman',
-          label: 'Add New Salesman', 
+          label: t('salesmen.addSalesman'), 
           icon: Plus,
           onClick: openAddSalesmanModal,
           isActive: false
         },
          { 
           id: 'stock',
-          label: 'Stock', 
+          label: t('nav.stock'), 
           icon: Package,
           to: '/stock',
           isActive: isPathActive('/stock')
         },
         { 
           id: 'salesman-analytics',
-          label: 'Salesman Analytics', 
+          label: t('salesmen.analytics'), 
           icon: BarChart3,
           to: '/salesman-analytics',
           isActive: isPathActive('/salesman-analytics')
@@ -226,47 +228,47 @@ const Sidebar = ({
     },
     {
       id: 'tours',
-      label: 'Tours',
+      label: t('nav.tours'),
       icon: Route,
       children: [
         { 
           id: 'tours',
-          label: 'All Tours', 
+          label: t('tours.title'), 
           icon: Route,
           to: '/tours',
           isActive: isPathActive('/tours')
         },
         { 
           id: 'plan-routes',
-          label: 'Plan Routes', 
+          label: t('nav.planRoutes'), 
           icon: MapPin,
           to: '/plan-routes',
           isActive: isPathActive('/plan-routes')
         },
         { 
           id: 'fillup',
-          label: 'Create Fillup', 
+          label: t('fillup.title'), 
           icon: Package,
           to: '/fillup',
           isActive: isPathActive('/fillup')
         },
         { 
           id: 'fillup-history',
-          label: 'Fillup History', 
+          label: t('fillup.history'), 
           icon: Eye,
           to: '/fillup-history',
           isActive: isPathActive('/fillup-history')
         },
         { 
           id: 'invoices',
-          label: 'Invoices', 
+          label: t('nav.invoices'), 
           icon: FileText,
           to: '/invoices',
           isActive: isPathActive('/invoices')
         },
         { 
           id: 'loadorders',
-          label: 'Load Orders', 
+          label: t('nav.loadOrders'), 
           icon: ShoppingCart,
           to: '/loadorders',
           isActive: isPathActive('/loadorders')
@@ -275,33 +277,33 @@ const Sidebar = ({
     },
     {
       id: 'master-data',
-      label: 'Master Data',
+      label: t('nav.masterData'),
       icon: Database,
       children: [
         { 
           id: 'regions',
-          label: 'Regions', 
+          label: t('nav.regions'), 
           icon: Globe,
           to: '/regions',
           isActive: isPathActive('/regions')
         },
         { 
           id: 'industries',
-          label: 'Industries', 
+          label: t('nav.industries'), 
           icon: Building2,
           to: '/industries',
           isActive: isPathActive('/industries')
         },
         { 
           id: 'authorities',
-          label: 'Authorities', 
+          label: t('nav.authorities'), 
           icon: Shield,
           to: '/authorities',
           isActive: isPathActive('/authorities')
         },
         { 
           id: 'cancel-reasons',
-          label: 'Return Reasons', 
+          label: t('nav.cancelReasons'), 
           icon: XCircle,
           to: '/cancel-reasons',
           isActive: isPathActive('/cancel-reasons')
@@ -310,7 +312,7 @@ const Sidebar = ({
     },
     {
       id: 'settings',
-      label: 'Settings',
+      label: t('nav.settings'),
       icon: Settings,
       to: '/settings',
       isActive: isPathActive('/settings')
@@ -334,8 +336,8 @@ const Sidebar = ({
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
           <div className="flex items-center justify-between px-6 border-b border-gray-700/50 h-[73px]">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
                 <BarChart3 className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -368,8 +370,8 @@ const Sidebar = ({
 
           {/* Sidebar Footer */}
           <div className="p-4 border-t border-gray-700/50">
-            <div className="flex items-center space-x-3 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors cursor-pointer">
-              <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full flex items-center justify-center">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors cursor-pointer">
+              <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                 <User size={16} className="text-white" />
               </div>
               <div className="flex-1">

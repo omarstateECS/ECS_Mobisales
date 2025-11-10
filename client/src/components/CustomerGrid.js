@@ -1,9 +1,11 @@
 import React from 'react';
 import { Store, MapPin, Phone, Eye, Settings, Trash2, Edit, Ban, CheckCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const CustomerCard = ({ customer, handleDeleteCustomer, deletingCustomerId, handleEditCustomer, handleViewDetails }) => {
   const { theme } = useTheme();
+  const { t, isRTL } = useLocalization();
   
   return (
     <div className={`group relative overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1 ${
@@ -19,25 +21,29 @@ const CustomerCard = ({ customer, handleDeleteCustomer, deletingCustomerId, hand
             : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
         }`}>
           <div className={`w-1.5 h-1.5 rounded-full ${customer.blocked ? 'bg-red-400' : 'bg-emerald-400'} animate-pulse`}></div>
-          {customer.blocked ? 'Blocked' : 'Active'}
+          {customer.blocked ? t('customers.blocked') : t('customers.active')}
         </div>
       </div>
 
       <div className="p-5">
         {/* Header Section */}
-        <div className="flex items-start gap-3 mb-4 pr-20">
+        <div className={`flex items-start gap-3 mb-4 pr-20 ${isRTL ? 'flex-row-reverse' : ''}`}>
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg flex-shrink-0">
             <Store className="w-6 h-6 text-white" />
           </div>
           
           <div className="flex-1 min-w-0 overflow-hidden">
-            <h3 className={`text-lg font-bold mb-0.5 truncate group-hover:text-blue-400 transition-colors ${
-              theme === 'dark' ? 'text-white' : 'text-gray-900'
-            }`} title={customer.name}>
+            <h3
+              className={`text-lg font-bold mb-0.5 truncate group-hover:text-blue-400 transition-colors ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}
+              title={customer.name}
+              dir={isRTL ? 'ltr' : undefined}
+            >
               {customer.name}
             </h3>
             <p className={`text-xs font-medium truncate ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-              ID: #{customer.customerId}
+              {t('common.id')}: #{customer.customerId}
             </p>
           </div>
         </div>
@@ -94,7 +100,7 @@ const CustomerCard = ({ customer, handleDeleteCustomer, deletingCustomerId, hand
                 : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
             }`}
           >
-            View Details
+            {t('customers.viewDetails')}
           </button>
           
           <button 
@@ -104,7 +110,7 @@ const CustomerCard = ({ customer, handleDeleteCustomer, deletingCustomerId, hand
                 ? 'bg-gray-700/50 hover:bg-emerald-500/20 text-gray-400 hover:text-emerald-400 border border-gray-600/50 hover:border-emerald-500/40'
                 : 'bg-gray-100 hover:bg-emerald-50 text-gray-600 hover:text-emerald-600 border border-gray-200'
             }`}
-            title="Edit"
+            title={t('common.edit')}
           >
             <Edit size={16} />
           </button>
@@ -121,7 +127,7 @@ const CustomerCard = ({ customer, handleDeleteCustomer, deletingCustomerId, hand
                   ? 'bg-gray-700/50 hover:bg-orange-500/20 text-gray-400 hover:text-orange-400 border border-gray-600/50 hover:border-orange-500/40'
                   : 'bg-gray-100 hover:bg-orange-50 text-gray-600 hover:text-orange-600 border border-gray-200'
             }`}
-            title={customer.blocked ? "Unblock" : "Block"}
+            title={customer.blocked ? t('customers.unblock') : t('customers.block')}
           >
             {deletingCustomerId === customer.customerId ? (
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-orange-400/30 border-t-orange-400"></div>
@@ -138,10 +144,11 @@ const CustomerCard = ({ customer, handleDeleteCustomer, deletingCustomerId, hand
 };
 
 const CustomerGrid = ({ customers, loading, handleDeleteCustomer, deletingCustomerId, openAddCustomerModal, handleEditCustomer, handleViewDetails }) => {
+  const { t } = useLocalization();
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-400">Loading customers...</div>
+        <div className="text-gray-400">{t('customers.loadingCustomers')}</div>
       </div>
     );
   }
@@ -150,12 +157,12 @@ const CustomerGrid = ({ customers, loading, handleDeleteCustomer, deletingCustom
     return (
       <div className="text-center py-12 bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl">
         <Store className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-white mb-2">No Customers Found</h3>
-        <p className="text-gray-400 mb-6">Get started by adding your first customer.</p>
+        <h3 className="text-xl font-semibold text-white mb-2">{t('customers.noCustomersFound')}</h3>
+        <p className="text-gray-400 mb-6">{t('customers.getStartedAddFirst')}</p>
         <button 
           onClick={openAddCustomerModal}
           className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200">
-          Add First Customer
+          {t('customers.addFirstCustomer')}
         </button>
       </div>
     );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, MapPin, Map } from 'lucide-react';
 import GoogleMapSelector from './GoogleMapSelector';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const EditCustomerModal = ({
   showEditCustomerModal,
@@ -14,6 +15,7 @@ const EditCustomerModal = ({
   handleEditClearLocationSelection,
   editingCustomer
 }) => {
+  const { t, isRTL } = useLocalization();
   const [showMap, setShowMap] = useState(false);
   const [industries, setIndustries] = useState([]);
   
@@ -52,9 +54,15 @@ const EditCustomerModal = ({
         {/* Modal Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700/50">
           <div>
-            <h2 className="text-2xl font-bold text-white">Edit Customer</h2>
+            <h2 className="text-2xl font-bold text-white">{t('customers.editCustomer')}</h2>
             <p className="text-gray-400">
-              {editingCustomer ? `Editing "${editingCustomer.name}"` : 'Update customer details'}
+              {editingCustomer ? (
+                <>
+                  {t('customers.customer')}: <span dir={isRTL ? 'ltr' : undefined}>{editingCustomer.name}</span>
+                </>
+              ) : (
+                t('customers.addNewCustomerSubtitle')
+              )}
             </p>
           </div>
           <button
@@ -71,7 +79,7 @@ const EditCustomerModal = ({
             {/* Customer Name */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Customer Name *
+                {t('customers.customerName')} *
               </label>
               <input
                 type="text"
@@ -80,7 +88,7 @@ const EditCustomerModal = ({
                 onChange={handleEditInputChange}
                 required
                 className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                                  placeholder="Enter customer name"
+                placeholder={t('customers.enterCustomerName')}
               />
             </div>
 
@@ -90,7 +98,7 @@ const EditCustomerModal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Latitude *
+                  {t('customers.latitude')} *
                 </label>
                 <input
                   type="text"
@@ -102,13 +110,13 @@ const EditCustomerModal = ({
                   className={`w-full px-4 py-3 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
                     editSelectedLocation ? 'bg-gray-600/30 cursor-not-allowed' : 'bg-gray-700/50'
                   }`}
-                  placeholder="Enter latitude or select on map"
+                  placeholder={t('customers.enterLatitudeOrMap')}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Longitude *
+                  {t('customers.longitude')} *
                 </label>
                 <input
                   type="text"
@@ -120,7 +128,7 @@ const EditCustomerModal = ({
                   className={`w-full px-4 py-3 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
                     editSelectedLocation ? 'bg-gray-600/30 cursor-not-allowed' : 'bg-gray-700/50'
                   }`}
-                  placeholder="Enter longitude or select on map"
+                  placeholder={t('customers.enterLongitudeOrMap')}
                 />
               </div>
             </div>
@@ -129,7 +137,7 @@ const EditCustomerModal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Industry *
+                  {t('customers.industry')} *
                 </label>
                 <select
                   name="industryId"
@@ -138,7 +146,7 @@ const EditCustomerModal = ({
                   required
                   className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                 >
-                  <option value="">Select industry</option>
+                  <option value="">{t('customers.selectIndustry')}</option>
                   {industries.map((industry) => (
                     <option key={industry.industryId} value={industry.industryId}>
                       {industry.name}
@@ -149,7 +157,7 @@ const EditCustomerModal = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Phone Number
+                  {t('customers.phone')}
                 </label>
                 <input
                   type="tel"
@@ -157,7 +165,7 @@ const EditCustomerModal = ({
                   value={editFormData.phone}
                   onChange={handleEditInputChange}
                   className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                  placeholder="Enter phone number"
+                  placeholder={t('customers.enterPhoneNumber')}
                 />
               </div>
             </div>
@@ -165,7 +173,7 @@ const EditCustomerModal = ({
             {/* Address */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Full Address
+                {t('customers.fullAddress')}
               </label>
               <textarea
                 name="address"
@@ -173,7 +181,7 @@ const EditCustomerModal = ({
                 onChange={handleEditInputChange}
                 rows="3"
                 className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
-                placeholder="Enter full address (auto-filled when location selected)"
+                placeholder={t('customers.enterFullAddressHint')}
               />
             </div>
           </div>
@@ -184,10 +192,10 @@ const EditCustomerModal = ({
               <button
                 type="button"
                 onClick={() => setShowMap(true)}
-                className="flex items-center space-x-2 px-6 py-3 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 rounded-xl text-sm font-medium transition-colors border border-emerald-600/30"
+                className="flex items-center gap-2 px-6 py-3 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 rounded-xl text-sm font-medium transition-colors border border-emerald-600/30"
               >
                 <Map size={18} />
-                <span>Edit Location on Map</span>
+                <span>{t('customers.selectLocationOnMap')}</span>
               </button>
             </div>
           )}
@@ -197,15 +205,15 @@ const EditCustomerModal = ({
             <div className="mt-6">
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-300">
-                  Location Selection
+                  {t('customers.locationSelection')}
                 </label>
                 <button
                   type="button"
                   onClick={() => setShowMap(false)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gray-600/20 hover:bg-gray-600/30 text-gray-400 rounded-lg text-sm font-medium transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-600/20 hover:bg-gray-600/30 text-gray-400 rounded-lg text-sm font-medium transition-colors"
                 >
                   <X size={16} />
-                  <span>Hide Map</span>
+                  <span>{t('customers.hideMap')}</span>
                 </button>
               </div>
               
@@ -222,10 +230,10 @@ const EditCustomerModal = ({
               {editSelectedLocation && (
                 <div className="mt-4 p-4 bg-emerald-600/20 border border-emerald-600/30 rounded-xl">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-2">
                       <MapPin className="w-5 h-5 text-emerald-400" />
                       <div>
-                        <p className="text-emerald-400 font-medium text-sm">Current Location</p>
+                        <p className="text-emerald-400 font-medium text-sm">{t('customers.locationSelected')}</p>
                         <p className="text-gray-300 text-xs">
                           {editSelectedLocation.lat.toFixed(6)}, {editSelectedLocation.lng.toFixed(6)}
                         </p>
@@ -235,7 +243,7 @@ const EditCustomerModal = ({
                       type="button"
                       onClick={handleEditClearLocationSelection}
                       className="p-1 rounded-lg hover:bg-red-600/20 text-gray-400 hover:text-red-400 transition-colors"
-                      title="Clear location"
+                      title={t('customers.clearLocation')}
                     >
                       <X size={16} />
                     </button>
@@ -246,28 +254,28 @@ const EditCustomerModal = ({
           )}
 
           {/* Modal Footer */}
-          <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-700/50">
+          <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-700/50">
             <button
               type="button"
               onClick={() => setShowEditCustomerModal(false)}
               className="px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 border border-gray-600/50"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={editCustomerLoading}
-              className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-emerald-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-emerald-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {editCustomerLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div>
-                  <span>Updating...</span>
+                  <span>{t('common.loading')}</span>
                 </>
               ) : (
                 <>
                   <Save size={16} />
-                  <span>Save Changes</span>
+                  <span>{t('common.save')}</span>
                 </>
               )}
             </button>

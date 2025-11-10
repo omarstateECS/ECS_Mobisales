@@ -3,30 +3,33 @@ import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Menu, Search, Bell, User, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLocalization } from '../contexts/LocalizationContext';
+import LanguageSwitcher from './common/LanguageSwitcher';
 
 const Header = ({ setSidebarOpen }) => {
   const { theme, toggleTheme } = useTheme();
+  const { t } = useLocalization();
   const location = useLocation();
   
   // Map routes to titles and descriptions
   const getPageInfo = (pathname) => {
     const routes = {
-      '/': { title: 'Dashboard Overview', description: 'Manage your sales operations efficiently' },
-      '/customers': { title: 'All Customers', description: 'Manage your customers' },
-      '/products': { title: 'Products Management', description: 'Manage your product catalog and inventory' },
-      '/salesmen': { title: 'All Salesmen', description: 'Manage your sales team' },
-      '/tours': { title: 'Tours', description: 'View and manage sales tours' },
-      '/plan-routes': { title: 'Plan Routes', description: 'Plan and assign customer routes' },
-      '/fillup': { title: 'Create Fillup', description: 'Assign products to salesmen' },
+      '/': { title: t('dashboard.title'), description: t('dashboard.subtitle') },
+      '/customers': { title: t('customers.title'), description: t('customers.subtitle') },
+      '/products': { title: t('products.title'), description: t('products.subtitle') },
+      '/salesmen': { title: t('salesmen.title'), description: t('salesmen.subtitle') },
+      '/tours': { title: t('tours.title'), description: t('tours.subtitle') },
+      '/plan-routes': { title: t('planRoutes.title'), description: t('planRoutes.subtitle') },
+      '/fillup': { title: t('fillup.title'), description: t('fillup.subtitle') },
       '/fillup-history': { title: 'Fillup History', description: 'View fillup history' },
       '/invoices': { title: 'Invoices', description: 'Manage invoices' },
       '/stock': { title: 'Stock Management', description: 'Manage salesman stock' },
       '/loadorders': { title: 'Load Orders', description: 'Manage load orders' },
       '/regions': { title: 'Regions', description: 'Manage regions' },
       '/industries': { title: 'Industries', description: 'Manage industries' },
-      '/authorities': { title: 'Authorities', description: 'Manage user authorities' },
-      '/cancel-reasons': { title: 'Return Reasons', description: 'Manage return reasons' },
-      '/settings': { title: 'Settings', description: 'Configure system settings' }
+      '/authorities': { title: t('authorities.title'), description: t('authorities.subtitle') },
+      '/cancel-reasons': { title: t('cancelReasons.title'), description: t('cancelReasons.subtitle') },
+      '/settings': { title: t('settings.title'), description: t('settings.subtitle') }
     };
     
     return routes[pathname] || { title: 'MobiSales', description: 'Admin Dashboard' };
@@ -80,10 +83,13 @@ const Header = ({ setSidebarOpen }) => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder={t('common.search') + '...'}
               className="w-64 h-10 pl-10 pr-4 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
             />
           </div>
+
+          {/* Language Switcher */}
+          <LanguageSwitcher />
 
           {/* Theme Toggle */}
           <motion.button 

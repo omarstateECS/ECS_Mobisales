@@ -29,6 +29,7 @@ import ConfirmationModal from './components/common/ConfirmationModal';
 import NotificationModal from './components/common/NotificationModal';
 import { useNotification } from './hooks/useNotification';
 import { useTheme } from './contexts/ThemeContext';
+import { LocalizationProvider } from './contexts/LocalizationContext';
 import './theme.css';
 
 const AppContent = () => {
@@ -946,11 +947,13 @@ const AppContent = () => {
   );
 };
 
-// Wrapper component with BrowserRouter
+// Wrapper component with BrowserRouter and LocalizationProvider
 const Dashboard = () => {
   return (
     <BrowserRouter>
-      <AppContent />
+      <LocalizationProvider>
+        <AppContent />
+      </LocalizationProvider>
     </BrowserRouter>
   );
 };

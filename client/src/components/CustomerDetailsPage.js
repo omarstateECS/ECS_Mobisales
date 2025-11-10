@@ -1,13 +1,15 @@
 import React from 'react';
 import { ArrowLeft, Store, MapPin, Phone, Calendar, Database, Globe, Building, Edit, Ban, CheckCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
   const { theme } = useTheme();
+  const { t, isRTL } = useLocalization();
   if (!customer) return null;
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return t('customers.details.na');
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -18,7 +20,7 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
   };
 
   const formatCoordinates = (lat, lng) => {
-    if (!lat || !lng) return 'N/A';
+    if (!lat || !lng) return t('customers.details.na');
     return `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}`;
   };
 
@@ -32,7 +34,7 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-6">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4">
               <button
                 onClick={onBack}
                 className={`p-2 rounded-xl transition-colors ${
@@ -40,27 +42,27 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                     ? 'hover:bg-gray-700/50 text-gray-400 hover:text-white'
                     : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
                 }`}
-                title="Go back"
+                title={t('common.back')}
               >
                 <ArrowLeft size={24} />
               </button>
               <div>
                 <h1 className={`text-2xl font-bold ${
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>Customer Details</h1>
+                }`}>{t('customers.details.title')}</h1>
                 <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                  Viewing complete information for {customer.name}
+                  {t('customers.details.subtitlePrefix')} <span dir={isRTL ? 'ltr' : undefined}>{customer.name}</span>
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
                 <Store className="w-6 h-6 text-white" />
               </div>
               <div className="text-right">
                 <div className={`text-sm ${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                }`}>Customer ID</div>
+                }`}>{t('customers.details.customerId')}</div>
                 <div className={`text-lg font-semibold ${
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`}>#{customer.customerId}</div>
@@ -83,14 +85,14 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                 ? 'bg-gray-800/40 border-gray-700/50'
                 : 'bg-white border-gray-300'
             }`}>
-              <div className="flex items-center space-x-3 mb-4">
+              <div className="flex items-center gap-3 mb-4">
                 <Store className="w-8 h-8 text-blue-400" />
                 <div>
                   <h2 className={`text-2xl font-bold ${
                     theme === 'dark' ? 'text-white' : 'text-gray-900'
-                  }`}>{customer.name}</h2>
+                  }`} dir={isRTL ? 'ltr' : undefined}>{customer.name}</h2>
                   <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                    Business Information
+                    {t('customers.details.businessInfo')}
                   </p>
                 </div>
               </div>
@@ -99,15 +101,15 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                  }`}>Industry Type</label>
-                  <div className="flex items-center space-x-2">
+                  }`}>{t('customers.details.industryType')}</label>
+                  <div className="flex items-center gap-2">
                     <Building className={`w-5 h-5 ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                     }`} />
                     <span className={`font-medium ${
                       theme === 'dark' ? 'text-white' : 'text-gray-900'
                     }`}>
-                      {customer.industry?.name || 'Not specified'}
+                      {customer.industry?.name || t('customers.details.notSpecified')}
                     </span>
                   </div>
                 </div>
@@ -115,15 +117,15 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                  }`}>Phone Number</label>
-                  <div className="flex items-center space-x-2">
+                  }`}>{t('customers.details.phoneNumber')}</label>
+                  <div className="flex items-center gap-2">
                     <Phone className={`w-5 h-5 ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                     }`} />
                     <span className={`font-medium ${
                       theme === 'dark' ? 'text-white' : 'text-gray-900'
                     }`}>
-                      {customer.phone || 'Not provided'}
+                      {customer.phone || t('customers.details.notProvided')}
                     </span>
                   </div>
                 </div>
@@ -136,14 +138,14 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                 ? 'bg-gray-800/40 border-gray-700/50'
                 : 'bg-white border-gray-300'
             }`}>
-              <div className="flex items-center space-x-3 mb-4">
+              <div className="flex items-center gap-3 mb-4">
                 <MapPin className="w-8 h-8 text-emerald-400" />
                 <div>
                   <h3 className={`text-xl font-semibold ${
                     theme === 'dark' ? 'text-white' : 'text-gray-900'
-                  }`}>Location Details</h3>
+                  }`}>{t('customers.details.locationDetails')}</h3>
                   <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                    Address and coordinates
+                    {t('customers.details.addressAndCoordinates')}
                   </p>
                 </div>
               </div>
@@ -152,14 +154,14 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                  }`}>Full Address</label>
+                  }`}>{t('customers.details.fullAddress')}</label>
                   <div className={`p-3 rounded-lg border ${
                     theme === 'dark'
                       ? 'bg-gray-700/30 border-gray-600/30'
                       : 'bg-gray-50 border-gray-300'
                   }`}>
                     <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>
-                      {customer.address || 'Address not provided'}
+                      {customer.address || t('customers.details.addressNotProvided')}
                     </span>
                   </div>
                 </div>
@@ -168,7 +170,7 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                   <div>
                     <label className={`block text-sm font-medium mb-2 ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                    }`}>Latitude</label>
+                    }`}>{t('customers.details.latitude')}</label>
                     <div className={`p-3 rounded-lg border ${
                       theme === 'dark'
                         ? 'bg-gray-700/30 border-gray-600/30'
@@ -177,7 +179,7 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                       <span className={`font-mono ${
                         theme === 'dark' ? 'text-white' : 'text-gray-900'
                       }`}>
-                        {customer.latitude ? parseFloat(customer.latitude).toFixed(6) : 'N/A'}
+                        {customer.latitude ? parseFloat(customer.latitude).toFixed(6) : t('customers.details.na')}
                       </span>
                     </div>
                   </div>
@@ -185,7 +187,7 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                   <div>
                     <label className={`block text-sm font-medium mb-2 ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                    }`}>Longitude</label>
+                    }`}>{t('customers.details.longitude')}</label>
                     <div className={`p-3 rounded-lg border ${
                       theme === 'dark'
                         ? 'bg-gray-700/30 border-gray-600/30'
@@ -194,7 +196,7 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                       <span className={`font-mono ${
                         theme === 'dark' ? 'text-white' : 'text-gray-900'
                       }`}>
-                        {customer.longitude ? parseFloat(customer.longitude).toFixed(6) : 'N/A'}
+                        {customer.longitude ? parseFloat(customer.longitude).toFixed(6) : t('customers.details.na')}
                       </span>
                     </div>
                   </div>
@@ -203,7 +205,7 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                  }`}>Coordinates (Formatted)</label>
+                  }`}>{t('customers.details.coordinatesFormatted')}</label>
                   <div className={`p-3 rounded-lg border ${
                     theme === 'dark'
                       ? 'bg-gray-700/30 border-gray-600/30'
@@ -226,14 +228,14 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                   ? 'bg-gray-800/40 border-gray-700/50'
                   : 'bg-white border-gray-300'
               }`}>
-                <div className="flex items-center space-x-3 mb-4">
+                <div className="flex items-center gap-3 mb-4">
                   <Database className="w-8 h-8 text-purple-400" />
                   <div>
                     <h3 className={`text-xl font-semibold ${
                       theme === 'dark' ? 'text-white' : 'text-gray-900'
-                    }`}>Stock Information</h3>
+                    }`}>{t('customers.details.stockInformation')}</h3>
                     <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                      Inventory and stock details
+                      {t('customers.details.inventoryAndStockDetails')}
                     </p>
                   </div>
                 </div>
@@ -266,7 +268,7 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                   ? 'bg-emerald-900/20 border-emerald-700/50'
                   : 'bg-emerald-50 border-emerald-200'
             }`}>
-              <div className="flex items-center space-x-3 mb-4">
+              <div className="flex items-center gap-3 mb-4">
                 {customer.blocked ? (
                   <Ban className="w-8 h-8 text-red-400" />
                 ) : (
@@ -275,9 +277,9 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                 <div>
                   <h3 className={`text-xl font-semibold ${
                     theme === 'dark' ? 'text-white' : 'text-gray-900'
-                  }`}>Account Status</h3>
+                  }`}>{t('customers.details.accountStatus')}</h3>
                   <p className={customer.blocked ? 'text-red-400' : 'text-emerald-400'}>
-                    {customer.blocked ? 'Customer is blocked' : 'Customer is active'}
+                    {customer.blocked ? t('customers.details.customerBlocked') : t('customers.details.customerActive')}
                   </p>
                 </div>
               </div>
@@ -287,10 +289,10 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                   ? 'bg-red-500/10 border-red-500/30'
                   : 'bg-emerald-500/10 border-emerald-500/30'
               }`}>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
                   <div className={`w-3 h-3 rounded-full ${customer.blocked ? 'bg-red-500' : 'bg-emerald-500'} animate-pulse`}></div>
                   <span className={`font-semibold ${customer.blocked ? 'text-red-400' : 'text-emerald-400'}`}>
-                    {customer.blocked ? 'BLOCKED' : 'ACTIVE'}
+                    {customer.blocked ? t('customers.details.blockedUpper') : t('customers.details.activeUpper')}
                   </span>
                 </div>
                 <p className={`text-sm mt-2 ${
@@ -299,8 +301,8 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                     : theme === 'dark' ? 'text-emerald-300' : 'text-emerald-600'
                 }`}>
                   {customer.blocked 
-                    ? 'This customer cannot make purchases or place orders.'
-                    : 'This customer can make purchases and place orders normally.'
+                    ? t('customers.details.blockedInfo')
+                    : t('customers.details.activeInfo')
                   }
                 </p>
               </div>
@@ -312,14 +314,14 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                 ? 'bg-gray-800/40 border-gray-700/50'
                 : 'bg-white border-gray-300'
             }`}>
-              <div className="flex items-center space-x-3 mb-4">
+              <div className="flex items-center gap-3 mb-4">
                 <Calendar className="w-8 h-8 text-orange-400" />
                 <div>
                   <h3 className={`text-xl font-semibold ${
                     theme === 'dark' ? 'text-white' : 'text-gray-900'
-                  }`}>Customer Metadata</h3>
+                  }`}>{t('customers.details.customerMetadata')}</h3>
                   <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                    System information
+                    {t('customers.details.systemInformation')}
                   </p>
                 </div>
               </div>
@@ -328,7 +330,7 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                  }`}>Created Date</label>
+                  }`}>{t('customers.details.createdDate')}</label>
                   <div className={`p-3 rounded-lg border ${
                     theme === 'dark'
                       ? 'bg-gray-700/30 border-gray-600/30'
@@ -343,7 +345,7 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                  }`}>Last Updated</label>
+                  }`}>{t('customers.details.lastUpdated')}</label>
                   <div className={`p-3 rounded-lg border ${
                     theme === 'dark'
                       ? 'bg-gray-700/30 border-gray-600/30'
@@ -365,37 +367,37 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
             }`}>
               <h3 className={`text-xl font-semibold mb-4 ${
                 theme === 'dark' ? 'text-white' : 'text-gray-900'
-              }`}>Quick Actions</h3>
+              }`}>{t('customers.details.quickActions')}</h3>
               
               <div className="space-y-3">
                 <button 
                   onClick={() => onEdit(customer)}
-                  className={`w-full px-4 py-3 rounded-xl font-medium transition-colors border flex items-center justify-center space-x-2 ${
+                  className={`w-full px-4 py-3 rounded-xl font-medium transition-colors border flex items-center justify-center gap-2 ${
                     theme === 'dark'
                       ? 'bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border-emerald-600/30'
                       : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border-emerald-300'
                   }`}
                 >
                   <Edit className="w-5 h-5" />
-                  <span>Edit Customer</span>
+                  <span>{t('customers.details.editCustomer')}</span>
                 </button>
                 
-                <button className={`w-full px-4 py-3 rounded-xl font-medium transition-colors border flex items-center justify-center space-x-2 ${
+                <button className={`w-full px-4 py-3 rounded-xl font-medium transition-colors border flex items-center justify-center gap-2 ${
                   theme === 'dark'
                     ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border-blue-600/30'
                     : 'bg-blue-100 hover:bg-blue-200 text-blue-900 border-blue-300'
                 }`}>
                   <Globe className="w-5 h-5" />
-                  <span>View on Map</span>
+                  <span>{t('customers.details.viewOnMap')}</span>
                 </button>
                 
-                <button className={`w-full px-4 py-3 rounded-xl font-medium transition-colors border flex items-center justify-center space-x-2 ${
+                <button className={`w-full px-4 py-3 rounded-xl font-medium transition-colors border flex items-center justify-center gap-2 ${
                   theme === 'dark'
                     ? 'bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 border-purple-600/30'
                     : 'bg-purple-100 hover:bg-purple-200 text-purple-900 border-purple-300'
                 }`}>
                   <Database className="w-5 h-5" />
-                  <span>Update Stock</span>
+                  <span>{t('customers.details.updateStock')}</span>
                 </button>
               </div>
             </div>
@@ -408,39 +410,39 @@ const CustomerDetailsPage = ({ customer, onBack, onEdit }) => {
             }`}>
               <h3 className={`text-xl font-semibold mb-4 ${
                 theme === 'dark' ? 'text-white' : 'text-gray-900'
-              }`}>Status</h3>
+              }`}>{t('customers.details.statusTitle')}</h3>
               
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                    Customer Status
+                    {t('customers.details.customerStatus')}
                   </span>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                    <span className="text-emerald-400 text-sm font-medium">Active</span>
+                    <span className="text-emerald-400 text-sm font-medium">{t('customers.active')}</span>
                   </div>
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                    Location Set
+                    {t('customers.details.locationSet')}
                   </span>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <div className={`w-3 h-3 rounded-full ${customer.latitude && customer.longitude ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
                     <span className={`text-sm font-medium ${customer.latitude && customer.longitude ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {customer.latitude && customer.longitude ? 'Yes' : 'No'}
+                      {customer.latitude && customer.longitude ? t('common.yes') : t('common.no')}
                     </span>
                   </div>
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                    Phone Provided
+                    {t('customers.details.phoneProvided')}
                   </span>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <div className={`w-3 h-3 rounded-full ${customer.phone ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
                     <span className={`text-sm font-medium ${customer.phone ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {customer.phone ? 'Yes' : 'No'}
+                      {customer.phone ? t('common.yes') : t('common.no')}
                     </span>
                   </div>
                 </div>

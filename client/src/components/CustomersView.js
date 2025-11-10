@@ -4,6 +4,7 @@ import CustomerGrid from './CustomerGrid';
 import CustomerList from './CustomerList';
 import ViewToggle from './ViewToggle';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const CustomersView = ({
   handleNavigation,
@@ -17,6 +18,7 @@ const CustomersView = ({
   handleViewDetails
 }) => {
   const { theme } = useTheme();
+  const { t, isRTL } = useLocalization();
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
@@ -150,7 +152,7 @@ const CustomersView = ({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-4">
           <button
             onClick={() => handleNavigation('dashboard')}
             className="p-2 rounded-xl hover:bg-gray-800/50 text-gray-400 hover:text-white transition-colors"
@@ -158,17 +160,17 @@ const CustomersView = ({
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>All Customers</h2>
-            <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Manage your customers</p>
+            <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('customers.allCustomers')}</h2>
+            <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>{t('customers.subtitle')}</p>
           </div>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-4">
           <ViewToggle view={viewMode} onViewChange={setViewMode} theme={theme} />
           <button 
             onClick={openAddCustomerModal}
-            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25 flex items-center space-x-2">
+            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25 flex items-center gap-2">
             <Plus size={16} />
-            <span>Add Customer</span>
+            <span>{t('customers.addCustomer')}</span>
           </button>
         </div>
       </div>
@@ -183,13 +185,13 @@ const CustomersView = ({
           {/* Search and Basic Filters */}
           <div className="flex flex-col md:flex-row gap-4 relative z-10">
             <div className="flex-1 relative">
-              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
+              <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
               <input
                 type="text"
-                placeholder="Search customers by name..."
+                placeholder={t('customers.searchByName')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
+                className={`w-full ${isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
                   theme === 'dark'
                     ? 'bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-400'
                     : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-500'
@@ -205,7 +207,7 @@ const CustomersView = ({
               }}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all"
             >
-              Search
+              {t('common.search')}
             </button>
             <select
               value={selectedIndustry}
@@ -216,7 +218,7 @@ const CustomersView = ({
                   : 'bg-gray-50 border border-gray-200 text-gray-900'
               }`}
             >
-              <option value="">All Industries</option>
+              <option value="">{t('customers.allIndustries')}</option>
               {industries.map(industry => (
                 <option key={industry} value={industry}>{industry}</option>
               ))}
@@ -234,7 +236,7 @@ const CustomersView = ({
                   : 'bg-gray-50 border border-gray-200 text-gray-900'
               }`}
             >
-              <option value="">All Countries</option>
+              <option value="">{t('customers.allCountries')}</option>
               {countries.map(country => (
                 <option key={country} value={country}>{country}</option>
               ))}
@@ -252,7 +254,7 @@ const CustomersView = ({
                   : 'bg-gray-50 border border-gray-200 text-gray-900'
               } ${!selectedCountry ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              <option value="">All Cities</option>
+              <option value="">{t('customers.allCities')}</option>
               {cities.map(city => (
                 <option key={city} value={city}>{city}</option>
               ))}
@@ -267,7 +269,7 @@ const CustomersView = ({
                 }}
                 onFocus={() => setShowRegionDropdown(true)}
                 disabled={!selectedCity && !selectedCountry}
-                placeholder={selectedRegion ? regions.find(r => r.id === parseInt(selectedRegion))?.region || "Search regions..." : "Search regions..."}
+                placeholder={selectedRegion ? regions.find(r => r.id === parseInt(selectedRegion))?.region || t('customers.searchRegions') : t('customers.searchRegions')}
                 className={`w-full px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all ${
                   theme === 'dark'
                     ? 'bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-500'
@@ -296,7 +298,7 @@ const CustomersView = ({
                         : 'text-gray-600 hover:bg-gray-50 border-gray-200'
                     }`}
                   >
-                    All Regions (Clear filter)
+                    {t('customers.allRegions')}
                   </button>
                   
                   {(() => {
@@ -309,7 +311,7 @@ const CustomersView = ({
                         <div className={`p-4 text-sm text-center ${
                           theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
                         }`}>
-                          No regions found
+                          {t('customers.noRegions')}
                         </div>
                       );
                     }
@@ -352,9 +354,9 @@ const CustomersView = ({
                   : 'bg-gray-50 border border-gray-200 text-gray-900'
               }`}
             >
-              <option value="name">Sort by Name</option>
-              <option value="industry">Sort by Industry</option>
-              <option value="createdAt">Sort by Date</option>
+              <option value="name">{t('customers.sortByName')}</option>
+              <option value="industry">{t('customers.sortByIndustry')}</option>
+              <option value="createdAt">{t('customers.sortByDate')}</option>
             </select>
             <button 
               onClick={() => fetchCustomersForPage(currentPage, itemsPerPage, committedSearch)}
@@ -364,19 +366,19 @@ const CustomersView = ({
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200 hover:border-gray-300'
               }`}
             >
-              {loading ? 'Loading...' : 'Refresh'}
+              {loading ? t('common.loading') : t('customers.refresh')}
             </button>
           </div>
           
           {/* Results Summary */}
           <div className={`flex items-center justify-between text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
             <div>
-              Showing {startIndex + 1}-{endIndex} customers on page {currentPage}
-              {committedSearch && ` matching "${committedSearch}"`}
-              {selectedIndustry && ` in ${selectedIndustry} industry`}
+              {t('customers.showing')} {startIndex + 1}-{endIndex} {t('customers.customersLabel')} {t('customers.onPage')} {currentPage}
+              {committedSearch && ` ${t('customers.matching')} "${committedSearch}"`}
+              {selectedIndustry && ` ${t('customers.in')} ${selectedIndustry} ${t('customers.industryWord')}`}
             </div>
-            <div className="flex items-center space-x-2">
-              <span>Items per page:</span>
+            <div className="flex items-center gap-2">
+              <span>{t('customers.itemsPerPage')}:</span>
               <select
                 value={itemsPerPage}
                 onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
@@ -422,10 +424,10 @@ const CustomersView = ({
       {(currentPage > 1 || hasMorePages) && (
         <div className="flex items-center justify-between bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4">
           <div className="text-sm text-gray-400">
-            Page {currentPage} • {filteredCustomers.length} customers on this page
+            {t('common.page')} {currentPage} • {filteredCustomers.length} {t('customers.customersOnThisPage')}
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             {/* Previous Page */}
             <button
               onClick={() => handlePageChange(currentPage - 1)}

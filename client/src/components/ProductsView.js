@@ -9,12 +9,14 @@ import NotificationModal from './common/NotificationModal';
 import { useNotification } from '../hooks/useNotification';
 import ViewToggle from './ViewToggle';
 import ProductsList from './ProductsList';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 // Set axios base URL
 axios.defaults.baseURL = 'http://localhost:3000';
 
 const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDeleteProduct, deletingProductId }) => {
   const { theme } = useTheme();
+  const { t, isRTL } = useLocalization();
   
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-EG', {
@@ -46,7 +48,7 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
     >
       {/* Deactivated Corner Indicator - Top Left */}
       {!product.isActive && (
-        <div className="absolute top-0 left-0 z-10" title="Deactivated Product">
+        <div className="absolute top-0 left-0 z-10" title={t('products.deactivatedProduct')}>
           <div className="relative">
             {/* Triangle background */}
             <div className="w-0 h-0 border-l-[50px] border-l-red-500 border-b-[50px] border-b-transparent"></div>
@@ -60,40 +62,44 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
         </div>
       )}
 
-      {/* Stock Badge - Top Right */}
-      <div className="absolute top-3 right-3">
-        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium backdrop-blur-sm border ${
-          (product.stock || 0) > 10
-            ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-            : (product.stock || 0) > 0
-              ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-              : 'bg-red-500/20 text-red-400 border-red-500/30'
-        }`}>
-          <div className={`w-1.5 h-1.5 rounded-full ${
-            (product.stock || 0) > 10 ? 'bg-blue-400' : (product.stock || 0) > 0 ? 'bg-yellow-400' : 'bg-red-400'
-          } animate-pulse`}></div>
-          Stock: {product.stock || 0}
-        </div>
-      </div>
 
       <div className="p-5">
         {/* Header Section */}
-        <div className="flex items-start gap-3 mb-4 pr-24">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg flex-shrink-0">
-            <Package className="w-6 h-6 text-white" />
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg flex-shrink-0">
+              <Package className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3
+                className={`text-lg font-bold mb-0.5 truncate group-hover:text-purple-400 transition-colors ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}
+                title={product.name}
+              >
+                {product.name}
+              </h3>
+              <p className="text-xs font-medium text-gray-500">
+                {t('products.idLabel')}: #{product.prodId}
+              </p>
+            </div>
           </div>
           
-          <div className="flex-1 min-w-0 overflow-hidden">
-            <h3 className={`text-lg font-bold mb-0.5 truncate group-hover:text-purple-400 transition-colors ${
-              theme === 'dark' ? 'text-white' : 'text-gray-900'
-            }`} title={product.name}>
-              {product.name}
-            </h3>
-            <p className={`text-xs font-medium truncate ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-              ID: #{product.prodId}
-            </p>
-            <div className="flex items-center gap-2 mt-1.5">
-              <span className={`text-lg font-bold ${
+          <div className="text-right flex-shrink-0 ml-3 space-y-2">
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium backdrop-blur-sm border ${
+              (product.stock || 0) > 10
+                ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                : (product.stock || 0) > 0
+                  ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                  : 'bg-red-500/20 text-red-400 border-red-500/30'
+            }`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${
+                (product.stock || 0) > 10 ? 'bg-blue-400' : (product.stock || 0) > 0 ? 'bg-yellow-400' : 'bg-red-400'
+              } animate-pulse`}></div>
+              {t('products.stockLabel')}: {product.stock || 0}
+            </div>
+            <div>
+              <span className={`text-xl font-bold ${
                 theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
               }`}>
                 {formatPrice(product.basePrice || 0)}
@@ -147,7 +153,7 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
         {/* Product Units Summary */}
         {product.productUnits && product.productUnits.length > 0 && (
           <div className="mb-4 p-3 rounded-xl bg-gray-700/30 border border-gray-600/30">
-            <h4 className="text-xs font-semibold text-gray-400 mb-2">Available Units</h4>
+            <h4 className="text-xs font-semibold text-gray-400 mb-2">{t('products.availableUnits')}</h4>
             <div className="space-y-1.5">
               {product.productUnits.slice(0, 2).map(unit => (
                 <div key={unit.id} className="flex items-center justify-between">
@@ -157,7 +163,7 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
               ))}
               {product.productUnits.length > 2 && (
                 <div className="text-xs text-gray-500 text-center pt-1">
-                  +{product.productUnits.length - 2} more
+                  +{product.productUnits.length - 2} {t('products.more')}
                 </div>
               )}
             </div>
@@ -174,7 +180,7 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
                 : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200'
             }`}
           >
-            View Details
+            {t('products.viewDetails')}
           </button>
           
           <button 
@@ -184,7 +190,7 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
                 ? 'bg-gray-700/50 hover:bg-blue-500/20 text-gray-400 hover:text-blue-400 border border-gray-600/50 hover:border-blue-500/40'
                 : 'bg-gray-100 hover:bg-blue-50 text-gray-600 hover:text-blue-600 border border-gray-200'
             }`}
-            title="Edit"
+            title={t('common.edit')}
           >
             <Edit size={16} />
           </button>
@@ -201,7 +207,7 @@ const ProductCard = ({ product, handleViewDetails, handleEditProduct, handleDele
                   ? 'bg-gray-700/50 hover:bg-green-500/20 text-gray-400 hover:text-green-400 border border-gray-600/50 hover:border-green-500/40'
                   : 'bg-gray-100 hover:bg-green-50 text-gray-600 hover:text-green-600 border border-gray-200'
             }`}
-            title={product.isActive ? "Deactivate" : "Reactivate"}
+            title={product.isActive ? t('products.deactivate') : t('products.reactivate')}
           >
             {deletingProductId === product.prodId ? (
               <div className={`w-4 h-4 border-2 ${product.isActive ? 'border-red-400/30 border-t-red-400' : 'border-green-400/30 border-t-green-400'} rounded-full animate-spin`}></div>
@@ -241,6 +247,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
     });
     
     const { notification, showSuccess, showDelete, showError, hideNotification } = useNotification();
+    const { t, isRTL } = useLocalization();
 
     useEffect(() => {
         fetchProducts();
@@ -270,7 +277,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
             setTotalProducts(response.data.pagination.total);
             setError(null);
         } catch (err) {
-            setError('Failed to fetch products');
+            setError(t('messages.error.loadFailed'));
             console.error('Error fetching products:', err);
         } finally {
             setLoading(false);
@@ -301,7 +308,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
             setTotalProducts(response.data.pagination.total);
             setError(null);
         } catch (err) {
-            setError('Failed to search products');
+            setError(t('messages.error.loadFailed'));
             console.error('Error searching products:', err);
         } finally {
             setLoading(false);
@@ -338,13 +345,13 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
     const handleDeleteProduct = async (productId, productName, isActive) => {
         setConfirmationModal({
             isOpen: true,
-            title: isActive ? 'Deactivate Product' : 'Reactivate Product',
+            title: isActive ? t('products.deactivateProduct') : t('products.reactivateProduct'),
             message: isActive 
-                ? `Are you sure you want to deactivate "${productName}"? This product will be hidden from active lists but can be reactivated later.`
-                : `Are you sure you want to reactivate "${productName}"? This product will be available for sale again.`,
+                ? t('products.deactivateConfirm').replace('{name}', productName)
+                : t('products.reactivateConfirm').replace('{name}', productName),
             onConfirm: () => confirmDeleteProduct(productId, isActive),
             loading: false,
-            confirmText: isActive ? 'Deactivate' : 'Reactivate',
+            confirmText: isActive ? t('products.deactivate') : t('products.reactivate'),
             type: isActive ? 'danger' : 'success'
         });
     };
@@ -357,11 +364,11 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
             if (isActive) {
                 // Deactivate product
                 await axios.delete(`/api/products/${productId}`);
-                showDelete('Product has been deactivated successfully!', 'Deactivated');
+                showDelete(t('products.deactivatedSuccess'), t('products.deactivated'));
             } else {
                 // Reactivate product
                 await axios.patch(`/api/products/${productId}/reactivate`);
-                showSuccess('Product has been reactivated successfully!', 'Reactivated');
+                showSuccess(t('products.reactivatedSuccess'), t('products.reactivated'));
             }
             // Refresh products to show updated status
             fetchProducts();
@@ -369,7 +376,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
         } catch (error) {
             console.error(`Error ${isActive ? 'deactivating' : 'reactivating'} product:`, error);
             setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false, confirmText: '', type: 'danger' });
-            showError(`Error ${isActive ? 'Deactivating' : 'Reactivating'} Product`, error.response?.data?.error || error.message);
+            showError(isActive ? t('products.deactivateErrorTitle') : t('products.reactivateErrorTitle'), error.response?.data?.error || error.message);
         } finally {
             setDeletingProductId(null);
         }
@@ -416,7 +423,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
     if (loading && products.length === 0) {
         return (
             <div className="text-center py-12">
-                <div className="text-gray-400">Loading products...</div>
+                <div className="text-gray-400">{t('products.loadingProducts')}</div>
             </div>
         );
     }
@@ -426,24 +433,24 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Products</h1>
-                    <p className="text-gray-400">Manage your product catalog and inventory</p>
+                    <h1 className="text-3xl font-bold text-white mb-2">{t('products.title')}</h1>
+                    <p className="text-gray-400">{t('products.subtitle')}</p>
                 </div>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center gap-4">
                     <ViewToggle view={viewMode} onViewChange={setViewMode} />
                     <motion.button
                         onClick={openAddProductModal}
-                        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2"
+                        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center gap-2"
                         whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                         transition={{ duration: 0.2 }}
                     >
                         <Plus size={20} />
-                        <span>Add Product</span>
+                        <span>{t('products.addProduct')}</span>
                     </motion.button>
                     <div className="text-right">
                         <div className="text-2xl font-bold text-white">{totalProducts}</div>
-                        <div className="text-sm text-gray-400">Total Products</div>
+                        <div className="text-sm text-gray-400">{t('products.totalProducts')}</div>
                     </div>
                 </div>
             </div>
@@ -454,13 +461,13 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                     {/* Search and Basic Filters */}
                     <div className="flex flex-col md:flex-row gap-4">
                         <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                            <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-gray-400`} size={16} />
                             <input
                                 type="text"
-                                placeholder="Search products by name, description, or brand..."
+                                placeholder={t('products.searchByNameDescBrand')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                                className={`w-full ${isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all`}
                             />
                         </div>
                         <select
@@ -468,7 +475,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                             onChange={(e) => handleCategoryChange(e.target.value)}
                             className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
                         >
-                            <option value="all">All Categories</option>
+                            <option value="all">{t('products.allCategories')}</option>
                             {categories.map(category => (
                                 <option key={category} value={category}>{category}</option>
                             ))}
@@ -478,47 +485,47 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                             onChange={(e) => setStatusFilter(e.target.value)}
                             className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
                         >
-                            <option value="all">All Products</option>
-                            <option value="active">Active Only</option>
-                            <option value="deactivated">Deactivated Only</option>
+                            <option value="all">{t('products.allProducts')}</option>
+                            <option value="active">{t('products.activeOnly')}</option>
+                            <option value="deactivated">{t('products.deactivatedOnly')}</option>
                         </select>
                         <div className="relative">
-                            <ArrowUpDown className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                            <ArrowUpDown className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-gray-400`} size={16} />
                             <select
                                 value={sortBy}
                                 onChange={(e) => handleSortChange(e.target.value)}
-                                className="pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all appearance-none cursor-pointer"
+                                className={`${isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all appearance-none cursor-pointer`}
                             >
-                                <option value="name-asc">Name (A-Z)</option>
-                                <option value="name-desc">Name (Z-A)</option>
-                                <option value="price-asc">Price (Low to High)</option>
-                                <option value="price-desc">Price (High to Low)</option>
-                                <option value="stock-asc">Stock (Low to High)</option>
-                                <option value="stock-desc">Stock (High to Low)</option>
+                                <option value="name-asc">{t('products.sortOptions.nameAsc')}</option>
+                                <option value="name-desc">{t('products.sortOptions.nameDesc')}</option>
+                                <option value="price-asc">{t('products.sortOptions.priceAsc')}</option>
+                                <option value="price-desc">{t('products.sortOptions.priceDesc')}</option>
+                                <option value="stock-asc">{t('products.sortOptions.stockAsc')}</option>
+                                <option value="stock-desc">{t('products.sortOptions.stockDesc')}</option>
                             </select>
                         </div>
                         <button 
                             onClick={handleSearch}
                             className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium transition-all duration-200"
                         >
-                            Search
+                            {t('common.search')}
                         </button>
                         <button 
                             onClick={fetchProducts}
                             className="px-4 py-2 bg-gray-800/50 hover:bg-gray-800 text-white rounded-xl font-medium transition-all duration-200 border border-gray-700/50 hover:border-gray-600"
                         >
-                            {loading ? 'Loading...' : 'Refresh'}
+                            {loading ? t('common.loading') : t('products.refresh')}
                         </button>
                     </div>
-                    
+
                     {/* Results Summary */}
                     <div className="flex items-center justify-between text-sm text-gray-400">
                         <div>
-                            Showing {filteredAndSortedProducts.length} of {totalProducts} products
-                            {searchQuery && ` matching "${searchQuery}"`}
-                            {selectedCategory !== 'all' && ` in ${selectedCategory} category`}
-                            {statusFilter === 'active' && ` (Active only)`}
-                            {statusFilter === 'deactivated' && ` (Deactivated only)`}
+                            {t('products.showing')} {filteredAndSortedProducts.length} {t('products.of')} {totalProducts} {t('products.productsWord')}
+                            {searchQuery && ` ${t('products.matching')} "${searchQuery}"`}
+                            {selectedCategory !== 'all' && ` ${t('products.inCategory')} ${selectedCategory}`}
+                            {statusFilter === 'active' && ` (${t('products.activeOnly')})`}
+                            {statusFilter === 'deactivated' && ` (${t('products.deactivatedOnly')})`}
                         </div>
                     </div>
                 </div>
@@ -534,23 +541,23 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
             {/* Products Grid/List */}
             {loading ? (
                 <div className="text-center py-12">
-                    <div className="text-gray-400">Loading products...</div>
+                    <div className="text-gray-400">{t('products.loadingProducts')}</div>
                 </div>
             ) : products.length === 0 ? (
-                                 <div className="text-center py-12 bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl">
-                     <Package className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                     <h3 className="text-xl font-semibold text-white mb-2">No Products Found</h3>
-                     <p className="text-gray-400 mb-6">Get started by adding your first product.</p>
-                     <motion.button 
-                         onClick={openAddProductModal}
-                         className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-200"
-                         whileHover={{ scale: 1.02, y: -2 }}
-                         whileTap={{ scale: 0.98 }}
-                         transition={{ duration: 0.2 }}
-                     >
-                         Add First Product
-                     </motion.button>
-                 </div>
+                <div className="text-center py-12 bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl">
+                    <Package className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">{t('products.noProductsFound')}</h3>
+                    <p className="text-gray-400 mb-6">{t('products.getStartedAddFirst')}</p>
+                    <motion.button 
+                        onClick={openAddProductModal}
+                        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-200"
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        {t('products.addFirstProduct')}
+                    </motion.button>
+                </div>
             ) : viewMode === 'list' ? (
                 <ProductsList
                     products={filteredAndSortedProducts}
@@ -560,49 +567,49 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                     deletingProductId={deletingProductId}
                 />
             ) : (
-                 <motion.div 
-                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr grid-auto-rows-fr"
-                     initial="hidden"
-                     animate="visible"
-                     variants={{
-                         hidden: { opacity: 0 },
-                         visible: {
-                             opacity: 1,
-                             transition: {
-                                 staggerChildren: 0.1
-                             }
-                         }
-                     }}
-                 >
-                     {filteredAndSortedProducts.map((product, index) => (
-                         <motion.div
-                             key={product.prodId}
-                             variants={{
-                                 hidden: { opacity: 0, y: 20 },
-                                 visible: { opacity: 1, y: 0 }
-                             }}
-                             transition={{ duration: 0.4, ease: "easeOut" }}
-                         >
-                             <ProductCard
-                                 product={product}
-                                 handleViewDetails={handleViewDetails}
-                                 handleEditProduct={handleEditProduct}
-                                 handleDeleteProduct={handleDeleteProduct}
-                                 deletingProductId={deletingProductId}
-                             />
-                         </motion.div>
-                     ))}
-                 </motion.div>
-             )}
+                <motion.div 
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr grid-auto-rows-fr"
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                        hidden: { opacity: 0 },
+                        visible: {
+                            opacity: 1,
+                            transition: {
+                                staggerChildren: 0.1
+                            }
+                        }
+                    }}
+                >
+                    {filteredAndSortedProducts.map((product, index) => (
+                        <motion.div
+                            key={product.prodId}
+                            variants={{
+                                hidden: { opacity: 0, y: 20 },
+                                visible: { opacity: 1, y: 0 }
+                            }}
+                            transition={{ duration: 0.4, ease: "easeOut" }}
+                        >
+                            <ProductCard
+                                product={product}
+                                handleViewDetails={handleViewDetails}
+                                handleEditProduct={handleEditProduct}
+                                handleDeleteProduct={handleDeleteProduct}
+                                deletingProductId={deletingProductId}
+                            />
+                        </motion.div>
+                    ))}
+                </motion.div>
+            )}
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
                 <div className="flex items-center justify-between bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4">
                     <div className="text-sm text-gray-400">
-                        Page {currentPage} of {totalPages}
+                        {t('common.page')} {currentPage} {t('products.of')} {totalPages}
                     </div>
                     
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-2">
                         {/* Previous Page */}
                         <button
                             onClick={() => handlePageChange(currentPage - 1)}
@@ -613,7 +620,7 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                         </button>
                         
                         {/* Page Numbers */}
-                        <div className="flex space-x-1">
+                        <div className="flex gap-1">
                             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                                 let pageNum;
                                 if (totalPages <= 5) {
@@ -682,8 +689,8 @@ const ProductsView = ({ openAddProductModal, refreshKey }) => {
                 message={confirmationModal.message}
                 loading={confirmationModal.loading}
                 type={confirmationModal.type || 'danger'}
-                confirmText={confirmationModal.confirmText || 'Confirm'}
-                cancelText="Cancel"
+                confirmText={confirmationModal.confirmText || t('common.confirm')}
+                cancelText={t('common.cancel')}
             />
         </div>
     );
