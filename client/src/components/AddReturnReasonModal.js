@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
-const AddReasonModal = ({ isOpen, onClose, onAdd }) => {
+const AddReturnReasonModal = ({ isOpen, onClose, onAdd }) => {
   const { theme } = useTheme();
   const [formData, setFormData] = useState({
     description: '',
@@ -26,7 +26,7 @@ const AddReasonModal = ({ isOpen, onClose, onAdd }) => {
       await onAdd(formData);
       handleClose();
     } catch (err) {
-      setError(err.message || 'Failed to add reason');
+      setError(err.message || 'Failed to add return reason');
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,7 @@ const AddReasonModal = ({ isOpen, onClose, onAdd }) => {
           <h2 className={`text-2xl font-bold ${
             theme === 'dark' ? 'text-white' : 'text-gray-900'
           }`}>
-            إضافة سبب إرجاع
+            Add Return Reason
           </h2>
           <button
             onClick={handleClose}
@@ -92,19 +92,19 @@ const AddReasonModal = ({ isOpen, onClose, onAdd }) => {
             <label className={`block text-sm font-medium mb-2 ${
               theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
             }`}>
-              الوصف <span className="text-red-500">*</span>
+              Description <span className="text-red-500">*</span>
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="أدخل وصف السبب"
+              placeholder="Enter return reason description"
               rows={3}
               disabled={loading}
               className={`w-full px-4 py-3 rounded-xl border transition-colors ${
                 theme === 'dark'
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500'
-              } focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:opacity-50`}
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-purple-500'
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-purple-500'
+              } focus:ring-2 focus:ring-purple-500/20 focus:outline-none disabled:opacity-50`}
             />
           </div>
 
@@ -128,7 +128,7 @@ const AddReasonModal = ({ isOpen, onClose, onAdd }) => {
                 theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
               }`}
             >
-              رأسي
+              Is Header Reason
             </label>
           </div>
 
@@ -152,7 +152,7 @@ const AddReasonModal = ({ isOpen, onClose, onAdd }) => {
                 theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
               }`}
             >
-              قابل للبيع
+              Sellable
             </label>
           </div>
 
@@ -168,7 +168,7 @@ const AddReasonModal = ({ isOpen, onClose, onAdd }) => {
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
               } disabled:opacity-50`}
             >
-              إلغاء
+              Cancel
             </button>
             <button
               type="submit"
@@ -176,7 +176,7 @@ const AddReasonModal = ({ isOpen, onClose, onAdd }) => {
               className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all ${
                 loading
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
+                  : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700'
               } text-white shadow-lg hover:shadow-xl disabled:opacity-50`}
             >
               {loading ? (
@@ -197,10 +197,10 @@ const AddReasonModal = ({ isOpen, onClose, onAdd }) => {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                  جاري الإضافة...
+                  Adding...
                 </span>
               ) : (
-                'إضافة سبب'
+                'Add Return Reason'
               )}
             </button>
           </div>
@@ -210,4 +210,4 @@ const AddReasonModal = ({ isOpen, onClose, onAdd }) => {
   );
 };
 
-export default AddReasonModal;
+export default AddReturnReasonModal;

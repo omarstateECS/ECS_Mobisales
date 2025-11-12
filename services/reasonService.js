@@ -3,9 +3,12 @@ const { getPrismaClient } = require('../lib/prisma');
 const { getLocalTimestamp } = require('../lib/dateUtils');
 
 class ReasonService {
-    async getAllReasons() {
+
+
+    // RETURN REASONS
+    async getAllReturnReasons() {
         const prisma = getPrismaClient();
-        return await prisma.reasons.findMany({
+        return await prisma.returnReasons.findMany({
             select: {
                 reasonId: true,
                 description: true,
@@ -15,9 +18,9 @@ class ReasonService {
         });
     }
 
-    async createReason(data) {
+    async createReturnReason(data) {
         const prisma = getPrismaClient();
-        return await prisma.reasons.create({
+        return await prisma.returnReasons.create({
             data: {
                 ...data,
                 createdAt: data.createdAt || getLocalTimestamp(),
@@ -26,7 +29,7 @@ class ReasonService {
         });
     }
 
-    async createMultipleReasons(reasonsArray) {
+    async createMultipleReturnReasons(reasonsArray) {
         const prisma = getPrismaClient();
         const timestamp = getLocalTimestamp();
         const reasonsWithTimestamps = reasonsArray.map(reason => ({
@@ -34,15 +37,15 @@ class ReasonService {
             createdAt: reason.createdAt || timestamp,
             updatedAt: reason.updatedAt || timestamp
         }));
-        return await prisma.reasons.createMany({
+        return await prisma.returnReasons.createMany({
             data: reasonsWithTimestamps,
             skipDuplicates: true
         });
     }
 
-    async updateReason(id, data) {
+    async updateReturnReason(id, data) {
         const prisma = getPrismaClient();
-        return await prisma.reasons.update({
+        return await prisma.returnReasons.update({
             where: { reasonId: Number(id) },
             data: {
                 ...data,
@@ -51,9 +54,67 @@ class ReasonService {
         });
     }
 
-    async deleteReason(id) {
+    async deleteReturnReason(id) {
         const prisma = getPrismaClient();
-        return await prisma.reasons.delete({
+        return await prisma.returnReasons.delete({
+            where: { reasonId: Number(id) }
+        });
+    }
+
+
+    // CANCEL REASONS
+
+    async getAllCancelReasons() {
+        const prisma = getPrismaClient();
+        return await prisma.cancelReasons.findMany({
+            select: {
+                reasonId: true,
+                description: true,
+                createdAt: true,
+                updatedAt: true
+            }
+        });
+    }
+
+    async createCancelReason(data) {
+        const prisma = getPrismaClient();
+        return await prisma.cancelReasons.create({
+            data: {
+                ...data,
+                createdAt: data.createdAt || getLocalTimestamp(),
+                updatedAt: data.updatedAt || getLocalTimestamp()
+            }
+        });
+    }
+
+    async createMultipleCancelReasons(reasonsArray) {
+        const prisma = getPrismaClient();
+        const timestamp = getLocalTimestamp();
+        const reasonsWithTimestamps = reasonsArray.map(reason => ({
+            ...reason,
+            createdAt: reason.createdAt || timestamp,
+            updatedAt: reason.updatedAt || timestamp
+        }));
+        return await prisma.cancelReasons.createMany({
+            data: reasonsWithTimestamps,
+            skipDuplicates: true
+        });
+    }
+
+    async updateCancelReason(id, data) {
+        const prisma = getPrismaClient();
+        return await prisma.cancelReasons.update({
+            where: { reasonId: Number(id) },
+            data: {
+                ...data,
+                updatedAt: getLocalTimestamp()
+            }
+        });
+    }
+
+    async deleteCancelReason(id) {
+        const prisma = getPrismaClient();
+        return await prisma.cancelReasons.delete({
             where: { reasonId: Number(id) }
         });
     }

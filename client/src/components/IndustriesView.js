@@ -96,10 +96,10 @@ const IndustriesView = () => {
           </div>
           <div>
             <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              Industries
+              الصناعات
             </h1>
             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              Manage customer industries
+              إدارة صناعات العملاء
             </p>
           </div>
         </div>
@@ -109,7 +109,7 @@ const IndustriesView = () => {
           className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
         >
           <Plus size={20} />
-          <span>Add Industry</span>
+          <span>إضافة صناعة</span>
         </button>
       </div>
 
@@ -119,7 +119,7 @@ const IndustriesView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Total Industries
+                إجمالي الصناعات
               </p>
               <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {industries.length}
@@ -135,7 +135,7 @@ const IndustriesView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Total Customers
+                إجمالي العملاء
               </p>
               <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {industries.reduce((sum, ind) => sum + (ind._count?.customers || 0), 0)}
@@ -151,7 +151,7 @@ const IndustriesView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Avg Customers/Industry
+                متوسط العملاء/الصناعة
               </p>
               <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {industries.length > 0 
@@ -175,7 +175,7 @@ const IndustriesView = () => {
           }`} size={20} />
           <input
             type="text"
-            placeholder="Search industries..."
+            placeholder="البحث في الصناعات..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
@@ -191,16 +191,16 @@ const IndustriesView = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Loading...</p>
+          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>جاري التحميل...</p>
         </div>
       ) : filteredIndustries.length === 0 ? (
         <div className={`text-center py-12 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
           <Building2 className={`w-16 h-16 mx-auto mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
           <p className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            {searchTerm ? 'No industries found' : 'No industries yet'}
+            {searchTerm ? 'لم يتم العثور على صناعات' : 'لا توجد صناعات بعد'}
           </p>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            {searchTerm ? 'Try a different search term' : 'Click "Add Industry" to create your first industry'}
+            {searchTerm ? 'جرب مصطلح بحث مختلف' : 'انقر "إضافة صناعة" لإنشاء أول صناعة'}
           </p>
         </div>
       ) : (
@@ -212,17 +212,17 @@ const IndustriesView = () => {
                   <th className={`text-left px-6 py-4 text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                   }`}>
-                    Industry Name
+                    اسم الصناعة
                   </th>
                   <th className={`text-center px-6 py-4 text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                   }`}>
-                    Customers
+                    العملاء
                   </th>
                   <th className={`text-right px-6 py-4 text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                   }`}>
-                    Actions
+                    الإجراءات
                   </th>
                 </tr>
               </thead>
@@ -299,10 +299,10 @@ const IndustriesView = () => {
                   </div>
                   <div>
                     <h2 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                      Add New Industry
+                      إضافة صناعة جديدة
                     </h2>
                     <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Create a new industry category
+                      إنشاء فئة صناعة جديدة
                     </p>
                   </div>
                 </div>
@@ -312,13 +312,13 @@ const IndustriesView = () => {
                     <label className={`block text-sm font-medium mb-2 ${
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                     }`}>
-                      Industry Name
+                      اسم الصناعة
                     </label>
                     <input
                       type="text"
                       value={newIndustryName}
                       onChange={(e) => setNewIndustryName(e.target.value)}
-                      placeholder="e.g., Retail, Manufacturing, Healthcare"
+                      placeholder="مثال: تجارة تجزئة، تصنيع، رعاية صحية"
                       className={`w-full px-4 py-2 rounded-lg border ${
                         theme === 'dark'
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
@@ -341,7 +341,7 @@ const IndustriesView = () => {
                           : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                       } transition-colors`}
                     >
-                      Cancel
+                      إلغاء
                     </button>
                     <button
                       type="submit"
@@ -351,12 +351,12 @@ const IndustriesView = () => {
                       {addingIndustry ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Adding...
+                          جاري الإضافة...
                         </>
                       ) : (
                         <>
                           <Plus size={18} />
-                          Add Industry
+                          إضافة صناعة
                         </>
                       )}
                     </button>

@@ -149,12 +149,14 @@ model Visit {
   startTime  String?
   endTime    String?
   cancelTime String?
+  reasonId Int?
   status     VisitStatus @default(WAIT)
   createdAt  String
   updatedAt  String
   customer   Customer    @relation(fields: [custId], references: [customerId], onDelete: Cascade)
   salesman   Salesman    @relation(fields: [salesId], references: [salesId], onDelete: Cascade)
   journey    Journies    @relation("VisitToJourney", fields: [journeyId, salesId], references: [journeyId, salesId], onDelete: Cascade)
+  cancelReason CancelReasons? @relation(fields: [reasonId], references: [reasonId], onDelete: SetNull)
   actionDetails actionDetails[]
   invoices   InvoiceHeader[]
 
@@ -190,7 +192,7 @@ model InvoiceHeader {
   customer       Customer      @relation(fields: [custId], references: [customerId], onDelete: Cascade)
   salesman       Salesman      @relation(fields: [salesId], references: [salesId], onDelete: Cascade)
   journey        Journies      @relation("InvoiceToJourney", fields: [journeyId, salesId], references: [journeyId, salesId], onDelete: Cascade)
-  reason         Reasons?      @relation("InvoiceHeaderReason", fields: [reasonId], references: [reasonId], onDelete: Cascade)
+  reason         ReturnReasons?      @relation("InvoiceHeaderReason", fields: [reasonId], references: [reasonId], onDelete: Cascade)
   visit          Visit         @relation(fields: [visitId, salesId, journeyId], references: [visitId, salesId, journeyId], onDelete: Cascade)
 
   @@id([invId, salesId])
@@ -207,7 +209,7 @@ model InvoiceItem {
   reasonId        Int?
   taxAmt          Decimal       @db.Decimal(18, 5)
   totAmt          Decimal       @db.Decimal(18, 5)
-  reason          Reasons?      @relation("InvoiceItemReason", fields: [reasonId], references: [reasonId], onDelete: Cascade)
+  reason          ReturnReasons?      @relation("InvoiceItemReason", fields: [reasonId], references: [reasonId], onDelete: Cascade)
 
   @@id([invoiceHeaderId, invItem], map: "invoice_items_pkey")
 }

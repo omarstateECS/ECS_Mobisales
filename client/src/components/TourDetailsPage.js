@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, MapPin, User, Phone, Calendar, Clock, TrendingUp, Package, DollarSign, CheckCircle, XCircle, AlertCircle, X, Activity, FileText } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 // Add keyframe animations
 const styles = `
@@ -60,6 +61,7 @@ const styles = `
 
 const TourDetailsPage = ({ journey, onBack }) => {
   const { theme } = useTheme();
+  const { t } = useLocalization();
   const [journeyDetails, setJourneyDetails] = useState(null);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -152,8 +154,8 @@ const TourDetailsPage = ({ journey, onBack }) => {
   };
 
   const calculateDuration = (start, end) => {
-    if (!start) return 'Not started';
-    if (!end) return 'In progress';
+    if (!start) return t('tourDetails.notStarted');
+    if (!end) return t('tourDetails.inProgress');
 
     const startTime = new Date(start);
     const endTime = new Date(end);
@@ -188,10 +190,10 @@ const TourDetailsPage = ({ journey, onBack }) => {
 
   const getVisitStatusBadge = (status) => {
     const statusConfig = {
-      END: { bg: 'bg-green-500/20', text: 'text-green-400', label: 'Completed' },
-      CANCEL: { bg: 'bg-red-500/20', text: 'text-red-400', label: 'Cancelled' },
-      START: { bg: 'bg-blue-500/20', text: 'text-blue-400', label: 'In Progress' },
-      WAIT: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', label: 'Waiting' }
+      END: { bg: 'bg-green-500/20', text: 'text-green-400', label: t('tourDetails.visitCompleted') },
+      CANCEL: { bg: 'bg-red-500/20', text: 'text-red-400', label: t('tourDetails.cancelled') },
+      START: { bg: 'bg-blue-500/20', text: 'text-blue-400', label: t('tourDetails.inProgress') },
+      WAIT: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', label: t('tourDetails.waiting') }
     };
 
     const config = statusConfig[status] || { bg: 'bg-gray-500/20', text: 'text-gray-400', label: status };
@@ -236,10 +238,10 @@ const TourDetailsPage = ({ journey, onBack }) => {
           </button>
           <div>
             <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              Tour #{journeyDetails.journeyId}
+              {t('tourDetails.title')} #{journeyDetails.journeyId}
             </h2>
             <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-              Detailed tour information
+              {t('tourDetails.subtitle')}
             </p>
           </div>
         </div>
@@ -252,26 +254,26 @@ const TourDetailsPage = ({ journey, onBack }) => {
           : 'bg-white border border-gray-200'
       }`}>
         <h3 className={`text-lg font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-          Tour Overview
+          {t('tourDetails.tourOverview')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <User size={16} className="text-blue-500" />
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Salesman</p>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.salesman')}</p>
             </div>
             <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              {journeyDetails.salesman?.name || 'Unknown'}
+              {journeyDetails.salesman?.name || t('tourDetails.unknown')}
             </p>
             <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-              {journeyDetails.salesman?.phone || 'N/A'}
+              {journeyDetails.salesman?.phone || t('tourDetails.na')}
             </p>
           </div>
 
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Calendar size={16} className="text-purple-500" />
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Created</p>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.created')}</p>
             </div>
             <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               {formatDate(journeyDetails.createdAt)}
@@ -281,17 +283,17 @@ const TourDetailsPage = ({ journey, onBack }) => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <MapPin size={16} className="text-orange-500" />
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Status</p>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.status')}</p>
             </div>
             <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              {!journeyDetails.startJourney ? 'Not Started' : !journeyDetails.endJourney ? 'In Progress' : 'Completed'}
+              {!journeyDetails.startJourney ? t('tourDetails.notStarted') : !journeyDetails.endJourney ? t('tourDetails.inProgress') : t('tourDetails.journeyCompleted')}
             </p>
           </div>
 
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Clock size={16} className="text-green-500" />
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Start Time</p>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.startTime')}</p>
             </div>
             <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               {formatDate(journeyDetails.startJourney)}
@@ -301,7 +303,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Clock size={16} className="text-red-500" />
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>End Time</p>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.endTime')}</p>
             </div>
             <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               {formatDate(journeyDetails.endJourney)}
@@ -311,7 +313,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Clock size={16} className="text-yellow-500" />
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Duration</p>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.duration')}</p>
             </div>
             <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               {calculateDuration(journeyDetails.startJourney, journeyDetails.endJourney)}
@@ -343,7 +345,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                 </div>
                 <div>
                   <p className={`text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    💰 Total Collection
+                    {t('tourDetails.totalCollection')}
                   </p>
                   <p className={`text-5xl font-black tracking-tight ${
                     theme === 'dark' 
@@ -353,7 +355,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                     {formatNumber(stats.collection || 0)} EGP
                   </p>
                   <p className={`text-xs mt-2 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                    Sales - Returns
+                    {t('tourDetails.salesMinusReturns')}
                   </p>
                 </div>
               </div>
@@ -363,13 +365,13 @@ const TourDetailsPage = ({ journey, onBack }) => {
                 <div className="flex items-center gap-2">
                   <TrendingUp size={16} className="text-green-500" />
                   <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Sales: {formatNumber(stats.sales?._sum?.totalAmt || 0)}
+                    {t('tourDetails.sales')}: {formatNumber(stats.sales?._sum?.totalAmt || 0)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <XCircle size={16} className="text-red-500" />
                   <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Returns: {formatNumber(stats.returns?._sum?.totalAmt || 0)}
+                    {t('tourDetails.returns')}: {formatNumber(stats.returns?._sum?.totalAmt || 0)}
                   </span>
                 </div>
               </div>
@@ -390,7 +392,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
               <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {journeyDetails.visits?.length || 0}
               </p>
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Total Visits</p>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.totalVisits')}</p>
             </div>
 
             {/* Total Invoices */}
@@ -405,7 +407,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
               <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {stats.invoices?._count?.invId || 0}
               </p>
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Total Invoices</p>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.totalInvoices')}</p>
             </div>
 
             {/* Total Sales */}
@@ -420,7 +422,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
               <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {formatNumber(stats.sales?._sum?.totalAmt || 0)} EGP
               </p>
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Total Sales</p>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.totalSales')}</p>
             </div>
 
             {/* Total Returns */}
@@ -435,7 +437,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
               <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {formatNumber(stats.returns?._sum?.totalAmt || 0)} EGP
               </p>
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Total Returns</p>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.totalReturns')}</p>
             </div>
           </div>
         </div>
@@ -448,7 +450,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
           : 'bg-white border border-gray-200'
       }`}>
         <h3 className={`text-lg font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-          Visits ({journeyDetails.visits?.length || 0})
+          {t('tourDetails.visits')} ({journeyDetails.visits?.length || 0})
         </h3>
         {journeyDetails.visits && journeyDetails.visits.length > 0 ? (
           <div className="space-y-3">
@@ -469,25 +471,25 @@ const TourDetailsPage = ({ journey, onBack }) => {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        Visit #{visit.visitId}
+                        {t('tourDetails.visitId', { id: visit.visitId })}
                       </span>
                       {getVisitStatusBadge(visit.status)}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
                       <div>
-                        <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Customer: </span>
+                        <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>{t('tourDetails.customer')}: </span>
                         <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                          {visit.customer?.name || 'Unknown'}
+                          {visit.customer?.name || t('tourDetails.unknown')}
                         </span>
                       </div>
                       <div>
-                        <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Start: </span>
+                        <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>{t('tourDetails.start')}: </span>
                         <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
                           {formatDate(visit.startTime)}
                         </span>
                       </div>
                       <div>
-                        <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>End: </span>
+                        <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>{t('tourDetails.end')}: </span>
                         <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
                           {formatDate(visit.endTime)}
                         </span>
@@ -500,7 +502,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
           </div>
         ) : (
           <p className={`text-center py-8 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            No visits recorded for this tour
+            {t('tourDetails.noVisitsRecorded')}
           </p>
         )}
       </div>
@@ -512,7 +514,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
           : 'bg-white border border-gray-200'
       }`}>
         <h3 className={`text-lg font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-          Invoices ({journeyDetails.invoiceHeaders?.length || 0})
+          {t('tourDetails.invoices')} ({journeyDetails.invoiceHeaders?.length || 0})
         </h3>
         {journeyDetails.invoiceHeaders && journeyDetails.invoiceHeaders.length > 0 ? (
           <div className="space-y-3">
@@ -530,7 +532,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        Invoice #{invoice.invId}
+                        {t('tourDetails.invoiceId', { id: invoice.invId })}
                       </span>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         invoice.invType === 'SALE'
@@ -544,25 +546,25 @@ const TourDetailsPage = ({ journey, onBack }) => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
                       <div>
-                        <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Customer: </span>
+                        <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>{t('tourDetails.customer')}: </span>
                         <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                          {invoice.customer?.name || 'Unknown'}
+                          {invoice.customer?.name || t('tourDetails.unknown')}
                         </span>
                       </div>
                       <div>
-                        <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Date: </span>
+                        <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>{t('tourDetails.date')}: </span>
                         <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
                           {formatDate(invoice.createdAt)}
                         </span>
                       </div>
                       <div>
-                        <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Payment: </span>
+                        <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>{t('tourDetails.payment')}: </span>
                         <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
                           {invoice.paymentMethod}
                         </span>
                       </div>
                       <div>
-                        <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Total: </span>
+                        <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>{t('tourDetails.total')}: </span>
                         <span className="font-bold text-green-500">
                           {formatNumber(invoice.totalAmt)} EGP
                         </span>
@@ -575,7 +577,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
           </div>
         ) : (
           <p className={`text-center py-8 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            No invoices recorded for this tour
+            {t('tourDetails.noInvoicesRecorded')}
           </p>
         )}
       </div>
@@ -589,7 +591,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
         }`}>
           <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
             <Activity size={20} className="text-purple-500" />
-            All Tour Actions
+            {t('tourDetails.allTourActions')}
           </h3>
           <div className="space-y-3">
             {journeyDetails.visits
@@ -620,23 +622,23 @@ const TourDetailsPage = ({ journey, onBack }) => {
                       <div className="flex items-center gap-2 mb-2">
                         <FileText size={16} className="text-purple-500" />
                         <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          {actionDetail.action?.name || 'Unknown Action'}
+                          {actionDetail.action?.name || t('tourDetails.unknownAction')}
                         </span>
                         <span className={`text-xs px-2 py-1 rounded-full ${
                           theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'
                         }`}>
-                          Visit #{actionDetail.visitId}
+                          {t('tourDetails.visitNum', { id: actionDetail.visitId })}
                         </span>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                         <div>
-                          <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Customer: </span>
+                          <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>{t('tourDetails.customer')}: </span>
                           <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                            {actionDetail.customer?.name || 'Unknown'}
+                            {actionDetail.customer?.name || t('tourDetails.unknown')}
                           </span>
                         </div>
                         <div>
-                          <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Time: </span>
+                          <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>{t('tourDetails.time')}: </span>
                           <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
                             {formatDate(actionDetail.createdAt)}
                           </span>
@@ -644,7 +646,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                       </div>
                       {actionDetail.notes && (
                         <div className="mt-2 text-sm">
-                          <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>Notes: </span>
+                          <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>{t('tourDetails.notes')}: </span>
                           <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
                             {actionDetail.notes}
                           </span>
@@ -688,10 +690,10 @@ const TourDetailsPage = ({ journey, onBack }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                    Visit #{selectedVisit.visitId}
+                    {t('tourDetails.visitDetails')} #{selectedVisit.visitId}
                   </h2>
                   <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                    Detailed visit information
+                    {t('tourDetails.detailedVisitInfo')}
                   </p>
                 </div>
                 <button
@@ -724,34 +726,34 @@ const TourDetailsPage = ({ journey, onBack }) => {
                 }}
               >
                 <h3 className={`text-lg font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Visit Overview
+                  {t('tourDetails.visitOverview')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <User size={16} className="text-blue-500" />
-                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Customer</span>
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.customer')}</span>
                     </div>
                     <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                      {selectedVisit.customer?.name || 'Unknown'}
+                      {selectedVisit.customer?.name || t('tourDetails.unknown')}
                     </p>
                     <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                      {selectedVisit.customer?.phone || 'N/A'}
+                      {selectedVisit.customer?.phone || t('tourDetails.na')}
                     </p>
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <MapPin size={16} className="text-orange-500" />
-                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Address</span>
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.address')}</span>
                     </div>
                     <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                      {selectedVisit.customer?.address || 'N/A'}
+                      {selectedVisit.customer?.address || t('tourDetails.na')}
                     </p>
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <Clock size={16} className="text-green-500" />
-                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Start Time</span>
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.startTime')}</span>
                     </div>
                     <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                       {formatDate(selectedVisit.startTime)}
@@ -760,7 +762,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <Clock size={16} className="text-red-500" />
-                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>End Time</span>
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.endTime')}</span>
                     </div>
                     <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                       {formatDate(selectedVisit.endTime)}
@@ -769,7 +771,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <AlertCircle size={16} className="text-purple-500" />
-                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Status</span>
+                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.status')}</span>
                     </div>
                     <div className="mt-1">
                       {getVisitStatusBadge(selectedVisit.status)}
@@ -792,7 +794,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                 >
                   <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                     <FileText size={20} className="text-green-500" />
-                    Invoices ({selectedVisit.invoices.length})
+                    {t('tourDetails.invoices')} ({selectedVisit.invoices.length})
                   </h3>
                   <div className="space-y-3">
                     {selectedVisit.invoices.map((invoice, idx) => (
@@ -824,7 +826,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                             <div className="grid grid-cols-2 gap-3 mt-3">
                               <div>
                                 <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                                  Net Amount
+                                  {t('tourDetails.netAmount')}
                                 </p>
                                 <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                   {invoice.currency} {formatNumber(parseFloat(invoice.netAmt || 0))}
@@ -832,7 +834,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                               </div>
                               <div>
                                 <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                                  Tax Amount
+                                  {t('tourDetails.taxAmount')}
                                 </p>
                                 <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                   {invoice.currency} {formatNumber(parseFloat(invoice.taxAmt || 0))}
@@ -840,7 +842,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                               </div>
                               <div>
                                 <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                                  Discount
+                                  {t('tourDetails.discount')}
                                 </p>
                                 <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                   {invoice.currency} {formatNumber(parseFloat(invoice.disAmt || 0))}
@@ -848,7 +850,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                               </div>
                               <div>
                                 <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                                  Total Amount
+                                  {t('tourDetails.totalAmount')}
                                 </p>
                                 <p className={`font-bold text-lg ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
                                   {invoice.currency} {formatNumber(parseFloat(invoice.totalAmt || 0))}
@@ -891,7 +893,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                 >
                   <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                     <Activity size={20} className="text-purple-500" />
-                    Actions ({selectedVisit.actionDetails.length})
+                    {t('tourDetails.actions')} ({selectedVisit.actionDetails.length})
                   </h3>
                   <div className="space-y-3">
                     {selectedVisit.actionDetails.map((actionDetail, idx) => (
@@ -942,7 +944,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                 }`}>
                   <Activity size={48} className={`mx-auto mb-3 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
                   <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                    No actions recorded for this visit
+                    {t('tourDetails.noActionsRecorded')}
                   </p>
                 </div>
               )}
@@ -1016,12 +1018,12 @@ const TourDetailsPage = ({ journey, onBack }) => {
                 }}
               >
                 <h3 className={`text-lg font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Invoice Summary
+                  {t('tourDetails.invoiceSummary')}
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                      Type
+                      {t('tourDetails.type')}
                     </p>
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold inline-block ${
                       selectedInvoice.invType === 'SALE'
@@ -1035,7 +1037,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                   </div>
                   <div>
                     <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                      Payment Method
+                      {t('tourDetails.paymentMethod')}
                     </p>
                     <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                       {selectedInvoice.paymentMethod}
@@ -1043,7 +1045,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                   </div>
                   <div>
                     <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                      Date
+                      {t('tourDetails.date')}
                     </p>
                     <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                       {formatDate(selectedInvoice.createdAt)}
@@ -1051,7 +1053,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                   </div>
                   <div>
                     <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                      Currency
+                      {t('tourDetails.currency')}
                     </p>
                     <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                       {selectedInvoice.currency || 'EGP'}
@@ -1065,7 +1067,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                 }`}>
                   <div>
                     <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                      Net Amount
+                      {t('tourDetails.netAmount')}
                     </p>
                     <p className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                       {formatNumber(parseFloat(selectedInvoice.netAmt || 0))}
@@ -1073,7 +1075,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                   </div>
                   <div>
                     <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                      Tax Amount
+                      {t('tourDetails.taxAmount')}
                     </p>
                     <p className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                       {formatNumber(parseFloat(selectedInvoice.taxAmt || 0))}
@@ -1081,7 +1083,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                   </div>
                   <div>
                     <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                      Discount
+                      {t('tourDetails.discount')}
                     </p>
                     <p className={`text-lg font-bold ${theme === 'dark' ? 'text-orange-400' : 'text-orange-600'}`}>
                       {formatNumber(parseFloat(selectedInvoice.disAmt || 0))}
@@ -1089,7 +1091,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                   </div>
                   <div>
                     <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                      Total Amount
+                      {t('tourDetails.totalAmount')}
                     </p>
                     <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
                       {formatNumber(parseFloat(selectedInvoice.totalAmt || 0))}
@@ -1111,12 +1113,13 @@ const TourDetailsPage = ({ journey, onBack }) => {
               >
                 <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                   <Package size={20} className="text-blue-500" />
-                  Invoice Items ({invoiceItems.length})
+                  {t('tourDetails.invoiceItems')} ({invoiceItems.length})
                 </h3>
 
                 {loadingInvoiceItems ? (
                   <div className="flex justify-center items-center py-12">
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+                    <p className={`mt-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tourDetails.loading')}</p>
                   </div>
                 ) : invoiceItems.length > 0 ? (
                   <div className="space-y-3">
@@ -1143,7 +1146,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                               <div>
                                 <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                                  Item #
+                                  {t('tourDetails.itemNum')}
                                 </p>
                                 <p className={`font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                                   {item.invItem}
@@ -1151,7 +1154,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                               </div>
                               <div>
                                 <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                                  Quantity
+                                  {t('tourDetails.quantity')}
                                 </p>
                                 <p className={`font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                                   {item.qty} {item.uom || ''}
@@ -1159,7 +1162,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                               </div>
                               <div>
                                 <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                                  Unit Price
+                                  {t('tourDetails.unitPrice')}
                                 </p>
                                 <p className={`font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                                   {formatNumber(parseFloat(item.unitPrice || 0))}
@@ -1167,7 +1170,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                               </div>
                               <div>
                                 <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                                  Total
+                                  {t('tourDetails.total')}
                                 </p>
                                 <p className={`font-bold text-lg ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
                                   {formatNumber(parseFloat(item.total || 0))}
@@ -1186,7 +1189,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                             {item.reason && (
                               <div className="mt-2">
                                 <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                                  Reason: <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{item.reason.description || item.reason.name}</span>
+                                  {t('tourDetails.reason')}: <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{item.reason.description || item.reason.name}</span>
                                 </p>
                               </div>
                             )}
@@ -1200,7 +1203,7 @@ const TourDetailsPage = ({ journey, onBack }) => {
                     theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
                   }`}>
                     <Package size={48} className={`mx-auto mb-3 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
-                    <p>No items found for this invoice</p>
+                    <p>{t('tourDetails.noItemsFound')}</p>
                   </div>
                 )}
               </div>

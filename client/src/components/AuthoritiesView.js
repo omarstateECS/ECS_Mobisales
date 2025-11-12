@@ -258,10 +258,10 @@ const AuthoritiesView = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-            Authorities Management
+            إدارة الصلاحيات
           </h1>
           <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            Manage authorities and their assignments to salesmen
+            إدارة الصلاحيات وتعيينها للمندوبين
           </p>
         </div>
         <button
@@ -286,7 +286,7 @@ const AuthoritiesView = () => {
           }`}
         >
           <Shield size={20} />
-          <span>All Authorities</span>
+          <span>جميع الصلاحيات</span>
         </button>
         <button
           onClick={() => setSelectedView('assignments')}
@@ -299,7 +299,7 @@ const AuthoritiesView = () => {
           }`}
         >
           <UserCheck size={20} />
-          <span>Salesman Assignments</span>
+          <span>تعيينات المندوبين</span>
         </button>
       </div>
 
@@ -310,7 +310,7 @@ const AuthoritiesView = () => {
         }`} size={20} />
         <input
           type="text"
-          placeholder={selectedView === 'authorities' ? 'Search authorities...' : 'Search salesmen...'}
+          placeholder={selectedView === 'authorities' ? 'البحث في الصلاحيات...' : 'البحث في المندوبين...'}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-colors ${
@@ -331,7 +331,7 @@ const AuthoritiesView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 text-xs font-medium uppercase tracking-wide">
-                Total Authorities
+                إجمالي الصلاحيات
               </p>
               <p className="text-4xl font-bold text-white mt-1">
                 {authorities.length}
@@ -353,7 +353,7 @@ const AuthoritiesView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-xs font-medium uppercase tracking-wide">
-                Total Salesmen
+                إجمالي المندوبين
               </p>
               <p className="text-4xl font-bold text-white mt-1">
                 {salesmen.length}
@@ -375,7 +375,7 @@ const AuthoritiesView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-purple-100 text-xs font-medium uppercase tracking-wide">
-                Total Assignments
+                إجمالي التعيينات
               </p>
               <p className="text-4xl font-bold text-white mt-1">
                 {salesmen.reduce((sum, s) => sum + (s.authorities?.length || 0), 0)}
@@ -396,9 +396,9 @@ const AuthoritiesView = () => {
           {filteredAuthorities.length === 0 ? (
             <div className={`text-center py-12 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
               <Shield size={48} className="mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">No authorities found</p>
+              <p className="text-lg font-medium">لم يتم العثور على صلاحيات</p>
               <p className="text-sm mt-2">
-                {searchTerm ? 'Try adjusting your search' : 'Click "Add Authority" to create one'}
+                {searchTerm ? 'جرب تعديل بحثك' : 'انقر "إضافة صلاحية" لإنشاء واحدة'}
               </p>
             </div>
           ) : (
@@ -468,10 +468,10 @@ const AuthoritiesView = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between pt-3 border-t border-gray-700/50">
                   <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Assigned to
+                    معينة لـ
                   </span>
                   <span className="text-lg font-bold text-blue-500">
-                    {getAuthorityStats(authority.authorityId)} salesmen
+                    {getAuthorityStats(authority.authorityId)} مندوب
                   </span>
                 </div>
 
@@ -479,12 +479,12 @@ const AuthoritiesView = () => {
                   {authority.authorityValue ? (
                     <>
                       <CheckCircle size={16} className="text-green-400" />
-                      <span className="text-xs font-medium text-green-400">Active</span>
+                      <span className="text-xs font-medium text-green-400">نشط</span>
                     </>
                   ) : (
                     <>
                       <XCircle size={16} className="text-gray-400" />
-                      <span className="text-xs font-medium text-gray-400">Inactive</span>
+                      <span className="text-xs font-medium text-gray-400">غير نشط</span>
                     </>
                   )}
                 </div>
@@ -526,7 +526,7 @@ const AuthoritiesView = () => {
                   </div>
                   <div className="text-right">
                     <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Authorities
+                      الصلاحيات
                     </p>
                     <p className="text-2xl font-bold text-blue-500">
                       {salesmanAuthorities.length}
@@ -551,7 +551,7 @@ const AuthoritiesView = () => {
                     ))
                   ) : (
                     <span className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
-                      No authorities assigned
+                      لم يتم تعيين صلاحيات
                     </span>
                   )}
                 </div>
@@ -573,7 +573,7 @@ const AuthoritiesView = () => {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                Add New Authority
+                إضافة صلاحية جديدة
               </h2>
               <button
                 onClick={() => setShowAddModal(false)}
@@ -592,13 +592,13 @@ const AuthoritiesView = () => {
                 <label className={`block text-sm font-medium mb-2 ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  Authority Name *
+                  اسم الصلاحية *
                 </label>
                 <input
                   type="text"
                   value={newAuthority.name}
                   onChange={(e) => setNewAuthority(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g., Can Edit Prices"
+                  placeholder="مثال: يمكن تعديل الأسعار"
                   className={`w-full px-4 py-3 rounded-xl border transition-colors ${
                     theme === 'dark'
                       ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500'
@@ -611,7 +611,7 @@ const AuthoritiesView = () => {
                 <label className={`block text-sm font-medium mb-2 ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  Authority Type *
+                  نوع الصلاحية *
                 </label>
                 <select
                   value={newAuthority.type}
@@ -622,8 +622,8 @@ const AuthoritiesView = () => {
                       : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
                   } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
                 >
-                  <option value="MOBILE">Mobile</option>
-                  <option value="WEB">Web</option>
+                  <option value="MOBILE">محمول</option>
+                  <option value="WEB">ويب</option>
                 </select>
               </div>
             </div>
@@ -647,12 +647,12 @@ const AuthoritiesView = () => {
                 {saving ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
-                    <span>Adding...</span>
+                    <span>جاري الإضافة...</span>
                   </>
                 ) : (
                   <>
                     <Plus size={20} />
-                    <span>Add Authority</span>
+                    <span>إضافة صلاحية</span>
                   </>
                 )}
               </button>
@@ -673,7 +673,7 @@ const AuthoritiesView = () => {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                Delete Authority
+                حذف الصلاحية
               </h2>
               <button
                 onClick={() => {
@@ -705,12 +705,12 @@ const AuthoritiesView = () => {
                 </div>
               </div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Are you sure you want to delete this authority? This action cannot be undone.
+                هل أنت متأكد من حذف هذه الصلاحية؟ لا يمكن التراجع عن هذا الإجراء.
               </p>
               {getAuthorityStats(authorityToDelete.authorityId) > 0 && (
                 <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                   <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                    ⚠️ This authority is assigned to {getAuthorityStats(authorityToDelete.authorityId)} salesman(en).
+                    ⚠️ هذه الصلاحية معينة لـ {getAuthorityStats(authorityToDelete.authorityId)} مندوب.
                   </p>
                 </div>
               )}
@@ -735,7 +735,7 @@ const AuthoritiesView = () => {
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
               >
                 <Trash2 size={20} />
-                <span>Delete</span>
+                <span>حذف</span>
               </button>
             </div>
           </motion.div>

@@ -161,10 +161,10 @@ const InvoicesView = () => {
         <div>
           <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
             <FileText className="inline-block mr-3 mb-1" size={32} />
-            Invoices
+            الفواتير
           </h1>
           <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            View and manage all invoices
+            عرض وإدارة جميع الفواتير
           </p>
         </div>
       </div>
@@ -176,7 +176,7 @@ const InvoicesView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Search className="w-4 h-4 inline mr-2" />
-              Search
+              البحث
             </label>
             <div className="relative">
               <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
@@ -184,7 +184,7 @@ const InvoicesView = () => {
               }`} size={20} />
               <input
                 type="text"
-                placeholder="Search invoices..."
+                placeholder="البحث في الفواتير..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
@@ -200,7 +200,7 @@ const InvoicesView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <User className="w-4 h-4 inline mr-2" />
-              Salesman
+              المندوب
             </label>
             <select
               value={selectedSalesman}
@@ -211,7 +211,7 @@ const InvoicesView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">All Salesmen</option>
+              <option value="">جميع المندوبين</option>
               {salesmen.map(salesman => (
                 <option key={salesman.salesId} value={salesman.salesId}>
                   {salesman.name}
@@ -224,7 +224,7 @@ const InvoicesView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Package className="w-4 h-4 inline mr-2" />
-              Customer
+              العميل
             </label>
             <select
               value={selectedCustomer}
@@ -235,7 +235,7 @@ const InvoicesView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">All Customers</option>
+              <option value="">جميع العملاء</option>
               {customers.map(customer => (
                 <option key={customer.customerId} value={customer.customerId}>
                   {customer.name}
@@ -248,7 +248,7 @@ const InvoicesView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Filter className="w-4 h-4 inline mr-2" />
-              Type
+              النوع
             </label>
             <select
               value={selectedType}
@@ -259,10 +259,10 @@ const InvoicesView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">All Types</option>
-              <option value="SALE">Sale</option>
-              <option value="RETURN">Return</option>
-              <option value="EXCHANGE">Exchange</option>
+              <option value="">جميع الأنواع</option>
+              <option value="SALE">بيع</option>
+              <option value="RETURN">مرتجع</option>
+              <option value="EXCHANGE">تبادل</option>
             </select>
           </div>
         </div>
@@ -272,7 +272,7 @@ const InvoicesView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <DollarSign className="w-4 h-4 inline mr-2" />
-              Payment Method
+              طريقة الدفع
             </label>
             <select
               value={selectedPaymentMethod}
@@ -283,10 +283,10 @@ const InvoicesView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">All Methods</option>
-              <option value="CASH">Cash</option>
-              <option value="CARD">Card</option>
-              <option value="CREDIT">Credit</option>
+              <option value="">جميع الطرق</option>
+              <option value="CASH">نقدي</option>
+              <option value="CARD">بطاقة</option>
+              <option value="CREDIT">آجل</option>
             </select>
           </div>
 
@@ -294,7 +294,7 @@ const InvoicesView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Calendar className="w-4 h-4 inline mr-2" />
-              From Date
+              من تاريخ
             </label>
             <input
               type="date"
@@ -312,7 +312,7 @@ const InvoicesView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Calendar className="w-4 h-4 inline mr-2" />
-              To Date
+              إلى تاريخ
             </label>
             <input
               type="date"
@@ -332,16 +332,16 @@ const InvoicesView = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Loading...</p>
+          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>جاري التحميل...</p>
         </div>
       ) : filteredInvoices.length === 0 ? (
         <div className={`text-center py-12 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
           <FileText className={`w-16 h-16 mx-auto mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
           <p className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            No invoices found
+            لم يتم العثور على فواتير
           </p>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            Try adjusting your filters
+            جرب تعديل المرشحات
           </p>
         </div>
       ) : (
@@ -368,7 +368,7 @@ const InvoicesView = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 flex-wrap">
                           <h3 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                            Invoice #{invoice.invId}
+                            فاتورة رقم #{invoice.invId}
                           </h3>
                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${getInvoiceTypeColor(invoice.invType)}`}>
                             {invoice.invType}
@@ -400,7 +400,7 @@ const InvoicesView = () => {
                           {formatCurrency(invoice.totalAmt)}
                         </p>
                         <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                          Net: {formatCurrency(invoice.netAmt)}
+                          صافي: {formatCurrency(invoice.netAmt)}
                         </p>
                       </div>
                       <ChevronRight className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />

@@ -2,17 +2,10 @@ const express = require('express');
 const router = express.Router();
 const reasonController = require('../controllers/reasonController');
 
-// Legacy routes - redirect to return reasons for backward compatibility
-// GET all reasons (returns return reasons)
+// Return Reasons routes
 router.get('/', reasonController.getAllReturnReasons);
-
-// POST create a new reason (creates return reason)
 router.post('/', reasonController.createReturnReason);
-
-// PUT update a reason (updates return reason)
 router.put('/:id', reasonController.updateReturnReason);
-
-// DELETE a reason (deletes return reason)
 router.delete('/:id', reasonController.deleteReturnReason);
 
 module.exports = router;

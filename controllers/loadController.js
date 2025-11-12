@@ -18,9 +18,10 @@ module.exports = {
           return res.status(400).json({ error: 'Salesman ID is required' });
         }
   
-        const [visits, reasons, lastInvoice, latestJourney, settings, allProducts, industries] = await Promise.all([
+        const [visits, returnReasons, cancelReasons, lastInvoice, latestJourney, settings, allProducts, industries] = await Promise.all([
           visitService.getTodayVisits(salesmanId),
-          reasonService.getAllReasons(),
+          reasonService.getAllReturnReasons(),
+          reasonService.getAllCancelReasons(),
           invoiceService.getLastInvoice(salesmanId),
           journeyService.getLatestJourney(salesmanId),
           settingsService.getSettings(),
@@ -102,7 +103,8 @@ module.exports = {
         return res.json({
           visits: visitsWithFlatCustomer,
           products,
-          reasons,
+          returnReasons,
+          cancelReasons,
           startIdInvoice,
           startIdVisit: nextVisitId,
           journeyId: latestJourney?.journeyId || null,

@@ -69,8 +69,8 @@ class SalesmanService {
             throw new Error('A salesman with this phone number already exists');
         }
         
-        // Extract regionIds if provided
-        const { password, regionIds, regionId, ...salesmanDataWithoutPassword } = data;
+        // Extract regionIds and authorityIds if provided
+        const { password, regionIds, regionId, authorityIds, ...salesmanDataWithoutPassword } = data;
         const salesmanData = {
             ...salesmanDataWithoutPassword,
             deviceId: data.deviceId || '',
@@ -114,7 +114,12 @@ class SalesmanService {
             await this.assignRegions(updatedSalesman.salesId, regionsToAssign);
         }
         
-        // Fetch and return salesman with regions
+        // Assign authorities if provided
+        if (authorityIds && authorityIds.length > 0) {
+            await this.assignAuthorities(updatedSalesman.salesId, authorityIds);
+        }
+        
+        // Fetch and return salesman with regions and authorities
         return await prisma.salesman.findUnique({
             where: { salesId: updatedSalesman.salesId },
             include: {
@@ -434,6 +439,11 @@ class SalesmanService {
                   if (visit.endTime) visitData.endTime = parseTimestamp(visit.endTime);
                   if (visit.cancelTime) visitData.cancelTime = parseTimestamp(visit.cancelTime);
             
+                  // Handle cancel reason
+                  if (visit.reasonId) {
+                    visitData.reasonId = parseInt(visit.reasonId);
+                  }
+            
                   // Determine visit status
                   if (visit.cancelTime) {
                     visitData.status = 'CANCEL';
@@ -447,10 +457,30 @@ class SalesmanService {
             
                   // Use composite key for visit upsert (create or update)
                   const visitId = visit.visitId || visit.id;
-                  const custId = visit.custId || visit.customerId;
+                  
+                //   // Fetch custId from existing visit record instead of relying on mobile app data
+                //   let custId = null;
+                //   const existingVisit = await tx.visit.findFirst({
+                //     where: {
+                //       visitId: visitId,
+                //       salesId: salesmanId,
+                //       journeyId: journeyId
+                //     },
+                //     select: { custId: true }
+                //   });
+                  
+                //   if (existingVisit) 
+                //     custId = existingVisit.custId;
+                //   } else {
+                //     // Fallback to mobile app data for backward compatibility (new visits)
+                //     custId = visit.custId || visit.customerId;
+                //     if (!custId) {
+                //       throw new Error(`custId is required for new visit ${visitId}`);
+                //     }
+                //   }
                   
                   const timestamp = getLocalTimestamp();
-                  await tx.visit.upsert({
+                  await tx.visit.update({
                     where: {
                       visitId_salesId_journeyId: {
                         visitId: visitId,
@@ -458,17 +488,8 @@ class SalesmanService {
                         journeyId: journeyId
                       }
                     },
-                    update: {
+                    data: {
                       ...visitData,
-                      updatedAt: timestamp
-                    },
-                    create: {
-                      visitId: visitId,
-                      custId: custId,
-                      salesId: salesmanId,
-                      journeyId: journeyId,
-                      ...visitData,
-                      createdAt: visitData.createdAt || timestamp,
                       updatedAt: timestamp
                     }
                   });

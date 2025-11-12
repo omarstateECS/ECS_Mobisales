@@ -1,7 +1,7 @@
 import React from 'react';
-import { XCircle, Edit, Trash2, CheckCircle, AlertCircle, FileText } from 'lucide-react';
+import { RotateCcw, Edit, Trash2, CheckCircle, AlertCircle, FileText } from 'lucide-react';
 
-const CancelReasonsList = ({ reasons, handleEditReason, handleDeleteReason, deletingReasonId, theme = 'dark' }) => {
+const ReturnReasonsList = ({ reasons, handleEditReason, handleDeleteReason, deletingReasonId, theme = 'dark' }) => {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -21,6 +21,8 @@ const CancelReasonsList = ({ reasons, handleEditReason, handleDeleteReason, dele
           <tr className={`border-b ${theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200'}`}>
             <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>السبب</th>
             <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>الرقم التعريفي</th>
+            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>النوع</th>
+            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>قابل للبيع</th>
             <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>تاريخ الإنشاء</th>
             <th className={`text-right px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>الإجراءات</th>
           </tr>
@@ -37,8 +39,8 @@ const CancelReasonsList = ({ reasons, handleEditReason, handleDeleteReason, dele
             >
               <td className="px-6 py-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-slate-500 to-slate-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <FileText className="w-5 h-5 text-white" />
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <RotateCcw className="w-5 h-5 text-white" />
                   </div>
                   <div className="min-w-0">
                     <div className={`font-medium truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -51,6 +53,35 @@ const CancelReasonsList = ({ reasons, handleEditReason, handleDeleteReason, dele
                 <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                   #{reason.reasonId}
                 </span>
+              </td>
+              <td className="px-6 py-4">
+                {reason.isHeader ? (
+                  <span className={`inline-block text-xs px-3 py-1 rounded-full ${
+                    theme === 'dark'
+                      ? 'bg-blue-500/20 text-blue-400'
+                      : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    <FileText size={12} className="inline mr-1" />
+                    رأسي
+                  </span>
+                ) : (
+                  <span className={`inline-block text-xs px-3 py-1 rounded-full ${
+                    theme === 'dark'
+                      ? 'bg-gray-500/20 text-gray-400'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    <AlertCircle size={12} className="inline mr-1" />
+                    عنصر
+                  </span>
+                )}
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex items-center space-x-2">
+                  <div className={`w-2 h-2 rounded-full ${reason.sellable ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
+                  <span className={`text-xs font-medium ${reason.sellable ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {reason.sellable ? 'نعم' : 'لا'}
+                  </span>
+                </div>
               </td>
               <td className="px-6 py-4">
                 <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -96,4 +127,4 @@ const CancelReasonsList = ({ reasons, handleEditReason, handleDeleteReason, dele
   );
 };
 
-export default CancelReasonsList;
+export default ReturnReasonsList;

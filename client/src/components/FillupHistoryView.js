@@ -108,10 +108,10 @@ const FillupHistoryView = () => {
           </div>
           <div>
             <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              Fillup History
+              تاريخ التحميل
             </h1>
             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              View all fillup orders sent to salesmen
+              عرض جميع أوامر التحميل المرسلة للمندوبين
             </p>
           </div>
         </div>
@@ -124,7 +124,7 @@ const FillupHistoryView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Search className="w-4 h-4 inline mr-2" />
-              Search
+              البحث
             </label>
             <div className="relative">
               <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
@@ -132,7 +132,7 @@ const FillupHistoryView = () => {
               }`} size={20} />
               <input
                 type="text"
-                placeholder="Search fillups..."
+                placeholder="البحث في التحميلات..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
@@ -148,7 +148,7 @@ const FillupHistoryView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Users className="w-4 h-4 inline mr-2" />
-              Salesman
+              المندوب
             </label>
             <select
               value={selectedSalesman}
@@ -159,7 +159,7 @@ const FillupHistoryView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">All Salesmen</option>
+              <option value="">جميع المندوبين</option>
               {salesmen.map(salesman => (
                 <option key={salesman.salesId} value={salesman.salesId}>
                   {salesman.name} (ID: {salesman.salesId})
@@ -174,16 +174,16 @@ const FillupHistoryView = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Loading...</p>
+          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>جاري التحميل...</p>
         </div>
       ) : filteredFillups.length === 0 ? (
         <div className={`text-center py-12 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
           <Package className={`w-16 h-16 mx-auto mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
           <p className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            No fillups found
+            لم يتم العثور على تحميلات
           </p>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            {selectedSalesman ? 'Try selecting a different salesman' : 'No fillups have been created yet'}
+            {selectedSalesman ? 'جرب اختيار مندوب مختلف' : 'لم يتم إنشاء أي تحميلات بعد'}
           </p>
         </div>
       ) : (
@@ -222,12 +222,12 @@ const FillupHistoryView = () => {
                       <div>
                         <div className="flex items-center gap-3">
                           <h3 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                            Fillup Order #{fillup.fillupId}
+                            أمر التحميل رقم #{fillup.fillupId}
                           </h3>
                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                             theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700'
                           }`}>
-                            {totalItems} {totalItems === 1 ? 'item' : 'items'}
+                            {totalItems} {totalItems === 1 ? 'عنصر' : 'عناصر'}
                           </span>
                         </div>
                         <div className="flex items-center gap-4 mt-2">
@@ -255,7 +255,7 @@ const FillupHistoryView = () => {
                   >
                     <div className="p-6">
                       <h4 className={`text-sm font-semibold mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                        Products
+                        المنتجات
                       </h4>
                       <div className="overflow-x-auto">
                         <table className="w-full">
@@ -264,12 +264,12 @@ const FillupHistoryView = () => {
                               <th className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${
                                 theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                               }`}>
-                                Product
+                                المنتج
                               </th>
                               <th className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${
                                 theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                               }`}>
-                                Category
+                                الفئة
                               </th>
                               <th className={`text-center px-4 py-3 text-xs font-medium uppercase tracking-wider ${
                                 theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -279,7 +279,7 @@ const FillupHistoryView = () => {
                               <th className={`text-right px-4 py-3 text-xs font-medium uppercase tracking-wider ${
                                 theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                               }`}>
-                                Quantity
+                                الكمية
                               </th>
                             </tr>
                           </thead>

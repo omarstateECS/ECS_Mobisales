@@ -16,6 +16,7 @@ import InvoicesPage from './pages/InvoicesPage';
 import StockPage from './pages/StockPage';
 import LoadOrdersPage from './pages/LoadOrdersPage';
 import CancelReasonsPage from './pages/CancelReasonsPage';
+import ReturnReasonsPage from './pages/ReturnReasonsPage';
 import SettingsPage from './pages/SettingsPage';
 import CustomerDetailsPage from './pages/CustomerDetailsPage';
 import SalesmanDetailsPage from './pages/SalesmanDetailsPage';
@@ -913,6 +914,7 @@ const AppContent = () => {
           <Route path="stock" element={<StockPage />} />
           <Route path="loadorders" element={<LoadOrdersPage />} />
           <Route path="cancel-reasons" element={<CancelReasonsPage />} />
+          <Route path="return-reasons" element={<ReturnReasonsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>

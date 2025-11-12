@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Plus, Search, MapPin, User, Calendar, CheckCircle, XCircle, Trash2, ArrowDown, Navigation, Globe } from 'lucide-react';
 import NotificationModal from './common/NotificationModal';
 import { useNotification } from '../hooks/useNotification';
-  import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
   const { theme } = useTheme();
+  const { t } = useLocalization();
   const { notification, showSuccess, showError, hideNotification } = useNotification();
   const [salesmen, setSalesmen] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -50,7 +52,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
       }
     } catch (error) {
       console.error('Error fetching salesmen:', error);
-      showError('Failed to load salesmen');
+      showError(t('planRoutes.failedToLoadSalesmen'));
     }
   };
 
@@ -64,7 +66,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
       }
     } catch (error) {
       console.error('Error fetching customers:', error);
-      showError('Failed to load customers');
+      showError(t('planRoutes.failedToLoadCustomers'));
     } finally {
       setLoading(false);
     }
@@ -128,12 +130,12 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
 
   const handleCreateVisits = async () => {
     if (!selectedSalesman) {
-      showError('Please select a salesman');
+      showError(t('planRoutes.pleaseSelectSalesman'));
       return;
     }
 
     if (selectedCustomers.length === 0) {
-      showError('Please select at least one customer');
+      showError(t('planRoutes.pleaseSelectCustomer'));
       return;
     }
 
@@ -152,21 +154,23 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
 
       if (response.ok) {
         const data = await response.json();
-        let message = `Tour created with ${data.data.count} stop${data.data.count !== 1 ? 's' : ''}`;
+        const stopKey = data.data.count === 1 ? 'planRoutes.tourCreatedWith' : 'planRoutes.tourCreatedWithPlural';
+        let message = t(stopKey, { count: data.data.count });
         if (data.data.skipped > 0) {
-          message += ` (${data.data.skipped} duplicate${data.data.skipped !== 1 ? 's' : ''} skipped)`;
+          const skipKey = data.data.skipped === 1 ? 'planRoutes.duplicatesSkipped' : 'planRoutes.duplicatesSkippedPlural';
+          message += ` ${t(skipKey, { count: data.data.skipped })}`;
         }
-        showSuccess(message, 'Tour Created Successfully');
+        showSuccess(message, t('planRoutes.tourCreatedSuccessfully'));
         setSelectedCustomers([]);
         setSelectedSalesman(null);
         setSalesmanRegionFilter([]);
       } else {
         const error = await response.json();
-        showError(error.message || 'Failed to plan tour');
+        showError(error.message || t('planRoutes.failedToPlanTour'));
       }
     } catch (error) {
       console.error('Error creating tour:', error);
-      showError('Failed creating tour');
+      showError(t('planRoutes.failedCreatingTour'));
     } finally {
       setCreating(false);
     }
@@ -203,16 +207,16 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
   // Helper function to check if salesman is selectable
   const isSalesmanSelectable = (salesman) => {
     // Check if available is true
-    if (!salesman.available) return { selectable: false, reason: 'Currently Unavailable' };
+    if (!salesman.available) return { selectable: false, reason: t('planRoutes.currentlyUnavailable') };
     
     // Check if status is ACTIVE
-    if (salesman.status !== 'ACTIVE') return { selectable: false, reason: `Status: ${salesman.status}` };
+    if (salesman.status !== 'ACTIVE') return { selectable: false, reason: `${t('planRoutes.status')}: ${salesman.status}` };
     
     // Check if salesman has an active journey (startJourney is not null and endJourney is null)
     if (salesman.journies && salesman.journies.length > 0) {
       const latestJourney = salesman.journies[0];
       if (latestJourney.startJourney && !latestJourney.endJourney) {
-        return { selectable: false, reason: 'Currently in a Journey' };
+        return { selectable: false, reason: t('planRoutes.currentlyInJourney') };
       }
     }
     
@@ -233,8 +237,8 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Plan Routes</h2>
-            <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Assign customers to sales representatives</p>
+            <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('planRoutes.title')}</h2>
+            <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>{t('planRoutes.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -249,10 +253,10 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
             <User className="text-blue-400" size={20} />
-            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Select Sales Representative</h3>
+            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('planRoutes.selectSalesRep')}</h3>
           </div>
           <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            {filteredSalesmen.length} of {salesmen.length} salesmen
+            {t('planRoutes.salesmenCount', { filtered: filteredSalesmen.length, total: salesmen.length })}
           </div>
         </div>
 
@@ -261,7 +265,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
           <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={20} />
           <input
             type="text"
-            placeholder="Search by name, phone, or ID..."
+            placeholder={t('planRoutes.searchByNamePhoneId')}
             value={salesmanSearchTerm}
             onChange={(e) => setSalesmanSearchTerm(e.target.value)}
             className={`w-full pl-12 pr-4 py-3 rounded-xl focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all ${
@@ -283,11 +287,11 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
         {filteredSalesmen.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <User className="mx-auto text-gray-600 mb-3" size={48} />
-            <p className="text-gray-400 text-lg mb-2">No salesmen found</p>
+            <p className="text-gray-400 text-lg mb-2">{t('planRoutes.noSalesmenFound')}</p>
             <p className="text-gray-500 text-sm">
               {salesmanSearchTerm 
-                ? 'Try adjusting your search terms'
-                : 'No salesmen available at the moment'}
+                ? t('planRoutes.tryAdjustingSearch')
+                : t('planRoutes.noSalesmenAvailable')}
             </p>
           </div>
         ) : (
@@ -344,7 +348,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
                     }`}>{salesman.phone}</p>
                     <p className={`text-xs mt-1 ${
                       selectable ? (theme === 'dark' ? 'text-gray-500' : 'text-gray-600') : 'text-gray-500'
-                    }`}>ID: {salesman.salesId}</p>
+                    }`}>{t('planRoutes.idLabel')} {salesman.salesId}</p>
                     {!selectable && reason && (
                       <div className="mt-2 flex items-center space-x-1">
                         <XCircle size={14} className="text-red-400" />
@@ -365,109 +369,11 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
         {selectedSalesmanData && (
           <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
             <p className="text-sm text-blue-300">
-              Selected: <span className="font-semibold">{selectedSalesmanData.name}</span>
+              {t('planRoutes.selected')}: <span className="font-semibold">{selectedSalesmanData.name}</span>
             </p>
           </div>
         )}
       </div>
-
-      {/* Route Order Visualization */}
-      {selectedCustomers.length > 0 && (
-        <div className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 backdrop-blur-sm border border-purple-500/30 rounded-2xl p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <Navigation className="text-purple-400" size={20} />
-            <h3 className="text-lg font-semibold text-white">Route Order ({selectedCustomers.length} stops)</h3>
-          </div>
-          
-          <div className="space-y-3">
-            {selectedCustomers.map((customerId, index) => {
-              const customer = customers.find(c => c.customerId === customerId);
-              if (!customer) return null;
-              
-              return (
-                <div key={customerId}>
-                  <div className="relative">
-                    {/* Route Stop Card */}
-                    <div className={`flex items-center space-x-4 p-4 rounded-xl hover:border-purple-500/50 transition-all group ${
-                      theme === 'dark'
-                        ? 'bg-gray-800/50 border border-gray-700/50'
-                        : 'bg-white border border-gray-200'
-                    }`}>
-                      {/* Order Number */}
-                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center font-bold text-white shadow-lg">
-                        {index + 1}
-                      </div>
-                      
-                      {/* Customer Info */}
-                      <div className="flex-1">
-                        <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{customer.name}</p>
-                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{customer.address}</p>
-                        {customer.phone && (
-                          <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>{customer.phone}</p>
-                        )}
-                      </div>
-                      
-                      {/* Reorder Buttons */}
-                      <div className="flex flex-col space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => moveCustomerUp(index)}
-                          disabled={index === 0}
-                          className="p-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                          title="Move up"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => moveCustomerDown(index)}
-                          disabled={index === selectedCustomers.length - 1}
-                          className="p-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                          title="Move down"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </button>
-                      </div>
-                      
-                      {/* Remove Button */}
-                      <button
-                        onClick={() => removeCustomerFromRoute(customerId)}
-                        className="flex-shrink-0 p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all"
-                        title="Remove from route"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* Arrow between stops */}
-                  {index < selectedCustomers.length - 1 && (
-                    <div className="flex justify-center py-2">
-                      <div className="flex flex-col items-center">
-                        <ArrowDown className="text-purple-400 animate-bounce" size={24} />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          
-          {/* Route Summary */}
-          <div className="mt-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-purple-300">Total Distance:</span>
-              <span className="font-semibold text-purple-200">To be calculated</span>
-            </div>
-            <div className="flex items-center justify-between text-sm mt-2">
-              <span className="text-purple-300">Estimated Time:</span>
-              <span className="font-semibold text-purple-200">~{selectedCustomers.length * 30} minutes</span>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Customer Selection */}
       <div ref={customersRef} className={`backdrop-blur-sm rounded-2xl p-6 ${
@@ -478,20 +384,20 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
             <MapPin className="text-purple-400" size={20} />
-            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Select Customers to Visit</h3>
+            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('planRoutes.selectCustomersToVisit')}</h3>
           </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={selectAllCustomers}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-all"
             >
-              Select All
+              {t('planRoutes.selectAll')}
             </button>
             <button
               onClick={clearAllCustomers}
               className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-all"
             >
-              Clear All
+              {t('planRoutes.clearAll')}
             </button>
           </div>
         </div>
@@ -503,7 +409,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
             <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
             <input
               type="text"
-              placeholder="Search customers by name, address, or phone..."
+              placeholder={t('planRoutes.searchCustomers')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all ${
@@ -557,7 +463,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
                     })
                   ) : (
                     <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}>
-                      Select regions to filter...
+                      {t('planRoutes.selectRegionsFilter')}
                     </span>
                   )}
                 </div>
@@ -576,7 +482,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
                       type="text"
                       value={regionSearch}
                       onChange={(e) => setRegionSearch(e.target.value)}
-                      placeholder="Search regions..."
+                      placeholder={t('planRoutes.searchRegions')}
                       className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${
                         theme === 'dark'
                           ? 'bg-gray-700 border border-gray-600 text-white placeholder-gray-400'
@@ -599,7 +505,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
                           : 'text-red-600 hover:bg-gray-50 border-gray-200'
                       }`}
                     >
-                      Clear All Filters
+                      {t('planRoutes.clearAllFilters')}
                     </button>
                   )}
                   
@@ -653,16 +559,18 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
         {/* Selected Count */}
         <div className="mb-4 p-3 bg-purple-500/10 border border-purple-500/30 rounded-xl">
           <p className="text-sm text-purple-300">
-            Selected: <span className="font-semibold">{selectedCustomers.length}</span> customer{selectedCustomers.length !== 1 ? 's' : ''}
+            {selectedCustomers.length === 1 
+              ? t('planRoutes.selectedCount', { count: selectedCustomers.length })
+              : t('planRoutes.selectedCountPlural', { count: selectedCustomers.length })}
           </p>
         </div>
 
         {/* Customer List */}
         <div className="max-h-96 overflow-y-auto space-y-2">
           {loading ? (
-            <div className="text-center py-8 text-gray-400">Loading customers...</div>
+            <div className="text-center py-8 text-gray-400">{t('planRoutes.loadingCustomers')}</div>
           ) : filteredCustomers.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">No customers found</div>
+            <div className="text-center py-8 text-gray-400">{t('planRoutes.noCustomersFound')}</div>
           ) : (
             filteredCustomers.map(customer => (
               <div
@@ -707,6 +615,104 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
         </div>
       </div>
 
+      {/* Route Order Visualization */}
+      {selectedCustomers.length > 0 && (
+        <div className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 backdrop-blur-sm border border-purple-500/30 rounded-2xl p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <Navigation className="text-purple-400" size={20} />
+            <h3 className="text-lg font-semibold text-white">{t('planRoutes.routeOrder', { count: selectedCustomers.length })}</h3>
+          </div>
+          
+          <div className="space-y-3">
+            {selectedCustomers.map((customerId, index) => {
+              const customer = customers.find(c => c.customerId === customerId);
+              if (!customer) return null;
+              
+              return (
+                <div key={customerId}>
+                  <div className="relative">
+                    {/* Route Stop Card */}
+                    <div className={`flex items-center space-x-4 p-4 rounded-xl hover:border-purple-500/50 transition-all group ${
+                      theme === 'dark'
+                        ? 'bg-gray-800/50 border border-gray-700/50'
+                        : 'bg-white border border-gray-200'
+                    }`}>
+                      {/* Order Number */}
+                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center font-bold text-white shadow-lg">
+                        {index + 1}
+                      </div>
+                      
+                      {/* Customer Info */}
+                      <div className="flex-1">
+                        <p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{customer.name}</p>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{customer.address}</p>
+                        {customer.phone && (
+                          <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>{customer.phone}</p>
+                        )}
+                      </div>
+                      
+                      {/* Reorder Buttons */}
+                      <div className="flex flex-col space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => moveCustomerUp(index)}
+                          disabled={index === 0}
+                          className="p-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                          title={t('planRoutes.moveUp')}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => moveCustomerDown(index)}
+                          disabled={index === selectedCustomers.length - 1}
+                          className="p-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                          title={t('planRoutes.moveDown')}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      {/* Remove Button */}
+                      <button
+                        onClick={() => removeCustomerFromRoute(customerId)}
+                        className="flex-shrink-0 p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all"
+                        title={t('planRoutes.removeFromRoute')}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Arrow between stops */}
+                  {index < selectedCustomers.length - 1 && (
+                    <div className="flex justify-center py-2">
+                      <div className="flex flex-col items-center">
+                        <ArrowDown className="text-purple-400 animate-bounce" size={24} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          
+          {/* Route Summary */}
+          <div className="mt-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-purple-300">{t('planRoutes.totalDistance')}</span>
+              <span className="font-semibold text-purple-200">{t('planRoutes.toBeCalculated')}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm mt-2">
+              <span className="text-purple-300">{t('planRoutes.estimatedTime')}</span>
+              <span className="font-semibold text-purple-200">~{selectedCustomers.length * 30} {t('planRoutes.minutes')}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Create Visits Button */}
       <div className="flex justify-end space-x-4">
         <button
@@ -717,7 +723,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
           }}
           className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all"
         >
-          Reset
+          {t('planRoutes.reset')}
         </button>
         <button
           onClick={handleCreateVisits}
@@ -725,7 +731,7 @@ const PlanRoutesPage = ({ handleNavigation, salesmenRefreshKey }) => {
           className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/25 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Calendar size={16} />
-          <span>{creating ? 'Creating Tour...' : `Create Tour`}</span>
+          <span>{creating ? t('planRoutes.creatingTour') : t('planRoutes.createTour')}</span>
         </button>
       </div>
 

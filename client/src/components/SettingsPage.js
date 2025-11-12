@@ -202,7 +202,7 @@ const SettingsPage = () => {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center space-y-4">
           <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
-          <p className="text-gray-400">Loading settings...</p>
+          <p className="text-gray-400">جاري تحميل الإعدادات...</p>
         </div>
       </div>
     );
@@ -221,8 +221,8 @@ const SettingsPage = () => {
             <Settings className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-white">Settings</h1>
-            <p className="text-gray-400">Configure application settings</p>
+            <h1 className="text-3xl font-bold text-white">الإعدادات</h1>
+            <p className="text-gray-400">تكوين إعدادات التطبيق</p>
           </div>
         </div>
       </motion.div>
@@ -235,7 +235,7 @@ const SettingsPage = () => {
         className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 overflow-hidden"
       >
         <div className="p-6">
-          <h2 className="text-xl font-semibold text-white mb-6">Mobile App Settings</h2>
+          <h2 className="text-xl font-semibold text-white mb-6">إعدادات تطبيق الجوال</h2>
           
           {/* Settings Options */}
           <div className="space-y-6">
@@ -243,9 +243,9 @@ const SettingsPage = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-colors">
                 <div className="flex-1">
-                  <h3 className="text-lg font-medium text-white mb-1">Custom Invoice</h3>
+                  <h3 className="text-lg font-medium text-white mb-1">فاتورة مخصصة</h3>
                   <p className="text-sm text-gray-400">
-                    Enable custom invoice functionality for salesmen
+                    تفعيل وظيفة الفاتورة المخصصة للمندوبين
                   </p>
                 </div>
                 <button
@@ -279,10 +279,10 @@ const SettingsPage = () => {
                         </div>
                         <div className="flex-1">
                           <label className="block text-sm font-medium text-white mb-2">
-                            Custom Invoice Sequence Builder
+                            منشئ تسلسل الفاتورة المخصصة
                           </label>
                           <p className="text-xs text-gray-400 mb-3">
-                            Drag and drop placeholders to build your custom invoice sequence pattern
+                            اسحب وأفلت العناصر لبناء نمط تسلسل الفاتورة المخصصة
                           </p>
                           
                           {/* Draggable Sequence Builder */}
@@ -291,7 +291,7 @@ const SettingsPage = () => {
                             <div className="min-h-[60px] p-3 bg-gray-800/50 border-2 border-dashed border-gray-600 rounded-lg">
                               {sequenceParts.length === 0 ? (
                                 <p className="text-gray-500 text-sm text-center py-2">
-                                  Add placeholders below to build your sequence
+                                  أضف عناصر أدناه لبناء التسلسل
                                 </p>
                               ) : (
                                 <Reorder.Group
@@ -331,15 +331,15 @@ const SettingsPage = () => {
 
                             {/* Preview */}
                             <div className="p-3 bg-gray-900/50 rounded-lg border border-gray-700/50">
-                              <p className="text-xs text-gray-500 mb-1">Preview:</p>
+                              <p className="text-xs text-gray-500 mb-1">معاينة:</p>
                               <p className="text-sm font-mono text-white">
-                                {settings.customInvoiceSequence || 'No sequence defined'}
+                                {settings.customInvoiceSequence || 'لم يتم تحديد تسلسل'}
                               </p>
                             </div>
 
                             {/* Available Placeholders */}
                             <div>
-                              <p className="text-xs text-gray-400 mb-2">Available Placeholders:</p>
+                              <p className="text-xs text-gray-400 mb-2">العناصر المتاحة:</p>
                               <div className="flex flex-wrap gap-2">
                                 {availablePlaceholders.map((placeholder) => (
                                   <button
@@ -356,7 +356,7 @@ const SettingsPage = () => {
                                   className="flex items-center gap-1 px-3 py-1.5 bg-gray-700/30 hover:bg-gray-700/50 text-gray-300 border border-gray-600/30 rounded-lg text-sm font-medium transition-colors"
                                 >
                                   <Plus size={14} />
-                                  Add Text
+                                  إضافة نص
                                 </button>
                               </div>
                             </div>
@@ -367,7 +367,7 @@ const SettingsPage = () => {
                                 onClick={clearSequence}
                                 className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 rounded-lg transition-colors text-sm font-medium"
                               >
-                                Clear All
+                                مسح الكل
                               </button>
                               <button
                                 onClick={handleSave}
@@ -377,12 +377,12 @@ const SettingsPage = () => {
                                 {saving ? (
                                   <>
                                     <RefreshCw className="w-4 h-4 animate-spin" />
-                                    <span>Saving...</span>
+                                    <span>جاري الحفظ...</span>
                                   </>
                                 ) : (
                                   <>
                                     <Save className="w-4 h-4" />
-                                    <span>Save Sequence</span>
+                                    <span>حفظ التسلسل</span>
                                   </>
                                 )}
                               </button>
@@ -399,9 +399,9 @@ const SettingsPage = () => {
             {/* Visit Sequence Toggle */}
             <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-colors">
               <div className="flex-1">
-                <h3 className="text-lg font-medium text-white mb-1">Visit Sequence</h3>
+                <h3 className="text-lg font-medium text-white mb-1">تسلسل الزيارات</h3>
                 <p className="text-sm text-gray-400">
-                  Enforce sequential visit order for salesmen
+                  فرض ترتيب الزيارات التسلسلي للمندوبين
                 </p>
               </div>
               <button
@@ -421,9 +421,9 @@ const SettingsPage = () => {
             {/* Filter Customers by Region Toggle */}
             <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-colors">
               <div className="flex-1">
-                <h3 className="text-lg font-medium text-white mb-1">Filter Customers by Region</h3>
+                <h3 className="text-lg font-medium text-white mb-1">تصفية العملاء حسب المنطقة</h3>
                 <p className="text-sm text-gray-400">
-                  Send only customers in the journey's region to mobile app (when disabled, sends all customers)
+                  إرسال العملاء في منطقة الرحلة فقط إلى تطبيق الجوال (عند التعطيل، يرسل جميع العملاء)
                 </p>
               </div>
               <button
@@ -466,12 +466,12 @@ const SettingsPage = () => {
               {saving ? (
                 <>
                   <RefreshCw className="w-5 h-5 animate-spin" />
-                  <span>Saving...</span>
+                  <span>جاري الحفظ...</span>
                 </>
               ) : (
                 <>
                   <Save className="w-5 h-5" />
-                  <span>Save Settings</span>
+                  <span>حفظ الإعدادات</span>
                 </>
               )}
             </button>
@@ -486,10 +486,10 @@ const SettingsPage = () => {
         transition={{ delay: 0.2 }}
         className="mt-6 bg-blue-500/10 backdrop-blur-xl rounded-2xl border border-blue-500/30 p-6"
       >
-        <h3 className="text-lg font-semibold text-blue-400 mb-2">About Settings</h3>
+        <h3 className="text-lg font-semibold text-blue-400 mb-2">حول الإعدادات</h3>
         <p className="text-gray-400 text-sm leading-relaxed">
-          These settings will be synchronized with the mobile application during the next data sync. 
-          Changes will affect all salesmen using the mobile app.
+          سيتم مزامنة هذه الإعدادات مع تطبيق الجوال أثناء مزامنة البيانات التالية. 
+          ستؤثر التغييرات على جميع المندوبين الذين يستخدمون تطبيق الجوال.
         </p>
       </motion.div>
     </div>

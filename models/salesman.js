@@ -9,7 +9,8 @@ function SalesmanValidation(salesman) {
     password: Joi.string().min(1).max(255).required(),
     status: Joi.string().valid('ACTIVE', 'INACTIVE', 'BLOCKED').default('INACTIVE'),
     regionId: Joi.number().integer().positive().optional().allow(null), // Backward compatibility
-    regionIds: Joi.array().items(Joi.number().integer().positive()).optional() // Support multiple regions
+    regionIds: Joi.array().items(Joi.number().integer().positive()).optional(), // Support multiple regions
+    authorityIds: Joi.array().items(Joi.number().integer().positive()).optional() // Support multiple authorities
   });
 
   return schema.validate(salesman);

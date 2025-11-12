@@ -100,7 +100,7 @@ const ManageRegionsModal = ({ isOpen, onClose, salesman, onRegionsUpdated }) => 
             <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
               <div className="flex flex-col items-center space-y-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-2 border-cyan-400/30 border-t-cyan-400"></div>
-                <span className="text-white font-medium">Updating regions...</span>
+                <span className="text-white font-medium">جاري تحديث المناطق...</span>
               </div>
             </div>
           )}
@@ -110,8 +110,8 @@ const ManageRegionsModal = ({ isOpen, onClose, salesman, onRegionsUpdated }) => 
             <div className="flex items-center space-x-3">
               <Globe className="w-6 h-6 text-cyan-400" />
               <div>
-                <h2 className="text-xl font-bold text-white">Manage Regions</h2>
-                <p className="text-sm text-gray-400">Assign regions for {salesman?.name}</p>
+                <h2 className="text-xl font-bold text-white">إدارة المناطق</h2>
+                <p className="text-sm text-gray-400">تعيين المناطق لـ {salesman?.name}</p>
               </div>
             </div>
             <button
@@ -128,7 +128,7 @@ const ManageRegionsModal = ({ isOpen, onClose, salesman, onRegionsUpdated }) => 
             {/* City Filter */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Filter by City
+                التصفية حسب المدينة
               </label>
               <select
                 value={selectedCity}
@@ -136,7 +136,7 @@ const ManageRegionsModal = ({ isOpen, onClose, salesman, onRegionsUpdated }) => 
                 disabled={loading || saving}
                 className="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <option value="">All Cities</option>
+                <option value="">جميع المدن</option>
                 {[...new Set(regions.map(r => r.city))].sort().map((city) => (
                   <option key={city} value={city}>
                     {city}
@@ -148,7 +148,7 @@ const ManageRegionsModal = ({ isOpen, onClose, salesman, onRegionsUpdated }) => 
             {/* Selected Count */}
             <div className="mb-4 p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
               <p className="text-sm text-cyan-300">
-                Selected: <span className="font-semibold">{selectedRegionIds.length}</span> region{selectedRegionIds.length !== 1 ? 's' : ''}
+                محدد: <span className="font-semibold">{selectedRegionIds.length}</span> منطقة
               </p>
             </div>
 
@@ -156,13 +156,13 @@ const ManageRegionsModal = ({ isOpen, onClose, salesman, onRegionsUpdated }) => 
             {loading ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-2 border-cyan-400/30 border-t-cyan-400 mx-auto"></div>
-                <p className="text-gray-400 mt-4">Loading regions...</p>
+                <p className="text-gray-400 mt-4">جاري تحميل المناطق...</p>
               </div>
             ) : filteredRegions.length === 0 ? (
               <div className="text-center py-12">
                 <Globe className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                 <p className="text-gray-400">
-                  {selectedCity ? `No regions found in ${selectedCity}` : 'No regions available'}
+                  {selectedCity ? `لم يتم العثور على مناطق في ${selectedCity}` : 'لا توجد مناطق متاحة'}
                 </p>
               </div>
             ) : (
@@ -219,7 +219,7 @@ const ManageRegionsModal = ({ isOpen, onClose, salesman, onRegionsUpdated }) => 
               disabled={saving}
               className="px-6 py-2.5 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Cancel
+              إلغاء
             </button>
             <button
               onClick={handleSave}
@@ -227,7 +227,7 @@ const ManageRegionsModal = ({ isOpen, onClose, salesman, onRegionsUpdated }) => 
               className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={18} />
-              <span>{saving ? 'Saving...' : 'Save Changes'}</span>
+              <span>{saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}</span>
             </button>
           </div>
         </motion.div>

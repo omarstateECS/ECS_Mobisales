@@ -22,7 +22,8 @@ import {
   Building2,
   FileText,
   Globe,
-  Eye
+  Eye,
+  RotateCcw
 } from 'lucide-react';
 
 const SidebarItem = ({ item, isChild = false, expandedMenus, toggleMenu, isActive = false }) => {
@@ -302,6 +303,13 @@ const Sidebar = ({
           isActive: isPathActive('/authorities')
         },
         { 
+          id: 'return-reasons',
+          label: t('nav.returnReasons'), 
+          icon: RotateCcw,
+          to: '/return-reasons',
+          isActive: isPathActive('/return-reasons')
+        },
+        {
           id: 'cancel-reasons',
           label: t('nav.cancelReasons'), 
           icon: XCircle,

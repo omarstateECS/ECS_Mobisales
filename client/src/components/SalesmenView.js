@@ -4,6 +4,7 @@ import SalesmanGrid from './SalesmanGrid';
 import SalesmanList from './SalesmanList';
 import ViewToggle from './ViewToggle';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const SalesmenView = ({
   handleNavigation,
@@ -17,6 +18,7 @@ const SalesmenView = ({
   handleViewDetails
 }) => {
   const { theme } = useTheme();
+  const { t } = useLocalization();
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
@@ -115,8 +117,8 @@ const SalesmenView = ({
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>All Salesmen</h2>
-            <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Manage your sales team</p>
+            <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t('salesmen.allSalesmen')}</h2>
+            <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>{t('salesmen.manageSalesTeam')}</p>
           </div>
         </div>
         <div className="flex items-center space-x-4">
@@ -125,7 +127,7 @@ const SalesmenView = ({
             onClick={openAddSalesmanModal}
             className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-green-500/25 flex items-center space-x-2">
             <Plus size={16} />
-            <span>Add Salesman</span>
+            <span>{t('salesmen.addSalesman')}</span>
           </button>
         </div>
       </div>
@@ -143,7 +145,7 @@ const SalesmenView = ({
               <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
               <input
                 type="text"
-                placeholder="Search salesmen by name..."
+                placeholder={t('salesmen.searchSalesmenByName')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all ${
@@ -174,10 +176,10 @@ const SalesmenView = ({
                   : 'bg-gray-50 border border-gray-200 text-gray-900'
               }`}
             >
-              <option value="">All Statuses</option>
-              <option value="ACTIVE">Active</option>
-              <option value="INACTIVE">Inactive</option>
-              <option value="BLOCKED">Blocked</option>
+              <option value="">{t('salesmen.allStatuses')}</option>
+              <option value="ACTIVE">{t('salesmen.active')}</option>
+              <option value="INACTIVE">{t('salesmen.inactive')}</option>
+              <option value="BLOCKED">{t('salesmen.blocked')}</option>
             </select>
             <select
               value={selectedRegion}
@@ -188,7 +190,7 @@ const SalesmenView = ({
                   : 'bg-gray-50 border border-gray-200 text-gray-900'
               }`}
             >
-              <option value="">All Regions</option>
+              <option value="">{t('salesmen.allRegions')}</option>
               {regions.map(region => (
                 <option key={region.id} value={region.id}>
                   {region.region} - {region.city}, {region.country}
@@ -204,9 +206,9 @@ const SalesmenView = ({
                   : 'bg-gray-50 border border-gray-200 text-gray-900'
               }`}
             >
-              <option value="name">Sort by Name</option>
-              <option value="status">Sort by Status</option>
-              <option value="createdAt">Sort by Date</option>
+              <option value="name">{t('salesmen.sortByName')}</option>
+              <option value="status">{t('salesmen.sortByStatus')}</option>
+              <option value="createdAt">{t('salesmen.sortByDate')}</option>
             </select>
             <button 
               onClick={handleRefreshSalesmen}
@@ -216,7 +218,7 @@ const SalesmenView = ({
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200 hover:border-gray-300'
               }`}
             >
-              {loading ? 'Loading...' : 'Refresh'}
+              {loading ? t('salesmen.loading') : t('salesmen.refresh')}
             </button>
           </div>
           
@@ -226,20 +228,24 @@ const SalesmenView = ({
               {committedSearch && committedSearch.trim() ? (
                 <>
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-500/20 text-green-400 mr-2">
-                    ⚡ Fast Search
+                    ⚡ {t('salesmen.fastSearch')}
                   </span>
-                  Showing {filteredSalesmen.length} results for "{committedSearch}"
-                  {selectedStatus && ` in ${selectedStatus} status`}
+                  {t('salesmen.showingResultsFor', { count: filteredSalesmen.length, query: committedSearch })}
+                  {selectedStatus && ` ${t('salesmen.inStatus', { status: selectedStatus })}`}
                 </>
               ) : (
                 <>
-                  Showing {startIndex + 1}-{endIndex} salesmen on page {currentPage}
-                  {selectedStatus && ` in ${selectedStatus} status`}
+                  {t('salesmen.showingSalesmenOnPage', { 
+                    start: startIndex + 1, 
+                    end: endIndex, 
+                    page: currentPage 
+                  })}
+                  {selectedStatus && ` ${t('salesmen.inStatus', { status: selectedStatus })}`}
                 </>
               )}
             </div>
             <div className="flex items-center space-x-2">
-              <span>Items per page:</span>
+              <span>{t('salesmen.itemsPerPage')}</span>
               <select
                 value={itemsPerPage}
                 onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
@@ -295,7 +301,7 @@ const SalesmenView = ({
                 }}
                 className="ml-2 underline hover:text-green-300"
               >
-                Clear search to browse all salesmen
+                {t('salesmen.clearSearchToBrowseAll')}
               </button>
             </span>
           </div>

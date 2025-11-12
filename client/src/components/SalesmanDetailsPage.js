@@ -3,9 +3,11 @@ import { ArrowLeft, User, MapPin, Phone, Calendar, Shield, Globe, Edit, UserChec
 import ManageAuthoritiesModal from './ManageAuthoritiesModal';
 import ManageRegionsModal from './ManageRegionsModal';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNavigation }) => {
   const { theme } = useTheme();
+  const { t } = useLocalization();
   const [showAuthoritiesModal, setShowAuthoritiesModal] = useState(false);
   const [showRegionsModal, setShowRegionsModal] = useState(false);
   const [salesmanData, setSalesmanData] = useState(salesman);
@@ -146,9 +148,9 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
               <div>
                 <h1 className={`text-2xl font-bold ${
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}>Salesman Details</h1>
+                }`}>{t('salesmen.salesmanDetails')}</h1>
                 <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                  Viewing complete information for {salesmanData.name}
+                  {t('salesmen.viewingCompleteInfo', { name: salesmanData.name })}
                 </p>
               </div>
             </div>
@@ -159,7 +161,7 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
               <div className="text-right">
                 <div className={`text-sm ${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                }`}>Salesman ID</div>
+                }`}>{t('salesmen.salesmanId')}</div>
                 <div className={`text-lg font-semibold ${
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`}>#{salesmanData.salesId}</div>
@@ -182,26 +184,26 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                 <User className="w-8 h-8 text-green-400" />
                 <div>
                   <h2 className="text-2xl font-bold text-white">{salesmanData.name}</h2>
-                  <p className="text-gray-400">Sales Representative Information</p>
+                  <p className="text-gray-400">{t('salesmen.salesRepInfo')}</p>
                 </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Current Status</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">{t('salesmen.currentStatus')}</label>
                   <div className="flex items-center space-x-2">
                     <div className={`px-3 py-2 rounded-lg text-sm font-medium border ${getStatusColor(salesmanData.status)}`}>
-                      {getStatusIcon(salesmanData.status)} {salesmanData.status}
+                      {getStatusIcon(salesmanData.status)} {salesmanData.status === 'ACTIVE' ? t('salesmen.active') : salesmanData.status === 'INACTIVE' ? t('salesmen.inactive') : salesmanData.status === 'BLOCKED' ? t('salesmen.blocked') : salesmanData.status}
                     </div>
                   </div>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Phone Number</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">{t('salesmen.phoneNumber')}</label>
                   <div className="flex items-center space-x-2">
                     <Phone className="w-5 h-5 text-gray-400" />
                     <span className="text-white font-medium">
-                      {salesmanData.phone || 'Not provided'}
+                      {salesmanData.phone || t('salesmen.notProvided')}
                     </span>
                   </div>
                 </div>
@@ -213,17 +215,17 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
               <div className="flex items-center space-x-3 mb-4">
                 <MapPin className="w-8 h-8 text-emerald-400" />
                 <div>
-                  <h3 className="text-xl font-semibold text-white">Location Details</h3>
-                  <p className="text-gray-400">Address and location information</p>
+                  <h3 className="text-xl font-semibold text-white">{t('salesmen.locationDetails')}</h3>
+                  <p className="text-gray-400">{t('salesmen.addressAndLocationInfo')}</p>
                 </div>
               </div>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Full Address</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">{t('salesmen.fullAddress')}</label>
                   <div className="p-3 bg-gray-700/30 rounded-lg border border-gray-600/30">
                     <span className="text-white">
-                      {salesmanData.address || 'Address not provided'}
+                      {salesmanData.address || t('salesmen.addressNotProvided')}
                     </span>
                   </div>
                 </div>
@@ -235,17 +237,17 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
               <div className="flex items-center space-x-3 mb-4">
                 <Shield className="w-8 h-8 text-blue-400" />
                 <div>
-                  <h3 className="text-xl font-semibold text-white">Device Information</h3>
-                  <p className="text-gray-400">Mobile device and security details</p>
+                  <h3 className="text-xl font-semibold text-white">{t('salesmen.deviceInformation')}</h3>
+                  <p className="text-gray-400">{t('salesmen.mobileDeviceSecurity')}</p>
                 </div>
               </div>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Device ID</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">{t('salesmen.deviceId')}</label>
                   <div className="p-3 bg-gray-700/30 rounded-lg border border-gray-600/30">
                     <span className="text-white font-mono">
-                      {salesmanData.deviceId || 'No device registered'}
+                      {salesmanData.deviceId || t('salesmen.noDeviceRegistered')}
                     </span>
                   </div>
                 </div>
@@ -257,8 +259,8 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
               <div className="flex items-center space-x-3 mb-4">
                 <Globe className="w-8 h-8 text-cyan-400" />
                 <div>
-                  <h3 className="text-xl font-semibold text-white">Assigned Regions</h3>
-                  <p className="text-gray-400">Regions this salesman can operate in</p>
+                  <h3 className="text-xl font-semibold text-white">{t('salesmen.assignedRegions')}</h3>
+                  <p className="text-gray-400">{t('salesmen.regionsOperateIn')}</p>
                 </div>
               </div>
               
@@ -289,8 +291,8 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                   ) : (
                     <div className="text-center py-6">
                       <Globe className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                      <p className="text-gray-400">No regions assigned</p>
-                      <p className="text-sm text-gray-500">Assign regions when planning routes</p>
+                      <p className="text-gray-400">{t('salesmen.noRegionsAssigned')}</p>
+                      <p className="text-sm text-gray-500">{t('salesmen.assignRegionsPlanning')}</p>
                     </div>
                   );
                 })()}
@@ -302,8 +304,8 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
               <div className="flex items-center space-x-3 mb-4">
                 <Shield className="w-8 h-8 text-purple-400" />
                 <div>
-                  <h3 className="text-xl font-semibold text-white">Authorities & Permissions</h3>
-                  <p className="text-gray-400">Access rights and permissions</p>
+                  <h3 className="text-xl font-semibold text-white">{t('salesmen.authoritiesPermissions')}</h3>
+                  <p className="text-gray-400">{t('salesmen.accessRightsPermissions')}</p>
                 </div>
               </div>
               
@@ -339,8 +341,8 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                   ) : (
                     <div className="text-center py-6">
                       <Shield className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                      <p className="text-gray-400">No authorities assigned</p>
-                      <p className="text-sm text-gray-500">Contact administrator to assign permissions</p>
+                      <p className="text-gray-400">{t('salesmen.noAuthoritiesAssigned')}</p>
+                      <p className="text-sm text-gray-500">{t('salesmen.contactAdminAssignPermissions')}</p>
                     </div>
                   );
                 })()}
@@ -356,14 +358,14 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
               <div className="flex items-center space-x-3 mb-4">
                 <Calendar className="w-8 h-8 text-orange-400" />
                 <div>
-                  <h3 className="text-xl font-semibold text-white">Account Information</h3>
-                  <p className="text-gray-400">System information</p>
+                  <h3 className="text-xl font-semibold text-white">{t('salesmen.accountInformation')}</h3>
+                  <p className="text-gray-400">{t('salesmen.systemInformation')}</p>
                 </div>
               </div>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Created Date</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">{t('salesmen.createdDate')}</label>
                   <div className="p-3 bg-gray-700/30 rounded-lg border border-gray-600/30">
                     <span className="text-white">
                       {formatDate(salesmanData.createdAt)}
@@ -372,7 +374,7 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Last Updated</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">{t('salesmen.lastUpdated')}</label>
                   <div className="p-3 bg-gray-700/30 rounded-lg border border-gray-600/30">
                     <span className="text-white">
                       {formatDate(salesmanData.updatedAt || salesmanData.createdAt)}
@@ -390,7 +392,7 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
             }`}>
               <h3 className={`text-xl font-semibold mb-4 ${
                 theme === 'dark' ? 'text-white' : 'text-gray-900'
-              }`}>Quick Actions</h3>
+              }`}>{t('salesmen.quickActions')}</h3>
               
               <div className="space-y-3">
                 <button 
@@ -402,7 +404,7 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                   }`}
                 >
                   <Edit className="w-5 h-5" />
-                  <span>Edit Salesman</span>
+                  <span>{t('salesmen.editSalesman')}</span>
                 </button>
                 
                 <button 
@@ -414,7 +416,7 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                   }`}
                 >
                   <Globe className="w-5 h-5" />
-                  <span>Plan Routes</span>
+                  <span>{t('salesmen.planRoutes')}</span>
                 </button>
                 
                 <button 
@@ -426,7 +428,7 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                   }`}
                 >
                   <Shield className="w-5 h-5" />
-                  <span>Manage Authorities</span>
+                  <span>{t('salesmen.manageAuthorities')}</span>
                 </button>
                 
                 <button 
@@ -438,7 +440,7 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                   }`}
                 >
                   <Globe className="w-5 h-5" />
-                  <span>Manage Regions</span>
+                  <span>{t('salesmen.manageRegions')}</span>
                 </button>
                 
                 <button className={`w-full px-4 py-3 rounded-xl font-medium transition-colors border flex items-center justify-center space-x-2 ${
@@ -447,18 +449,18 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                     : 'bg-yellow-100 hover:bg-yellow-200 text-yellow-900 border-yellow-300'
                 }`}>
                   <UserCheck className="w-5 h-5" />
-                  <span>Assign Customers</span>
+                  <span>{t('salesmen.assignCustomers')}</span>
                 </button>
               </div>
             </div>
 
             {/* Status Indicators */}
             <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-4">Status Overview</h3>
+              <h3 className="text-xl font-semibold text-white mb-4">{t('salesmen.statusOverview')}</h3>
               
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Account Status</span>
+                  <span className="text-gray-400">{t('salesmen.accountStatus')}</span>
                   <div className="flex items-center space-x-2">
                     <div className={`w-3 h-3 rounded-full ${
                       salesmanData.status === 'ACTIVE' ? 'bg-emerald-500' : 
@@ -468,37 +470,37 @@ const SalesmanDetailsPage = ({ salesman, onBack, onEdit, onRefresh, handleNaviga
                       salesmanData.status === 'ACTIVE' ? 'text-emerald-400' : 
                       salesmanData.status === 'INACTIVE' ? 'text-yellow-400' : 'text-red-400'
                     }`}>
-                      {salesmanData.status}
+                      {salesmanData.status === 'ACTIVE' ? t('salesmen.active') : salesmanData.status === 'INACTIVE' ? t('salesmen.inactive') : salesmanData.status === 'BLOCKED' ? t('salesmen.blocked') : salesmanData.status}
                     </span>
                   </div>
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Device Registered</span>
+                  <span className="text-gray-400">{t('salesmen.deviceRegistered')}</span>
                   <div className="flex items-center space-x-2">
                     <div className={`w-3 h-3 rounded-full ${salesmanData.deviceId ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
                     <span className={`text-sm font-medium ${salesmanData.deviceId ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {salesmanData.deviceId ? 'Yes' : 'No'}
+                      {salesmanData.deviceId ? t('salesmen.yes') : t('salesmen.no')}
                     </span>
                   </div>
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Phone Provided</span>
+                  <span className="text-gray-400">{t('salesmen.phoneProvided')}</span>
                   <div className="flex items-center space-x-2">
                     <div className={`w-3 h-3 rounded-full ${salesmanData.phone ? 'bg-emerald-500' : 'bg-yellow-500'}`}></div>
                     <span className={`text-sm font-medium ${salesmanData.phone ? 'text-emerald-400' : 'text-yellow-400'}`}>
-                      {salesmanData.phone ? 'Yes' : 'No'}
+                      {salesmanData.phone ? t('salesmen.yes') : t('salesmen.no')}
                     </span>
                   </div>
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Address Set</span>
+                  <span className="text-gray-400">{t('salesmen.addressSet')}</span>
                   <div className="flex items-center space-x-2">
                     <div className={`w-3 h-3 rounded-full ${salesmanData.address ? 'bg-emerald-500' : 'bg-yellow-500'}`}></div>
                     <span className={`text-sm font-medium ${salesmanData.address ? 'text-emerald-400' : 'text-yellow-400'}`}>
-                      {salesmanData.address ? 'Yes' : 'No'}
+                      {salesmanData.address ? t('salesmen.yes') : t('salesmen.no')}
                     </span>
                   </div>
                 </div>

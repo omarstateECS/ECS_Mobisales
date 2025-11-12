@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, XCircle, Eye, Trash2, Edit, AlertCircle, CheckCircle, List, Grid, FileText } from 'lucide-react';
+import { Plus, Search, XCircle, Trash2, Edit, AlertCircle, CheckCircle, List, Grid, FileText, RotateCcw } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import axios from 'axios';
 import ConfirmationModal from './common/ConfirmationModal';
 import NotificationModal from './common/NotificationModal';
 import { useNotification } from '../hooks/useNotification';
-import CancelReasonsList from './CancelReasonsList';
-import AddCancelReasonModal from './AddCancelReasonModal';
+import ReturnReasonsList from './ReturnReasonsList';
+import AddReturnReasonModal from './AddReturnReasonModal';
 
 // Set axios base URL
 axios.defaults.baseURL = 'http://localhost:3000';
@@ -22,17 +22,17 @@ const ReasonCard = ({ reason, handleEditReason, handleDeleteReason, deletingReas
       transition={{ duration: 0.3 }}
       className={`backdrop-blur-sm border rounded-2xl p-6 transition-all duration-300 hover:shadow-xl group ${
         theme === 'dark'
-          ? 'bg-gray-800/40 border-gray-700/50 hover:bg-gray-800/60 hover:shadow-slate-500/10'
-          : 'bg-white border-gray-200 hover:border-slate-200 hover:shadow-lg'
+          ? 'bg-gray-800/40 border-gray-700/50 hover:bg-gray-800/60 hover:shadow-purple-500/10'
+          : 'bg-white border-gray-200 hover:border-purple-200 hover:shadow-lg'
       }`}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3 min-w-0 flex-1">
-          <div className="w-12 h-12 bg-gradient-to-r from-slate-500 to-slate-600 rounded-xl flex items-center justify-center flex-shrink-0">
-            <FileText className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <RotateCcw className="w-6 h-6 text-white" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className={`text-lg font-semibold group-hover:text-slate-400 transition-colors truncate ${
+            <h3 className={`text-lg font-semibold group-hover:text-purple-400 transition-colors truncate ${
               theme === 'dark' ? 'text-white' : 'text-gray-900'
             }`}>
               {reason.description}
@@ -76,9 +76,28 @@ const ReasonCard = ({ reason, handleEditReason, handleDeleteReason, deletingReas
       <div className="space-y-3">
         <div className="flex items-center justify-between pt-3 border-t border-gray-700/50">
           <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-400">
-              Created: {reason.createdAt ? new Date(reason.createdAt).toLocaleDateString() : 'N/A'}
-            </span>
+            {reason.sellable ? (
+              <>
+                <CheckCircle size={16} className="text-emerald-400" />
+                <span className="text-xs font-medium text-emerald-400">قابل للبيع</span>
+              </>
+            ) : (
+              <>
+                <XCircle size={16} className="text-red-400" />
+                <span className="text-xs font-medium text-red-400">غير قابل للبيع</span>
+              </>
+            )}
+          </div>
+          <div className="flex items-center space-x-2">
+            {reason.isHeader ? (
+              <span className="inline-block text-xs px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full">
+                Header
+              </span>
+            ) : (
+              <span className="inline-block text-xs px-3 py-1 bg-gray-500/20 text-gray-400 rounded-full">
+                Item
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -86,7 +105,7 @@ const ReasonCard = ({ reason, handleEditReason, handleDeleteReason, deletingReas
   );
 };
 
-const CancelReasonsView = () => {
+const ReturnReasonsView = () => {
   const { theme } = useTheme();
   const [reasons, setReasons] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -114,11 +133,11 @@ const CancelReasonsView = () => {
   const fetchReasons = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/cancel-reasons');
+      const response = await axios.get('/api/return-reasons');
       setReasons(response.data);
     } catch (error) {
-      console.error('Error fetching reasons:', error);
-      showError('Error Loading Reasons', error.response?.data?.error || error.message);
+      console.error('Error fetching return reasons:', error);
+      showError('Error Loading Return Reasons', error.response?.data?.error || error.message);
     } finally {
       setLoading(false);
     }
@@ -126,20 +145,20 @@ const CancelReasonsView = () => {
 
   const handleAddReason = async (formData) => {
     try {
-      const response = await axios.post('/api/cancel-reasons', formData);
+      const response = await axios.post('/api/return-reasons', formData);
       setReasons(prev => [...prev, response.data]);
-      showSuccess('Cancel reason has been added successfully!');
+      showSuccess('Return reason has been added successfully!');
       setIsAddModalOpen(false);
     } catch (error) {
-      console.error('Error adding cancel reason:', error);
-      throw new Error(error.response?.data?.error || 'Failed to add cancel reason');
+      console.error('Error adding return reason:', error);
+      throw new Error(error.response?.data?.error || 'Failed to add return reason');
     }
   };
 
   const handleDeleteReason = (reasonId, description) => {
     setConfirmationModal({
       isOpen: true,
-      title: 'Delete Cancel Reason',
+      title: 'Delete Return Reason',
       message: `Are you sure you want to delete "${description}"? This action cannot be undone.`,
       onConfirm: () => confirmDeleteReason(reasonId),
       loading: false,
@@ -153,14 +172,14 @@ const CancelReasonsView = () => {
     setDeletingReasonId(reasonId);
 
     try {
-      await axios.delete(`/api/cancel-reasons/${reasonId}`);
+      await axios.delete(`/api/return-reasons/${reasonId}`);
       setReasons(prev => prev.filter(reason => reason.reasonId !== reasonId));
       setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false, confirmText: 'Delete', type: 'danger' });
-      showDelete('Cancel reason has been deleted successfully!');
+      showDelete('Return reason has been deleted successfully!');
     } catch (error) {
-      console.error('Error deleting cancel reason:', error);
+      console.error('Error deleting return reason:', error);
       setConfirmationModal({ isOpen: false, title: '', message: '', onConfirm: null, loading: false, confirmText: 'Delete', type: 'danger' });
-      showError('Error Deleting Cancel Reason', error.response?.data?.error || error.message);
+      showError('Error Deleting Return Reason', error.response?.data?.error || error.message);
     } finally {
       setDeletingReasonId(null);
     }
@@ -168,13 +187,16 @@ const CancelReasonsView = () => {
 
   const handleEditReason = (reason) => {
     // TODO: Implement edit modal
-    console.log('Edit reason:', reason);
+    console.log('Edit return reason:', reason);
   };
 
   const filteredReasons = reasons.filter(reason => {
     const matchesSearch = reason.description.toLowerCase().includes(searchTerm.toLowerCase());
-    // Cancel reasons don't have headers/items distinction, so all filters show all
-    return matchesSearch;
+    const matchesFilter = 
+      selectedFilter === 'all' ? true :
+      selectedFilter === 'headers' ? reason.isHeader :
+      selectedFilter === 'items' ? !reason.isHeader : true;
+    return matchesSearch && matchesFilter;
   });
 
   return (
@@ -183,18 +205,18 @@ const CancelReasonsView = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-            أسباب الإلغاء
+            أسباب الإرجاع
           </h1>
           <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            إدارة أسباب إلغاء الزيارات
+            إدارة أسباب إرجاع الفواتير والعناصر
           </p>
         </div>
         <button 
           onClick={() => setIsAddModalOpen(true)}
-          className="px-6 py-3 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
+          className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
         >
           <Plus size={20} />
-          <span>إضافة سبب إلغاء</span>
+          <span>إضافة سبب إرجاع</span>
         </button>
       </div>
 
@@ -209,11 +231,11 @@ const CancelReasonsView = () => {
           className={`backdrop-blur-sm border rounded-2xl p-6 cursor-pointer transition-all duration-300 ${
             selectedFilter === 'all'
               ? theme === 'dark'
-                ? 'bg-slate-500/30 border-slate-500 shadow-lg shadow-slate-500/20 ring-2 ring-slate-500'
-                : 'bg-slate-100 border-slate-400 shadow-lg shadow-slate-500/20 ring-2 ring-slate-500'
+                ? 'bg-purple-500/30 border-purple-500 shadow-lg shadow-purple-500/20 ring-2 ring-purple-500'
+                : 'bg-purple-100 border-purple-400 shadow-lg shadow-purple-500/20 ring-2 ring-purple-500'
               : theme === 'dark'
                 ? 'bg-gray-800/40 border-gray-700/50 hover:bg-gray-800/60'
-                : 'bg-white border-gray-200 hover:border-slate-300'
+                : 'bg-white border-gray-200 hover:border-purple-300'
           }`}
         >
           <div className="flex items-center justify-between">
@@ -223,18 +245,11 @@ const CancelReasonsView = () => {
               </p>
               <p className={`text-3xl font-bold mt-2 transition-colors ${
                 selectedFilter === 'all'
-                  ? 'text-slate-400'
+                  ? 'text-purple-400'
                   : theme === 'dark' ? 'text-white' : 'text-gray-900'
               }`}>
                 {reasons.length}
               </p>
-            </div>
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
-              selectedFilter === 'all'
-                ? 'bg-gradient-to-r from-slate-600 to-slate-700 shadow-lg'
-                : 'bg-gradient-to-r from-slate-500 to-slate-600'
-            }`}>
-              <FileText className="w-6 h-6 text-white" />
             </div>
           </div>
         </motion.div>
@@ -259,22 +274,15 @@ const CancelReasonsView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                رؤوس
+                Header
               </p>
               <p className={`text-3xl font-bold mt-2 transition-colors ${
                 selectedFilter === 'headers'
                   ? 'text-emerald-400'
                   : theme === 'dark' ? 'text-white' : 'text-gray-900'
               }`}>
-                0
+                {reasons.filter(r => r.isHeader).length}
               </p>
-            </div>
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
-              selectedFilter === 'headers'
-                ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 shadow-lg'
-                : 'bg-gradient-to-r from-emerald-500 to-emerald-600'
-            }`}>
-              <CheckCircle className="w-6 h-6 text-white" />
             </div>
           </div>
         </motion.div>
@@ -299,22 +307,15 @@ const CancelReasonsView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                عناصر
+                Item
               </p>
               <p className={`text-3xl font-bold mt-2 transition-colors ${
                 selectedFilter === 'items'
                   ? 'text-blue-400'
                   : theme === 'dark' ? 'text-white' : 'text-gray-900'
               }`}>
-                0
+                {reasons.filter(r => !r.isHeader).length}
               </p>
-            </div>
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
-              selectedFilter === 'items'
-                ? 'bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg'
-                : 'bg-gradient-to-r from-blue-500 to-blue-600'
-            }`}>
-              <AlertCircle className="w-6 h-6 text-white" />
             </div>
           </div>
         </motion.div>
@@ -333,14 +334,14 @@ const CancelReasonsView = () => {
             }`} size={20} />
             <input
               type="text"
-              placeholder="البحث في أسباب الإلغاء..."
+              placeholder="البحث في أسباب الإرجاع..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-colors ${
                 theme === 'dark'
-                  ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-slate-500'
-                  : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:border-slate-500'
-              } focus:outline-none focus:ring-2 focus:ring-slate-500/20`}
+                  ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-purple-500'
+                  : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:border-purple-500'
+              } focus:outline-none focus:ring-2 focus:ring-purple-500/20`}
             />
           </div>
           
@@ -355,8 +356,8 @@ const CancelReasonsView = () => {
               className={`p-3 rounded-l-xl transition-colors ${
                 viewMode === 'list'
                   ? theme === 'dark'
-                    ? 'bg-slate-600 text-white'
-                    : 'bg-slate-500 text-white'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-purple-500 text-white'
                   : theme === 'dark'
                     ? 'text-gray-400 hover:text-white hover:bg-gray-600'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
@@ -370,8 +371,8 @@ const CancelReasonsView = () => {
               className={`p-3 rounded-r-xl transition-colors ${
                 viewMode === 'grid'
                   ? theme === 'dark'
-                    ? 'bg-slate-600 text-white'
-                    : 'bg-slate-500 text-white'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-purple-500 text-white'
                   : theme === 'dark'
                     ? 'text-gray-400 hover:text-white hover:bg-gray-600'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
@@ -388,7 +389,7 @@ const CancelReasonsView = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-            جاري تحميل أسباب الإلغاء...
+            جاري تحميل أسباب الإرجاع...
           </div>
         </div>
       ) : filteredReasons.length === 0 ? (
@@ -397,20 +398,20 @@ const CancelReasonsView = () => {
             ? 'bg-gray-800/40 border-gray-700/50'
             : 'bg-white border-gray-200'
         }`}>
-          <XCircle className={`w-16 h-16 mx-auto mb-4 ${
+          <RotateCcw className={`w-16 h-16 mx-auto mb-4 ${
             theme === 'dark' ? 'text-gray-600' : 'text-gray-400'
           }`} />
           <h3 className={`text-xl font-semibold mb-2 ${
             theme === 'dark' ? 'text-white' : 'text-gray-900'
           }`}>
-            لم يتم العثور على أسباب إلغاء
+            لم يتم العثور على أسباب إرجاع
           </h3>
           <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-            {searchTerm ? 'جرب تعديل بحثك.' : 'ابدأ بإضافة أول سبب إلغاء.'}
+            {searchTerm ? 'جرب تعديل بحثك.' : 'ابدأ بإضافة أول سبب إرجاع.'}
           </p>
         </div>
       ) : viewMode === 'list' ? (
-        <CancelReasonsList
+        <ReturnReasonsList
           reasons={filteredReasons}
           handleEditReason={handleEditReason}
           handleDeleteReason={handleDeleteReason}
@@ -455,8 +456,8 @@ const CancelReasonsView = () => {
         autoCloseDelay={notification.autoCloseDelay}
       />
 
-      {/* Add Reason Modal */}
-      <AddCancelReasonModal
+      {/* Add Return Reason Modal */}
+      <AddReturnReasonModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onAdd={handleAddReason}
@@ -465,4 +466,4 @@ const CancelReasonsView = () => {
   );
 };
 
-export default CancelReasonsView;
+export default ReturnReasonsView;

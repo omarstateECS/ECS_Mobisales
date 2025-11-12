@@ -28,6 +28,7 @@ const Header = ({ setSidebarOpen }) => {
       '/regions': { title: 'Regions', description: 'Manage regions' },
       '/industries': { title: 'Industries', description: 'Manage industries' },
       '/authorities': { title: t('authorities.title'), description: t('authorities.subtitle') },
+      '/return-reasons': { title: t('returnReasons.title'), description: t('returnReasons.subtitle') },
       '/cancel-reasons': { title: t('cancelReasons.title'), description: t('cancelReasons.subtitle') },
       '/settings': { title: t('settings.title'), description: t('settings.subtitle') }
     };

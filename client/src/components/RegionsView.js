@@ -173,10 +173,10 @@ const RegionsView = () => {
         <div>
           <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
             <Globe className="inline-block mr-3 mb-1" size={32} />
-            Regions
+            المناطق
           </h1>
           <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            Manage all regions in the system
+            إدارة جميع المناطق في النظام
           </p>
         </div>
         <button
@@ -184,7 +184,7 @@ const RegionsView = () => {
           className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
         >
           <Plus size={20} />
-          <span>Add Region</span>
+          <span>إضافة منطقة</span>
         </button>
       </div>
 
@@ -195,7 +195,7 @@ const RegionsView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Search className="w-4 h-4 inline mr-2" />
-              Search
+              البحث
             </label>
             <div className="relative">
               <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
@@ -203,7 +203,7 @@ const RegionsView = () => {
               }`} size={20} />
               <input
                 type="text"
-                placeholder="Search regions..."
+                placeholder="البحث في المناطق..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
@@ -219,7 +219,7 @@ const RegionsView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Globe className="w-4 h-4 inline mr-2" />
-              Country
+              البلد
             </label>
             <select
               value={filterCountry}
@@ -230,7 +230,7 @@ const RegionsView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">All Countries</option>
+              <option value="">جميع البلدان</option>
               {countries.map(country => (
                 <option key={country} value={country}>
                   {country}
@@ -243,7 +243,7 @@ const RegionsView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <MapPin className="w-4 h-4 inline mr-2" />
-              City
+              المدينة
             </label>
             <select
               value={filterCity}
@@ -254,7 +254,7 @@ const RegionsView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">All Cities</option>
+              <option value="">جميع المدن</option>
               {cities.map(city => (
                 <option key={city} value={city}>
                   {city}
@@ -274,7 +274,7 @@ const RegionsView = () => {
             </div>
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Total Regions
+                إجمالي المناطق
               </p>
               <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {filteredRegions.length}
@@ -290,7 +290,7 @@ const RegionsView = () => {
             </div>
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Countries
+                البلدان
               </p>
               <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {countries.length}
@@ -306,7 +306,7 @@ const RegionsView = () => {
             </div>
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Cities
+                المدن
               </p>
               <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {cities.length}
@@ -320,16 +320,16 @@ const RegionsView = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Loading...</p>
+          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>جاري التحميل...</p>
         </div>
       ) : filteredRegions.length === 0 ? (
         <div className={`text-center py-12 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
           <Globe className={`w-16 h-16 mx-auto mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
           <p className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            No regions found
+            لم يتم العثور على مناطق
           </p>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            Try adjusting your filters
+            جرب تعديل المرشحات
           </p>
         </div>
       ) : (
@@ -341,32 +341,32 @@ const RegionsView = () => {
                   <th className={`px-6 py-4 text-left text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
                   }`}>
-                    ID
+                    الرقم التعريفي
                   </th>
                   <th className={`px-6 py-4 text-left text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
                   }`}>
-                    Region
+                    المنطقة
                   </th>
                   <th className={`px-6 py-4 text-left text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
                   }`}>
-                    City
+                    المدينة
                   </th>
                   <th className={`px-6 py-4 text-left text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
                   }`}>
-                    Country
+                    البلد
                   </th>
                   <th className={`px-6 py-4 text-left text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
                   }`}>
-                    Created At
+                    تاريخ الإنشاء
                   </th>
                   <th className={`px-6 py-4 text-right text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
                   }`}>
-                    Actions
+                    الإجراءات
                   </th>
                 </tr>
               </thead>
@@ -474,7 +474,7 @@ const RegionsView = () => {
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`}>
                   <Globe className="inline-block mr-2 mb-1" size={24} />
-                  Add New Region
+                  إضافة منطقة جديدة
                 </h2>
                 <button
                   onClick={handleCloseModals}
@@ -569,7 +569,7 @@ const RegionsView = () => {
                     disabled={submitting}
                     className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {submitting ? 'Adding...' : 'Add Region'}
+                    {submitting ? 'جاري الإضافة...' : 'إضافة منطقة'}
                   </button>
                 </div>
               </form>
@@ -597,7 +597,7 @@ const RegionsView = () => {
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`}>
                   <Edit2 className="inline-block mr-2 mb-1" size={24} />
-                  Edit Region
+                  تعديل المنطقة
                 </h2>
                 <button
                   onClick={handleCloseModals}
@@ -692,7 +692,7 @@ const RegionsView = () => {
                     disabled={submitting}
                     className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {submitting ? 'Updating...' : 'Update Region'}
+                    {submitting ? 'جاري التحديث...' : 'تحديث المنطقة'}
                   </button>
                 </div>
               </form>
@@ -718,7 +718,7 @@ const RegionsView = () => {
               }">
                 <h2 className={`text-xl font-bold text-red-500`}>
                   <Trash2 className="inline-block mr-2 mb-1" size={24} />
-                  Delete Region
+                  حذف المنطقة
                 </h2>
                 <button
                   onClick={handleCloseModals}
@@ -736,12 +736,12 @@ const RegionsView = () => {
                 <p className={`mb-4 ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  Are you sure you want to delete the region <strong>"{selectedRegion.region}"</strong> in <strong>{selectedRegion.city}, {selectedRegion.country}</strong>?
+                  هل أنت متأكد من حذف المنطقة <strong>"{selectedRegion.region}"</strong> في <strong>{selectedRegion.city}, {selectedRegion.country}</strong>؟
                 </p>
                 <p className={`text-sm ${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                 }`}>
-                  This action cannot be undone.
+                  لا يمكن التراجع عن هذا الإجراء.
                 </p>
 
                 <div className="flex space-x-3 pt-6">
@@ -761,7 +761,7 @@ const RegionsView = () => {
                     disabled={deleting}
                     className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {deleting ? 'Deleting...' : 'Delete'}
+                    {deleting ? 'جاري الحذف...' : 'حذف'}
                   </button>
                 </div>
               </div>

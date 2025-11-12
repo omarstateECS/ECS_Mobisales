@@ -59,7 +59,7 @@ export const LocalizationProvider = ({ children }) => {
     document.documentElement.lang = newLanguage;
   };
 
-  const t = (key) => {
+  const t = (key, params = {}) => {
     const resolve = (obj, path) => {
       const keys = path.split('.');
       let v = obj;
@@ -72,11 +72,21 @@ export const LocalizationProvider = ({ children }) => {
 
     // Try current language first
     let value = resolve(translations, key);
-    if (value !== undefined) return value;
+    if (value !== undefined) {
+      // Replace parameters in the string
+      return Object.keys(params).reduce((str, param) => {
+        return str.replace(new RegExp(`\\{${param}\\}`, 'g'), params[param]);
+      }, value);
+    }
 
     // Fallback to English
     const fallbackValue = resolve(fallbackTranslations, key);
-    if (fallbackValue !== undefined) return fallbackValue;
+    if (fallbackValue !== undefined) {
+      // Replace parameters in the fallback string
+      return Object.keys(params).reduce((str, param) => {
+        return str.replace(new RegExp(`\\{${param}\\}`, 'g'), params[param]);
+      }, fallbackValue);
+    }
 
     console.warn(`Translation key not found: ${key}`);
     return key;

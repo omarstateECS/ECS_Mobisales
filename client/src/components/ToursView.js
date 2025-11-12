@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Search, ChevronLeft, ChevronRight, Calendar, MapPin, User, TrendingUp, Clock, Globe, ChevronDown, XCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 // Helper function to get default date range (1 month ago to today)
 const getDefaultDateRange = () => {
@@ -16,6 +17,7 @@ const getDefaultDateRange = () => {
 
 const ToursView = ({ handleNavigation, onViewTourDetails }) => {
   const { theme } = useTheme();
+  const { t } = useLocalization();
   const [journeys, setJourneys] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -225,8 +227,8 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
 
   // Calculate journey duration
   const calculateDuration = (start, end) => {
-    if (!start) return 'Not started';
-    if (!end) return 'In progress';
+    if (!start) return t('tours.notStartedStatus');
+    if (!end) return t('tours.inProgressStatus');
     
     const startTime = new Date(start);
     const endTime = new Date(end);
@@ -240,12 +242,12 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
   // Get status badge
   const getStatusBadge = (journey) => {
     if (!journey.startJourney) {
-      return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-500/20 text-gray-400">Not Started</span>;
+      return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-500/20 text-gray-400">{t('tours.notStarted')}</span>;
     }
     if (!journey.endJourney) {
-      return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400">In Progress</span>;
+      return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400">{t('tours.inProgress')}</span>;
     }
-    return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400">Completed</span>;
+    return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400">{t('tours.completed')}</span>;
   };
 
   return (
@@ -261,16 +263,16 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
           </button>
           <div>
             <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              Tours
+              {t('tours.title')}
             </h2>
             <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-              View all tour records
+              {t('tours.subtitle')}
             </p>
           </div>
         </div>
         <div className={`px-4 py-2 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white'}`}>
           <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            Total: <span className="font-bold text-blue-500">{total}</span> tours
+            {t('tours.totalTours', { count: total })}
           </span>
         </div>
       </div>
@@ -286,7 +288,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
         <div className="flex flex-col md:flex-row gap-4 mb-4">
           <div className="w-full md:w-48">
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Start Date
+              {t('tours.startDate')}
             </label>
             <div className="relative">
               <Calendar className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
@@ -304,7 +306,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
           </div>
           <div className="w-full md:w-48">
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              End Date
+              {t('tours.endDate')}
             </label>
             <div className="relative">
               <Calendar className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
@@ -322,7 +324,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
           </div>
           <div className="w-full md:w-80 relative status-dropdown-container">
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Status {selectedStatuses.length > 0 && <span className="text-blue-400">({selectedStatuses.length})</span>}
+              {t('tours.status')} {selectedStatuses.length > 0 && <span className="text-blue-400">({selectedStatuses.length})</span>}
             </label>
             <div className="relative">
               <div
@@ -338,9 +340,9 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                   {selectedStatuses.length > 0 ? (
                     selectedStatuses.map(statusValue => {
                       const statusLabels = {
-                        'not_started': 'Not Started',
-                        'in_progress': 'In Progress',
-                        'completed': 'Completed'
+                        'not_started': t('tours.notStarted'),
+                        'in_progress': t('tours.inProgress'),
+                        'completed': t('tours.completed')
                       };
                       return (
                         <div
@@ -358,7 +360,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                     })
                   ) : (
                     <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}>
-                      Select status...
+                      {t('tours.selectStatus')}
                     </span>
                   )}
                 </div>
@@ -378,9 +380,9 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                     : 'bg-white border border-gray-200'
                 }`}>
                   {[
-                    { value: 'not_started', label: 'Not Started' },
-                    { value: 'in_progress', label: 'In Progress'},
-                    { value: 'completed', label: 'Completed'}
+                    { value: 'not_started', label: t('tours.notStarted') },
+                    { value: 'in_progress', label: t('tours.inProgress')},
+                    { value: 'completed', label: t('tours.completed')}
                   ].map((status) => {
                     const isSelected = selectedStatuses.includes(status.value);
                     return (
@@ -426,7 +428,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
         <div className="flex flex-col md:flex-row gap-4 items-end overflow-visible">
           <div className="w-full md:w-48">
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Tour ID
+              {t('tours.tourId')}
             </label>
             <div className="relative">
               <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
@@ -434,7 +436,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                 type="text"
                 value={tourIdSearch}
                 onChange={(e) => setTourIdSearch(e.target.value)}
-                placeholder="Enter tour ID..."
+                placeholder={t('tours.enterTourId')}
                 className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
                   theme === 'dark'
                     ? 'bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-500'
@@ -445,7 +447,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
           </div>
           <div className="w-full md:w-80 relative">
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Salesman
+              {t('tours.salesman')}
             </label>
             <div className="relative salesman-search-container">
               <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
@@ -454,7 +456,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                 value={salesmanSearch}
                 onChange={handleSearchChange}
                 onFocus={() => setShowSalesmanDropdown(true)}
-                placeholder="Search by name or ID..."
+                placeholder={t('tours.searchByNameOrId')}
                 className={`w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
                   theme === 'dark'
                     ? 'bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-500'
@@ -493,14 +495,14 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                     : 'bg-white border border-gray-200 text-gray-600'
                 }`}
                 style={{ position: 'absolute', zIndex: 9999 }}>
-                  No salesmen found
+                  {t('tours.noSalesmenFound')}
                 </div>
               )}
             </div>
           </div>
           <div className="w-full md:w-80 relative region-dropdown-container">
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Region {selectedRegions.length > 0 && <span className="text-blue-400">({selectedRegions.length})</span>}
+              {t('tours.region')} {selectedRegions.length > 0 && <span className="text-blue-400">({selectedRegions.length})</span>}
             </label>
             <div className="relative">
               <Globe className={`absolute left-3 top-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
@@ -543,7 +545,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                     })
                   ) : (
                     <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}>
-                      Select regions...
+                      {t('tours.selectRegions')}
                     </span>
                   )}
                 </div>
@@ -569,7 +571,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                       type="text"
                       value={regionSearch}
                       onChange={(e) => setRegionSearch(e.target.value)}
-                      placeholder="Search regions..."
+                      placeholder={t('tours.searchRegions')}
                       className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
                         theme === 'dark'
                           ? 'bg-gray-700 border border-gray-600 text-white placeholder-gray-400'
@@ -592,7 +594,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                           : 'text-red-600 hover:bg-gray-50 border-gray-200'
                       }`}
                     >
-                      Clear All
+                      {t('tours.clearAll')}
                     </button>
                   )}
                   
@@ -652,7 +654,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
               onClick={handleApplyFilters}
               className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg"
             >
-              Apply
+              {t('tours.apply')}
             </button>
             <button
               onClick={handleClearFilters}
@@ -662,7 +664,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                   : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
               }`}
             >
-              Clear
+              {t('tours.clear')}
             </button>
           </div>
         </div>
@@ -672,6 +674,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
       {loading ? (
         <div className="flex justify-center items-center py-20">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <p className={`mt-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('tours.loading')}</p>
         </div>
       ) : journeys.length === 0 ? (
         <div className={`text-center py-20 rounded-2xl ${
@@ -679,7 +682,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
         }`}>
           <MapPin size={48} className="mx-auto mb-4 text-gray-400" />
           <p className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            No tours found
+            {t('tours.noToursFound')}
           </p>
         </div>
       ) : (
@@ -732,12 +735,12 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                     </div>
                     <div>
                       <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        Tour #{journey.journeyId}
+                        {t('tours.tourIdLabel', { id: journey.journeyId })}
                       </h3>
                       <div className="flex items-center gap-2 text-sm">
                         <User size={14} className="text-gray-400" />
                         <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                          {journey.salesman?.name || 'Unknown Salesman'}
+                          {journey.salesman?.name || t('tours.unknownSalesman')}
                         </span>
                       </div>
                     </div>
@@ -745,25 +748,25 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>Created</p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>{t('tours.created')}</p>
                       <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                         {formatDate(journey.createdAt)}
                       </p>
                     </div>
                     <div>
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>Duration</p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>{t('tours.duration')}</p>
                       <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                         {calculateDuration(journey.startJourney, journey.endJourney)}
                       </p>
                     </div>
                     <div>
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>Visits</p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>{t('tours.visits')}</p>
                       <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                         {journey.visits?.length || 0}
                       </p>
                     </div>
                     <div>
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>Invoices</p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>{t('tours.invoices')}</p>
                       <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                         {journey.invoiceHeaders?.length || 0}
                       </p>
@@ -776,7 +779,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                   {getStatusBadge(journey)}
                   {journey.invoiceHeaders && journey.invoiceHeaders.length > 0 && (
                     <div className="text-right">
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>Total Sales</p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>{t('tours.totalSales')}</p>
                       <p className="text-lg font-bold text-green-500">
                         {journey.invoiceHeaders.reduce((sum, inv) => sum + parseFloat(inv.totalAmt || 0), 0).toFixed(2)} EGP
                       </p>
@@ -799,7 +802,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-2">
               <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Show
+                {t('tours.show')}
               </span>
               <select
                 value={itemsPerPage}
@@ -815,7 +818,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
                 <option value={100}>100</option>
               </select>
               <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                per page
+                {t('tours.perPage')}
               </span>
             </div>
 
@@ -833,7 +836,7 @@ const ToursView = ({ handleNavigation, onViewTourDetails }) => {
               </button>
 
               <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Page {currentPage} of {totalPages}
+                {t('tours.pageOf', { current: currentPage, total: totalPages })}
               </span>
 
               <button

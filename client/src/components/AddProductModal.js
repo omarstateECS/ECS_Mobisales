@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Trash2, Package, Tag, BarChart3, Hash, DollarSign, ShoppingCart } from 'lucide-react';
 import axios from 'axios';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
+    const { t, isRTL } = useLocalization();
     const [formData, setFormData] = useState({
         name: '',
         category: '',
@@ -42,7 +44,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
         } catch (err) {
             console.error('Error fetching categories:', err);
             if (err.code === 'ERR_NETWORK') {
-                setError('Cannot connect to server. Please check if the backend is running.');
+                setError(t('messages.error.serverConnection'));
             }
         }
     };
@@ -111,15 +113,15 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
 
     const validateForm = () => {
         if (!formData.name.trim()) {
-            setError('Product name is required');
+            setError(t('products.addModal.nameRequired'));
             return false;
         }
         if (!formData.category.trim()) {
-            setError('Category is required');
+            setError(t('products.addModal.categoryRequired'));
             return false;
         }
         if (!formData.basePrice || parseFloat(formData.basePrice) <= 0) {
-            setError('Base price must be greater than 0');
+            setError(t('products.addModal.priceRequired'));
             return false;
         }
 
@@ -127,7 +129,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
         for (let i = 0; i < productUnits.length; i++) {
             const unit = productUnits[i];
             if (!unit.barcode.trim()) {
-                setError(`Barcode for ${unit.uomName} unit is required`);
+                setError(t('products.addModal.barcodeRequired', { unit: unit.uomName }));
                 return false;
             }
         }
@@ -136,7 +138,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
         const uomCodes = productUnits.map(unit => unit.uom);
         const duplicateUoms = uomCodes.filter((uom, index) => uomCodes.indexOf(uom) !== index);
         if (duplicateUoms.length > 0) {
-            setError(`Duplicate UOM codes found: ${duplicateUoms.join(', ')}. Each unit must have a unique UOM code.`);
+            setError(t('products.addModal.duplicateUom', { codes: duplicateUoms.join(', ') }));
             return false;
         }
 
@@ -144,20 +146,20 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
         const barcodes = productUnits.map(unit => unit.barcode.trim()).filter(barcode => barcode);
         const duplicateBarcodes = barcodes.filter((barcode, index) => barcodes.indexOf(barcode) !== index);
         if (duplicateBarcodes.length > 0) {
-            setError(`Duplicate barcodes found: ${duplicateBarcodes.join(', ')}. Each unit must have a unique barcode.`);
+            setError(t('products.addModal.duplicateBarcode', { barcodes: duplicateBarcodes.join(', ') }));
             return false;
         }
 
         // Validate that if it's a new category, it has actual text
         if (isNewCategory && !formData.category.trim()) {
-            setError('Please enter a valid category name');
+            setError(t('products.addModal.validCategoryRequired'));
             return false;
         }
 
         // Validate that baseUom exists in productUnits
         const baseUomExists = productUnits.some(unit => unit.uom === formData.baseUom);
         if (!baseUomExists) {
-            setError('Base UOM must match one of the product units');
+            setError(t('products.addModal.baseUomMatch'));
             return false;
         }
 
@@ -224,13 +226,13 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
             if (err.response?.data?.error) {
                 setError(err.response.data.error);
             } else if (err.response?.status === 400) {
-                setError('Invalid data provided. Please check your input.');
+                setError(t('messages.error.invalidData'));
             } else if (err.response?.status === 409) {
-                setError('A product with this barcode already exists.');
+                setError(t('products.addModal.barcodeExists'));
             } else if (err.response?.status === 500) {
-                setError('Server error. Please try again later.');
+                setError(t('messages.error.serverError'));
             } else {
-                setError('Failed to create product. Please try again.');
+                setError(t('messages.error.createFailed'));
             }
         } finally {
             setLoading(false);
@@ -272,8 +274,8 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                         >
                             <div className="text-center">
                                 <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent mx-auto mb-4"></div>
-                                <div className="text-white text-lg">Creating Product...</div>
-                                <div className="text-gray-400 text-sm">Please wait</div>
+                                <div className="text-white text-lg">{t('products.addModal.creating')}</div>
+                                <div className="text-gray-400 text-sm">{t('common.pleaseWait')}</div>
                             </div>
                         </motion.div>
                     )}
@@ -294,13 +296,13 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-700">
-                    <div className="flex items-center space-x-3">
+                    <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-3`}>
                         <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
                             <Package className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-semibold text-white">Add New Product</h2>
-                            <p className="text-sm text-gray-400">Create a new product with multiple unit types</p>
+                            <h2 className="text-xl font-semibold text-white">{t('products.addModal.title')}</h2>
+                            <p className="text-sm text-gray-400">{t('products.addModal.subtitle')}</p>
                         </div>
                     </div>
                     <button
@@ -324,14 +326,14 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                     {/* Basic Product Information */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
-                            <h3 className="text-lg font-medium text-white flex items-center space-x-2">
+                            <h3 className={`text-lg font-medium text-white flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
                                 <Package size={20} className="text-purple-400" />
-                                <span>Product Details</span>
+                                <span>{t('products.addModal.productDetails')}</span>
                             </h3>
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Product Name <span className="text-red-400">*</span>
+                                    {t('products.productName')} <span className="text-red-400">*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -340,7 +342,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                                     className={`w-full px-4 py-3 bg-gray-800/50 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all ${
                                         formData.name.trim() === '' ? 'border-red-500/50' : 'border-gray-700/50 focus:border-purple-500/50'
                                     }`}
-                                    placeholder="Enter product name"
+                                    placeholder={t('products.addModal.enterProductName')}
                                     required
                                     disabled={loading}
                                 />
@@ -348,7 +350,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Stock Quantity
+                                    {t('products.addModal.stockQuantity')}
                                 </label>
                                 <input
                                     type="number"
@@ -356,14 +358,14 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                                     onChange={(e) => handleInputChange('stock', parseInt(e.target.value) || 0)}
                                     min="0"
                                     className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
-                                    placeholder="Enter stock quantity"
+                                    placeholder={t('products.addModal.enterStockQuantity')}
                                     disabled={loading}
                                 />
                             </div>
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Base Price <span className="text-red-400">*</span>
+                                    {t('products.basePrice')} <span className="text-red-400">*</span>
                                 </label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm font-medium">EGP</span>
@@ -385,16 +387,16 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                         </div>
 
                         <div className="space-y-4">
-                            <h3 className="text-lg font-medium text-white flex items-center space-x-2">
+                            <h3 className={`text-lg font-medium text-white flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
                                 <Tag size={20} className="text-purple-400" />
-                                <span>Product Classification</span>
+                                <span>{t('products.addModal.productClassification')}</span>
                             </h3>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Category <span className="text-red-400">*</span>
+                                    {t('products.category')} <span className="text-red-400">*</span>
                                 </label>
-                                <div className="flex space-x-2">
+                                <div className={`flex ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
                                     <select
                                         value={isNewCategory ? 'new' : formData.category}
                                         onChange={(e) => {
@@ -409,18 +411,18 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                                         className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
                                         disabled={loading}
                                     >
-                                        <option value="">Select category</option>
+                                        <option value="">{t('products.addModal.selectCategory')}</option>
                                         {categories.map(category => (
                                             <option key={category} value={category}>{category}</option>
                                         ))}
-                                        <option value="new">+ Add New Category</option>
+                                        <option value="new">+ {t('products.addModal.addNewCategory')}</option>
                                     </select>
                                 </div>
                                 {isNewCategory && (
                                     <input
                                         type="text"
                                         value={formData.category}
-                                        placeholder="Enter new category name"
+                                        placeholder={t('products.addModal.enterNewCategory')}
                                         className="w-full mt-2 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
                                         onChange={(e) => {
                                             handleInputChange('category', e.target.value);
@@ -433,7 +435,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Base UOM <span className="text-red-400">*</span>
+                                    {t('products.addModal.baseUom')} <span className="text-red-400">*</span>
                                 </label>
                                 <select
                                     value={formData.baseUom}
@@ -446,7 +448,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                                     ))}
                                 </select>
                                 <p className="text-xs text-gray-400 mt-1">
-                                    Select which unit of measure will be the base unit for this product
+                                    {t('products.addModal.baseUomHint')}
                                 </p>
                             </div>
                         </div>
@@ -455,9 +457,9 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                     {/* Product Units Section */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-medium text-white flex items-center space-x-2">
+                            <h3 className={`text-lg font-medium text-white flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
                                 <ShoppingCart size={20} className="text-purple-400" />
-                                <span>Product Units of Measure (UOM)</span>
+                                <span>{t('products.addModal.productUnits')}</span>
                             </h3>
                             <button
                                 type="button"
@@ -466,7 +468,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                                 disabled={loading}
                             >
                                 <Plus size={16} />
-                                <span>Add Unit</span>
+                                <span>{t('products.addModal.addUnit')}</span>
                             </button>
                         </div>
 
@@ -475,14 +477,14 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                                 <div key={index} className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-4">
                                     <div className="flex items-center justify-between mb-4">
                                         <h4 className="text-md font-medium text-white">
-                                            {unit.uomName} Unit
+                                            {unit.uomName} {t('products.addModal.unit')}
                                         </h4>
                                         {productUnits.length > 1 && (
                                             <button
                                                 type="button"
                                                 onClick={() => removeProductUnit(index)}
                                                 className="p-2 rounded-lg hover:bg-red-600/20 text-gray-400 hover:text-red-400 transition-colors"
-                                                title="Remove unit"
+                                                title={t('products.addModal.removeUnit')}
                                                 disabled={loading}
                                             >
                                                 <Trash2 size={16} />
@@ -493,7 +495,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                                     <div className="flex flex-wrap gap-3">
                                         <div className="flex-shrink-0 w-24">
                                             <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                UOM Code
+                                                {t('products.addModal.uomCode')}
                                             </label>
                                             <select
                                                 value={unit.uom}
@@ -511,23 +513,23 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
 
                                         <div className="flex-1 min-w-32">
                                             <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                UOM Name
+                                                {t('products.addModal.uomName')}
                                             </label>
                                             <input
                                                 type="text"
                                                 value={unit.uomName}
                                                 onChange={(e) => handleUnitChange(index, 'uomName', e.target.value)}
                                                 className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
-                                                placeholder="Unit name"
+                                                placeholder={t('products.addModal.unitNamePlaceholder')}
                                                 disabled={loading}
                                             />
                                         </div>
 
                                         <div className="flex-1 min-w-48">
                                             <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                Barcode <span className="text-red-400">*</span>
+                                                {t('products.addModal.barcode')} <span className="text-red-400">*</span>
                                             </label>
-                                            <div className="flex space-x-1">
+                                            <div className={`flex ${isRTL ? 'space-x-reverse' : ''} space-x-1`}>
                                                 <input
                                                     type="text"
                                                     value={unit.barcode}
@@ -535,7 +537,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                                                     className={`flex-1 px-3 py-2 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all ${
                                                         !unit.barcode.trim() ? 'border-red-500/50' : 'border-gray-700/50 focus:border-purple-500/50'
                                                     }`}
-                                                    placeholder="Barcode"
+                                                    placeholder={t('products.addModal.barcodePlaceholder')}
                                                     required
                                                     disabled={loading}
                                                 />
@@ -543,7 +545,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                                                     type="button"
                                                     onClick={() => generateBarcode(index)}
                                                     className="px-2 py-2 bg-gray-700/50 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors border border-gray-600/50 hover:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    title="Generate barcode"
+                                                    title={t('products.addModal.generateBarcode')}
                                                     disabled={loading}
                                                 >
                                                     <Hash size={14} />
@@ -553,7 +555,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
 
                                         <div className="flex-shrink-0 w-20">
                                             <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                Numerator
+                                                {t('products.addModal.numerator')}
                                             </label>
                                             <input
                                                 type="number"
@@ -568,7 +570,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
 
                                         <div className="flex-shrink-0 w-20">
                                             <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                Denominator
+                                                {t('products.addModal.denominator')}
                                             </label>
                                             <input
                                                 type="number"
@@ -587,14 +589,14 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                     </div>
 
                     {/* Form Actions */}
-                    <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-700">
+                    <div className={`flex items-center ${isRTL ? 'justify-start space-x-reverse' : 'justify-end'} space-x-4 pt-6 border-t border-gray-700`}>
                         <button
                             type="button"
                             onClick={onClose}
                             className="px-6 py-3 bg-gray-800/50 hover:bg-gray-800 text-gray-300 rounded-xl font-medium transition-all duration-200 border border-gray-700/50 hover:border-gray-600"
                             disabled={loading}
                         >
-                            Cancel
+                            {t('common.cancel')}
                         </button>
                         <button
                             type="submit"
@@ -604,12 +606,12 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded }) => {
                             {loading ? (
                                 <>
                                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div>
-                                    <span>Creating...</span>
+                                    <span>{t('products.addModal.creating')}...</span>
                                 </>
                             ) : (
                                 <>
                                     <Plus size={16} />
-                                    <span>Create Product</span>
+                                    <span>{t('products.addModal.createProduct')}</span>
                                 </>
                             )}
                         </button>

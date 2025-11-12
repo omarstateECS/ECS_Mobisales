@@ -140,10 +140,10 @@ const LoadOrdersView = () => {
           </div>
           <div>
             <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              Load Orders
+              أوامر التحميل
             </h1>
             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              View load orders by salesman and journey
+              عرض أوامر التحميل حسب المندوب والرحلة
             </p>
           </div>
         </div>
@@ -156,7 +156,7 @@ const LoadOrdersView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Users className="w-4 h-4 inline mr-2" />
-              Salesman
+              المندوب
             </label>
             <select
               value={selectedSalesman}
@@ -170,7 +170,7 @@ const LoadOrdersView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">All Salesmen</option>
+              <option value="">جميع المندوبين</option>
               {filteredSalesmen.map(salesman => (
                 <option key={salesman.salesId} value={salesman.salesId}>
                   {salesman.name} (ID: {salesman.salesId})
@@ -183,7 +183,7 @@ const LoadOrdersView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <MapPin className="w-4 h-4 inline mr-2" />
-              Journey
+              الرحلة
             </label>
             <select
               value={selectedJourney}
@@ -195,10 +195,10 @@ const LoadOrdersView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50`}
             >
-              <option value="">All Journeys</option>
+              <option value="">جميع الرحلات</option>
               {journeys.map(journey => (
                 <option key={journey.journeyId} value={journey.journeyId}>
-                  Journey #{journey.journeyId} - {new Date(journey.createdAt).toLocaleDateString()}
+                  رحلة رقم #{journey.journeyId} - {new Date(journey.createdAt).toLocaleDateString()}
                 </option>
               ))}
             </select>
@@ -210,16 +210,16 @@ const LoadOrdersView = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Loading...</p>
+          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>جاري التحميل...</p>
         </div>
       ) : loadOrders.length === 0 ? (
         <div className={`text-center py-12 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
           <ShoppingCart className={`w-16 h-16 mx-auto mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
           <p className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            No load orders found
+            لم يتم العثور على أوامر تحميل
           </p>
           <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            {selectedSalesman ? 'Try selecting a different salesman or journey' : 'No load orders have been created yet'}
+            {selectedSalesman ? 'جرب اختيار مندوب أو رحلة مختلفة' : 'لم يتم إنشاء أي أوامر تحميل بعد'}
           </p>
         </div>
       ) : (
@@ -242,7 +242,7 @@ const LoadOrdersView = () => {
                       <MapPin className="w-5 h-5 text-blue-500" />
                       <div>
                         <h3 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          Journey #{group.journeyId}
+                          رحلة رقم #{group.journeyId}
                         </h3>
                         <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                           {salesman?.name || `Salesman #${group.salesId}`}
@@ -252,7 +252,7 @@ const LoadOrdersView = () => {
                     <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                       theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700'
                     }`}>
-                      {Object.keys(group.orders).length} {Object.keys(group.orders).length === 1 ? 'order' : 'orders'}
+                      {Object.keys(group.orders).length} {Object.keys(group.orders).length === 1 ? 'أمر' : 'أوامر'}
                     </div>
                   </div>
                 </div>
@@ -265,17 +265,17 @@ const LoadOrdersView = () => {
                         <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
                           theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                         }`}>
-                          Order ID
+                          رقم الأمر
                         </th>
                         <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
                           theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                         }`}>
-                          Items
+                          العناصر
                         </th>
                         <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
                           theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                         }`}>
-                          Created At
+                          تاريخ الإنشاء
                         </th>
                       </tr>
                     </thead>
@@ -306,7 +306,7 @@ const LoadOrdersView = () => {
                                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                                   theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700'
                                 }`}>
-                                  {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+                                  {order.items.length} {order.items.length === 1 ? 'عنصر' : 'عناصر'}
                                 </span>
                               </td>
                               <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -328,17 +328,17 @@ const LoadOrdersView = () => {
                                           <th className={`px-4 py-2 text-left text-xs font-medium ${
                                             theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                                           }`}>
-                                            Product
+                                            المنتج
                                           </th>
                                           <th className={`px-4 py-2 text-left text-xs font-medium ${
                                             theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                                           }`}>
-                                            Category
+                                            الفئة
                                           </th>
                                           <th className={`px-4 py-2 text-right text-xs font-medium ${
                                             theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                                           }`}>
-                                            Quantity
+                                            الكمية
                                           </th>
                                         </tr>
                                       </thead>

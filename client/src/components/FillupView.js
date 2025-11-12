@@ -189,10 +189,10 @@ const FillupView = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-          Create Fillup
+          إنشاء تحميل
         </h1>
         <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-          Assign products to a salesman's journey
+          تخصيص المنتجات لرحلة مندوب المبيعات
         </p>
       </div>
 
@@ -211,7 +211,7 @@ const FillupView = () => {
               theme === 'dark' ? 'text-white' : 'text-gray-900'
             }`}>
               <Users size={24} />
-              Select Salesman
+              اختيار المندوب
             </h2>
 
             {/* Search Bar */}
@@ -221,7 +221,7 @@ const FillupView = () => {
               }`} size={20} />
               <input
                 type="text"
-                placeholder="Search salesmen..."
+                placeholder="البحث عن المندوبين..."
                 value={salesmanSearchTerm}
                 onChange={(e) => setSalesmanSearchTerm(e.target.value)}
                 className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-colors ${
@@ -268,7 +268,7 @@ const FillupView = () => {
 
             {filteredSalesmen.length === 0 && (
               <p className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                No salesmen found
+                لم يتم العثور على مندوبين
               </p>
             )}
           </motion.div>
@@ -286,7 +286,7 @@ const FillupView = () => {
                 theme === 'dark' ? 'text-white' : 'text-gray-900'
               }`}>
                 <Package size={24} />
-                Add Products
+                إضافة المنتجات
               </h2>
 
               {/* Search and Category Filter */}
@@ -294,7 +294,7 @@ const FillupView = () => {
                 {/* Search */}
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Search
+                    البحث
                   </label>
                   <div className="relative">
                     <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${
@@ -302,7 +302,7 @@ const FillupView = () => {
                     }`} size={20} />
                     <input
                       type="text"
-                      placeholder="Search products..."
+                      placeholder="البحث عن المنتجات..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-colors ${
@@ -317,7 +317,7 @@ const FillupView = () => {
                 {/* Category Filter */}
                 <div className="category-dropdown-container">
                   <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Category {selectedCategories.length > 0 && <span className="text-blue-400">({selectedCategories.length})</span>}
+                    الفئة {selectedCategories.length > 0 && <span className="text-blue-400">({selectedCategories.length})</span>}
                   </label>
                   <div className="relative">
                     <Tag className={`absolute left-3 top-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
@@ -346,7 +346,7 @@ const FillupView = () => {
                           ))
                         ) : (
                           <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}>
-                            Select categories...
+                            اختر الفئات...
                           </span>
                         )}
                       </div>
@@ -375,7 +375,7 @@ const FillupView = () => {
                                 : 'text-green-600 hover:bg-gray-50 border-gray-200'
                             }`}
                           >
-                            Select All
+                            اختيار الكل
                           </button>
                           <button
                             onClick={() => setSelectedCategories([])}
@@ -385,7 +385,7 @@ const FillupView = () => {
                                 : 'text-red-600 hover:bg-gray-50'
                             }`}
                           >
-                            Clear All
+                            مسح الكل
                           </button>
                         </div>
                         
@@ -466,7 +466,7 @@ const FillupView = () => {
                       : 'bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200'
                   }`}
                 >
-                  Select All Products ({filteredProducts.length})
+                  اختيار جميع المنتجات ({filteredProducts.length})
                 </button>
               )}
 
@@ -511,7 +511,7 @@ const FillupView = () => {
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                Selected Products ({selectedProducts.length})
+                المنتجات المحددة ({selectedProducts.length})
               </h2>
               {selectedProducts.length > 0 && (
                 <button
@@ -525,14 +525,14 @@ const FillupView = () => {
                       : 'bg-red-100 text-red-700 border border-red-300 hover:bg-red-200'
                   }`}
                 >
-                  Remove All
+                  إزالة الكل
                 </button>
               )}
             </div>
 
             {selectedProducts.length === 0 ? (
               <p className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                No products selected
+                لم يتم اختيار منتجات
               </p>
             ) : (
               <div className="space-y-3 mb-6 max-h-96 overflow-y-auto">
@@ -549,7 +549,7 @@ const FillupView = () => {
                           {product.name}
                         </p>
                         <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                          Available: {product.maxStock}
+                          متاح: {product.maxStock}
                         </p>
                       </div>
                       <button
@@ -626,12 +626,12 @@ const FillupView = () => {
               {saving ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
-                  <span>Creating...</span>
+                  <span>جاري الإنشاء...</span>
                 </>
               ) : (
                 <>
                   <Save size={20} />
-                  <span>Create Fillup</span>
+                  <span>إنشاء التحميل</span>
                 </>
               )}
             </button>

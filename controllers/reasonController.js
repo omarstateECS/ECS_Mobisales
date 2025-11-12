@@ -1,36 +1,76 @@
 const reasonService = require('../services/reasonService');
 
 class ReasonController {
-    async getAll(req, res) {
+    async getAllReturnReasons(req, res) {
         try {
-            const reasons = await reasonService.getAllReasons();
+            const reasons = await reasonService.getAllReturnReasons();
             res.status(200).json(reasons);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async create(req, res) {
+    async createReturnReason(req, res) {
         try {
-            const reason = await reasonService.createReason(req.body);
+            const reason = await reasonService.createReturnReason(req.body);
             res.status(201).json(reason);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async update(req, res) {
+    async updateReturnReason(req, res) {
         try {
-            const reason = await reasonService.updateReason(req.params.id, req.body);
+            const reason = await reasonService.updateReturnReason(req.params.id, req.body);
             res.status(200).json(reason);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    async delete(req, res) {
+    async deleteReturnReason(req, res) {
         try {
-            await reasonService.deleteReason(req.params.id);
+            await reasonService.deleteReturnReason(req.params.id);
+            res.status(200).json({ message: 'Reason deleted successfully' });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+
+    // Cancel Reasons ----------------------------------------------------------------------------------------------------------
+
+
+    async getAllCancelReasons(req, res) {
+        try {
+            const reasons = await reasonService.getAllCancelReasons();
+            res.status(200).json(reasons);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    async createCancelReason(req, res) {
+        try {
+            const reason = await reasonService.createCancelReason(req.body);
+            res.status(201).json(reason);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    async updateCancelReason(req, res) {
+        try {
+            const reason = await reasonService.updateCancelReason(req.params.id, req.body);
+            res.status(200).json(reason);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    async deleteCancelReason(req, res) {
+        try {
+            await reasonService.deleteCancelReason(req.params.id);
             res.status(200).json({ message: 'Reason deleted successfully' });
         } catch (error) {
             res.status(500).json({ error: error.message });

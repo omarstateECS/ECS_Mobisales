@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { User, Phone, MapPin, Smartphone, Edit, Eye, Trash2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const SalesmanCard = ({ 
   salesman, 
@@ -11,6 +12,7 @@ const SalesmanCard = ({
   isDeleting 
 }) => {
   const { theme } = useTheme();
+  const { t } = useLocalization();
   const getStatusColor = (status) => {
     switch (status) {
       case 'ACTIVE':
@@ -56,7 +58,9 @@ const SalesmanCard = ({
           <div className={`w-1.5 h-1.5 rounded-full ${
             salesman.status === 'ACTIVE' ? 'bg-green-400' : salesman.status === 'INACTIVE' ? 'bg-yellow-400' : 'bg-red-400'
           } animate-pulse`}></div>
-          {salesman.status}
+          {salesman.status === 'ACTIVE' ? t('salesmen.active') : 
+           salesman.status === 'INACTIVE' ? t('salesmen.inactive') : 
+           salesman.status === 'BLOCKED' ? t('salesmen.blocked') : salesman.status}
         </div>
       </div>
 
@@ -74,7 +78,7 @@ const SalesmanCard = ({
               {salesman.name}
             </h3>
             <p className={`text-xs font-medium truncate ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-              ID: #{salesman.salesId}
+              {t('salesmen.idLabel')}: #{salesman.salesId}
             </p>
           </div>
         </div>
@@ -87,7 +91,7 @@ const SalesmanCard = ({
             }`}>
               <Phone size={14} className="text-green-400" />
             </div>
-            <span className="text-sm font-medium">{salesman.phone || 'No phone'}</span>
+            <span className="text-sm font-medium">{salesman.phone || t('salesmen.noPhone')}</span>
           </div>
           
           <div className={`flex items-center gap-2.5 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -97,7 +101,7 @@ const SalesmanCard = ({
               <MapPin size={14} className="text-purple-400" />
             </div>
             <span className={`text-sm line-clamp-1 ${!salesman.address && 'text-gray-500 italic'}`}>
-              {salesman.address || 'No address'}
+              {salesman.address || t('salesmen.noAddress')}
             </span>
           </div>
 
@@ -108,7 +112,7 @@ const SalesmanCard = ({
               <Smartphone size={18} className="text-blue-400" />
             </div>
             <span className={`text-sm font-mono truncate ${!salesman.deviceId && 'text-gray-500'}`}>
-              {salesman.deviceId || 'No device Registered'}
+              {salesman.deviceId || t('salesmen.noDevice')}
             </span>
           </div>
         </div>
@@ -123,7 +127,7 @@ const SalesmanCard = ({
                 : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
             }`}
           >
-            View Details
+            {t('salesmen.viewDetails')}
           </button>
           
           <button
@@ -133,7 +137,7 @@ const SalesmanCard = ({
                 ? 'bg-gray-700/50 hover:bg-blue-500/20 text-gray-400 hover:text-blue-400 border border-gray-600/50 hover:border-blue-500/40'
                 : 'bg-gray-100 hover:bg-blue-50 text-gray-600 hover:text-blue-600 border border-gray-200'
             }`}
-            title="Edit"
+            title={t('salesmen.edit')}
           >
             <Edit size={16} />
           </button>
@@ -146,7 +150,7 @@ const SalesmanCard = ({
                 ? 'bg-gray-700/50 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border border-gray-600/50 hover:border-red-500/40'
                 : 'bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 border border-gray-200'
             }`}
-            title="Delete"
+            title={t('salesmen.delete')}
           >
             {isDeleting ? (
               <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin"></div>

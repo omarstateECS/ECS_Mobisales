@@ -1,7 +1,9 @@
 import React from 'react';
 import { User, Eye, Edit, Trash2, Shield } from 'lucide-react';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const SalesmanList = ({ salesmen, handleViewDetails, handleEditSalesman, handleDeleteSalesman, deletingSalesmanId }) => {
+  const { t } = useLocalization();
   const getStatusColor = (status) => {
     switch (status) {
       case 'ACTIVE':
@@ -28,14 +30,14 @@ const SalesmanList = ({ salesmen, handleViewDetails, handleEditSalesman, handleD
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-700/50">
-            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">Salesman</th>
-            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">ID</th>
-            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">Phone</th>
-            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">Status</th>
-            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">Available</th>
-            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">Authorities</th>
-            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">Joined</th>
-            <th className="text-right px-6 py-4 text-sm font-semibold text-gray-300">Actions</th>
+            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">{t('salesmen.salesman')}</th>
+            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">{t('salesmen.id')}</th>
+            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">{t('salesmen.phone')}</th>
+            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">{t('salesmen.statusLabel')}</th>
+            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">{t('salesmen.available')}</th>
+            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">{t('salesmen.authoritiesLabel')}</th>
+            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-300">{t('salesmen.joined')}</th>
+            <th className="text-right px-6 py-4 text-sm font-semibold text-gray-300">{t('salesmen.actions')}</th>
           </tr>
         </thead>
         <tbody>
@@ -65,14 +67,16 @@ const SalesmanList = ({ salesmen, handleViewDetails, handleEditSalesman, handleD
               </td>
               <td className="px-6 py-4">
                 <span className={`inline-block text-xs px-3 py-1 rounded-full ${getStatusColor(salesman.status)}`}>
-                  {salesman.status}
+                  {salesman.status === 'ACTIVE' ? t('salesmen.active') : 
+                   salesman.status === 'INACTIVE' ? t('salesmen.inactive') : 
+                   salesman.status === 'BLOCKED' ? t('salesmen.blocked') : salesman.status}
                 </span>
               </td>
               <td className="px-6 py-4">
                 <div className="flex items-center space-x-2">
                   <div className={`w-2 h-2 rounded-full ${salesman.available ? 'bg-emerald-500' : 'bg-gray-500'}`}></div>
                   <span className={`text-sm ${salesman.available ? 'text-emerald-400' : 'text-gray-400'}`}>
-                    {salesman.available ? 'Available' : 'Busy'}
+                    {salesman.available ? t('salesmen.available') : t('salesmen.busy')}
                   </span>
                 </div>
               </td>
