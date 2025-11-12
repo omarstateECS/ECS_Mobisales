@@ -525,7 +525,7 @@ const AuthoritiesView = () => {
                   </div>
                   <div className="text-right">
                     <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      الصلاحيات
+                      {t('authorities.authoritiesLabel')}
                     </p>
                     <p className="text-2xl font-bold text-blue-500">
                       {salesmanAuthorities.length}
@@ -550,7 +550,7 @@ const AuthoritiesView = () => {
                     ))
                   ) : (
                     <span className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
-                      لم يتم تعيين صلاحيات
+                      No authorities assigned
                     </span>
                   )}
                 </div>
@@ -572,7 +572,7 @@ const AuthoritiesView = () => {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                إضافة صلاحية جديدة
+                {t('authorities.addModal.title')}
               </h2>
               <button
                 onClick={() => setShowAddModal(false)}
@@ -591,13 +591,13 @@ const AuthoritiesView = () => {
                 <label className={`block text-sm font-medium mb-2 ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  اسم الصلاحية *
+                  {t('authorities.addModal.nameLabel')} *
                 </label>
                 <input
                   type="text"
                   value={newAuthority.name}
                   onChange={(e) => setNewAuthority(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="مثال: يمكن تعديل الأسعار"
+                  placeholder={t('authorities.addModal.namePlaceholder')}
                   className={`w-full px-4 py-3 rounded-xl border transition-colors ${
                     theme === 'dark'
                       ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500'
@@ -610,7 +610,7 @@ const AuthoritiesView = () => {
                 <label className={`block text-sm font-medium mb-2 ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  نوع الصلاحية *
+                  {t('authorities.addModal.typeLabel')} *
                 </label>
                 <select
                   value={newAuthority.type}
@@ -621,8 +621,8 @@ const AuthoritiesView = () => {
                       : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
                   } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
                 >
-                  <option value="MOBILE">محمول</option>
-                  <option value="WEB">ويب</option>
+                  <option value="MOBILE">{t('authorities.addModal.typeMobile')}</option>
+                  <option value="WEB">{t('authorities.addModal.typeWeb')}</option>
                 </select>
               </div>
             </div>
@@ -646,12 +646,12 @@ const AuthoritiesView = () => {
                 {saving ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
-                    <span>جاري الإضافة...</span>
+                    <span>{t('authorities.addModal.adding')}</span>
                   </>
                 ) : (
                   <>
                     <Plus size={20} />
-                    <span>إضافة صلاحية</span>
+                    <span>{t('authorities.addAuthority')}</span>
                   </>
                 )}
               </button>
@@ -672,7 +672,7 @@ const AuthoritiesView = () => {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                حذف الصلاحية
+                {t('authorities.deleteReason')}
               </h2>
               <button
                 onClick={() => {
@@ -704,12 +704,12 @@ const AuthoritiesView = () => {
                 </div>
               </div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                هل أنت متأكد من حذف هذه الصلاحية؟ لا يمكن التراجع عن هذا الإجراء.
+                {t('authorities.deleteConfirm', { name: authorityToDelete.name })}
               </p>
               {getAuthorityStats(authorityToDelete.authorityId) > 0 && (
                 <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                   <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                    ⚠️ هذه الصلاحية معينة لـ {getAuthorityStats(authorityToDelete.authorityId)} مندوب.
+                    ⚠️ This authority is assigned to {getAuthorityStats(authorityToDelete.authorityId)} salesman{getAuthorityStats(authorityToDelete.authorityId) !== 1 ? 's' : ''}.
                   </p>
                 </div>
               )}
@@ -734,7 +734,7 @@ const AuthoritiesView = () => {
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
               >
                 <Trash2 size={20} />
-                <span>حذف</span>
+                <span>{t('authorities.deleteReason')}</span>
               </button>
             </div>
           </motion.div>

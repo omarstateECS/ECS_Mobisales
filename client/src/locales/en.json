@@ -656,6 +656,7 @@
     "salesmen": "salesmen",
     "active": "Active",
     "inactive": "Inactive",
+    "authoritiesLabel": "Authorities",
     "addModal": {
       "title": "Add New Authority",
       "nameLabel": "Authority Name",

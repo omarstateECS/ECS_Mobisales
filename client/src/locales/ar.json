@@ -687,6 +687,7 @@
     "salesmen": "مندوب",
     "active": "نشط",
     "inactive": "غير نشط",
+    "authoritiesLabel": "الصلاحيات",
     "addModal": {
       "title": "إضافة صلاحية جديدة",
       "nameLabel": "اسم الصلاحية",
