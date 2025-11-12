@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FileText, Search, Filter, Calendar, DollarSign, User, Package, ChevronRight, Eye } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotification } from '../hooks/useNotification';
+import { useLocalization } from '../contexts/LocalizationContext';
 import InvoiceDetailsPage from './InvoiceDetailsPage';
 import axios from 'axios';
 
@@ -23,6 +24,7 @@ const getDefaultDateRange = () => {
 const InvoicesView = () => {
   const { theme } = useTheme();
   const { showError } = useNotification();
+  const { t } = useLocalization();
   
   const [invoices, setInvoices] = useState([]);
   const [salesmen, setSalesmen] = useState([]);
@@ -58,7 +60,7 @@ const InvoicesView = () => {
       setCustomers(Array.isArray(customersRes.data) ? customersRes.data : []);
     } catch (error) {
       console.error('Error fetching initial data:', error);
-      showError('Failed to load filters data');
+      showError(t('invoices.failedToLoad'));
     }
   };
 
@@ -79,7 +81,7 @@ const InvoicesView = () => {
       setInvoices(Array.isArray(invoicesData) ? invoicesData : []);
     } catch (error) {
       console.error('Error fetching invoices:', error);
-      showError('Failed to load invoices');
+      showError(t('invoices.failedToLoad'));
       setInvoices([]);
     } finally {
       setLoading(false);
@@ -161,10 +163,10 @@ const InvoicesView = () => {
         <div>
           <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
             <FileText className="inline-block mr-3 mb-1" size={32} />
-            الفواتير
+            {t('invoices.title')}
           </h1>
           <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            عرض وإدارة جميع الفواتير
+            {t('invoices.subtitle')}
           </p>
         </div>
       </div>
@@ -176,7 +178,7 @@ const InvoicesView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Search className="w-4 h-4 inline mr-2" />
-              البحث
+              {t('common.search')}
             </label>
             <div className="relative">
               <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
@@ -184,7 +186,7 @@ const InvoicesView = () => {
               }`} size={20} />
               <input
                 type="text"
-                placeholder="البحث في الفواتير..."
+                placeholder={t('invoices.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
@@ -200,7 +202,7 @@ const InvoicesView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <User className="w-4 h-4 inline mr-2" />
-              المندوب
+              {t('invoices.salesman')}
             </label>
             <select
               value={selectedSalesman}
@@ -211,7 +213,7 @@ const InvoicesView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">جميع المندوبين</option>
+              <option value="">{t('invoices.allSalesmen')}</option>
               {salesmen.map(salesman => (
                 <option key={salesman.salesId} value={salesman.salesId}>
                   {salesman.name}
@@ -224,7 +226,7 @@ const InvoicesView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Package className="w-4 h-4 inline mr-2" />
-              العميل
+              {t('invoices.customer')}
             </label>
             <select
               value={selectedCustomer}
@@ -235,7 +237,7 @@ const InvoicesView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">جميع العملاء</option>
+              <option value="">{t('invoices.allCustomers')}</option>
               {customers.map(customer => (
                 <option key={customer.customerId} value={customer.customerId}>
                   {customer.name}
@@ -248,7 +250,7 @@ const InvoicesView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Filter className="w-4 h-4 inline mr-2" />
-              النوع
+              {t('invoices.type')}
             </label>
             <select
               value={selectedType}
@@ -259,10 +261,9 @@ const InvoicesView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">جميع الأنواع</option>
-              <option value="SALE">بيع</option>
-              <option value="RETURN">مرتجع</option>
-              <option value="EXCHANGE">تبادل</option>
+              <option value="">{t('invoices.allTypes')}</option>
+              <option value="SALE">{t('invoices.sales')}</option>
+              <option value="RETURN">{t('invoices.returns')}</option>
             </select>
           </div>
         </div>
@@ -272,7 +273,7 @@ const InvoicesView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <DollarSign className="w-4 h-4 inline mr-2" />
-              طريقة الدفع
+              {t('invoices.paymentMethod')}
             </label>
             <select
               value={selectedPaymentMethod}
@@ -283,10 +284,9 @@ const InvoicesView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">جميع الطرق</option>
-              <option value="CASH">نقدي</option>
-              <option value="CARD">بطاقة</option>
-              <option value="CREDIT">آجل</option>
+              <option value="">{t('invoices.allPaymentMethods')}</option>
+              <option value="CASH">{t('invoices.cash')}</option>
+              <option value="CREDIT">{t('invoices.credit')}</option>
             </select>
           </div>
 
@@ -294,7 +294,7 @@ const InvoicesView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Calendar className="w-4 h-4 inline mr-2" />
-              من تاريخ
+              {t('invoices.dateFrom')}
             </label>
             <input
               type="date"
@@ -312,7 +312,7 @@ const InvoicesView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Calendar className="w-4 h-4 inline mr-2" />
-              إلى تاريخ
+              {t('invoices.dateTo')}
             </label>
             <input
               type="date"
@@ -332,16 +332,13 @@ const InvoicesView = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>جاري التحميل...</p>
+          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('invoices.loadingInvoices')}</p>
         </div>
       ) : filteredInvoices.length === 0 ? (
         <div className={`text-center py-12 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
           <FileText className={`w-16 h-16 mx-auto mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
           <p className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            لم يتم العثور على فواتير
-          </p>
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            جرب تعديل المرشحات
+            {t('invoices.noInvoices')}
           </p>
         </div>
       ) : (
@@ -368,7 +365,7 @@ const InvoicesView = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 flex-wrap">
                           <h3 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                            فاتورة رقم #{invoice.invId}
+                            {t('invoices.invoiceId')} #{invoice.invId}
                           </h3>
                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${getInvoiceTypeColor(invoice.invType)}`}>
                             {invoice.invType}
@@ -400,7 +397,7 @@ const InvoicesView = () => {
                           {formatCurrency(invoice.totalAmt)}
                         </p>
                         <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                          صافي: {formatCurrency(invoice.netAmt)}
+                          {t('common.total')}: {formatCurrency(invoice.netAmt)}
                         </p>
                       </div>
                       <ChevronRight className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />

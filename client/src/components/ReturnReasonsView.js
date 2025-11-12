@@ -8,11 +8,12 @@ import NotificationModal from './common/NotificationModal';
 import { useNotification } from '../hooks/useNotification';
 import ReturnReasonsList from './ReturnReasonsList';
 import AddReturnReasonModal from './AddReturnReasonModal';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 // Set axios base URL
 axios.defaults.baseURL = 'http://localhost:3000';
 
-const ReasonCard = ({ reason, handleEditReason, handleDeleteReason, deletingReasonId }) => {
+const ReasonCard = ({ reason, handleEditReason, handleDeleteReason, deletingReasonId, t }) => {
   const { theme } = useTheme();
 
   return (
@@ -79,23 +80,23 @@ const ReasonCard = ({ reason, handleEditReason, handleDeleteReason, deletingReas
             {reason.sellable ? (
               <>
                 <CheckCircle size={16} className="text-emerald-400" />
-                <span className="text-xs font-medium text-emerald-400">قابل للبيع</span>
+                <span className="text-xs font-medium text-emerald-400">{t('cancelReasons.sellable')}</span>
               </>
             ) : (
               <>
                 <XCircle size={16} className="text-red-400" />
-                <span className="text-xs font-medium text-red-400">غير قابل للبيع</span>
+                <span className="text-xs font-medium text-red-400">{t('cancelReasons.nonSellable')}</span>
               </>
             )}
           </div>
           <div className="flex items-center space-x-2">
             {reason.isHeader ? (
               <span className="inline-block text-xs px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full">
-                Header
+                {t('cancelReasons.header')}
               </span>
             ) : (
               <span className="inline-block text-xs px-3 py-1 bg-gray-500/20 text-gray-400 rounded-full">
-                Item
+                {t('cancelReasons.regular')}
               </span>
             )}
           </div>
@@ -125,6 +126,7 @@ const ReturnReasonsView = () => {
   });
 
   const { notification, showSuccess, showError, showDelete, hideNotification } = useNotification();
+  const { t } = useLocalization();
 
   useEffect(() => {
     fetchReasons();
@@ -158,8 +160,8 @@ const ReturnReasonsView = () => {
   const handleDeleteReason = (reasonId, description) => {
     setConfirmationModal({
       isOpen: true,
-      title: 'Delete Return Reason',
-      message: `Are you sure you want to delete "${description}"? This action cannot be undone.`,
+      title: t('returnReasons.deleteReason'),
+      message: t('returnReasons.deleteConfirm', { name: description }),
       onConfirm: () => confirmDeleteReason(reasonId),
       loading: false,
       confirmText: 'Delete',
@@ -205,10 +207,10 @@ const ReturnReasonsView = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-            أسباب الإرجاع
+            {t('returnReasons.title')}
           </h1>
           <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            إدارة أسباب إرجاع الفواتير والعناصر
+            {t('returnReasons.subtitle')}
           </p>
         </div>
         <button 
@@ -216,7 +218,7 @@ const ReturnReasonsView = () => {
           className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
         >
           <Plus size={20} />
-          <span>إضافة سبب إرجاع</span>
+          <span>{t('returnReasons.addReason')}</span>
         </button>
       </div>
 
@@ -241,7 +243,7 @@ const ReturnReasonsView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                إجمالي الأسباب
+                {t('returnReasons.totalReasons')}
               </p>
               <p className={`text-3xl font-bold mt-2 transition-colors ${
                 selectedFilter === 'all'
@@ -274,7 +276,7 @@ const ReturnReasonsView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Header
+                {t('cancelReasons.headers')}
               </p>
               <p className={`text-3xl font-bold mt-2 transition-colors ${
                 selectedFilter === 'headers'
@@ -307,7 +309,7 @@ const ReturnReasonsView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Item
+                {t('cancelReasons.items')}
               </p>
               <p className={`text-3xl font-bold mt-2 transition-colors ${
                 selectedFilter === 'items'
@@ -334,7 +336,7 @@ const ReturnReasonsView = () => {
             }`} size={20} />
             <input
               type="text"
-              placeholder="البحث في أسباب الإرجاع..."
+              placeholder={t('returnReasons.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-colors ${
@@ -389,7 +391,7 @@ const ReturnReasonsView = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-            جاري تحميل أسباب الإرجاع...
+            {t('returnReasons.loading')}
           </div>
         </div>
       ) : filteredReasons.length === 0 ? (
@@ -404,10 +406,10 @@ const ReturnReasonsView = () => {
           <h3 className={`text-xl font-semibold mb-2 ${
             theme === 'dark' ? 'text-white' : 'text-gray-900'
           }`}>
-            لم يتم العثور على أسباب إرجاع
+            {t('returnReasons.noReasons')}
           </h3>
           <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-            {searchTerm ? 'جرب تعديل بحثك.' : 'ابدأ بإضافة أول سبب إرجاع.'}
+            {searchTerm ? 'Try adjusting your search terms.' : 'Get started by adding your first return reason.'}
           </p>
         </div>
       ) : viewMode === 'list' ? (
@@ -427,6 +429,7 @@ const ReturnReasonsView = () => {
               handleEditReason={handleEditReason}
               handleDeleteReason={handleDeleteReason}
               deletingReasonId={deletingReasonId}
+              t={t}
             />
           ))}
         </div>
@@ -442,7 +445,7 @@ const ReturnReasonsView = () => {
         loading={confirmationModal.loading}
         type={confirmationModal.type}
         confirmText={confirmationModal.confirmText}
-        cancelText="إلغاء"
+        cancelText={t('common.cancel')}
       />
 
       {/* Notification Modal */}

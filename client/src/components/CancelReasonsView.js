@@ -8,11 +8,12 @@ import NotificationModal from './common/NotificationModal';
 import { useNotification } from '../hooks/useNotification';
 import CancelReasonsList from './CancelReasonsList';
 import AddCancelReasonModal from './AddCancelReasonModal';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 // Set axios base URL
 axios.defaults.baseURL = 'http://localhost:3000';
 
-const ReasonCard = ({ reason, handleEditReason, handleDeleteReason, deletingReasonId }) => {
+const ReasonCard = ({ reason, handleEditReason, handleDeleteReason, deletingReasonId, t }) => {
   const { theme } = useTheme();
 
   return (
@@ -106,6 +107,7 @@ const CancelReasonsView = () => {
   });
 
   const { notification, showSuccess, showError, showDelete, hideNotification } = useNotification();
+  const { t } = useLocalization();
 
   useEffect(() => {
     fetchReasons();
@@ -139,8 +141,8 @@ const CancelReasonsView = () => {
   const handleDeleteReason = (reasonId, description) => {
     setConfirmationModal({
       isOpen: true,
-      title: 'Delete Cancel Reason',
-      message: `Are you sure you want to delete "${description}"? This action cannot be undone.`,
+      title: t('cancelReasons.deleteReason'),
+      message: t('cancelReasons.deleteConfirm', { name: description }),
       onConfirm: () => confirmDeleteReason(reasonId),
       loading: false,
       confirmText: 'Delete',
@@ -183,10 +185,10 @@ const CancelReasonsView = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-            أسباب الإلغاء
+            {t('cancelReasons.title')}
           </h1>
           <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            إدارة أسباب إلغاء الزيارات
+            {t('cancelReasons.subtitle')}
           </p>
         </div>
         <button 
@@ -194,7 +196,7 @@ const CancelReasonsView = () => {
           className="px-6 py-3 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
         >
           <Plus size={20} />
-          <span>إضافة سبب إلغاء</span>
+          <span>{t('cancelReasons.addReason')}</span>
         </button>
       </div>
 
@@ -219,7 +221,7 @@ const CancelReasonsView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                إجمالي الأسباب
+                {t('cancelReasons.totalReasons')}
               </p>
               <p className={`text-3xl font-bold mt-2 transition-colors ${
                 selectedFilter === 'all'
@@ -259,7 +261,7 @@ const CancelReasonsView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                رؤوس
+                {t('cancelReasons.headers')}
               </p>
               <p className={`text-3xl font-bold mt-2 transition-colors ${
                 selectedFilter === 'headers'
@@ -299,7 +301,7 @@ const CancelReasonsView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                عناصر
+                {t('cancelReasons.items')}
               </p>
               <p className={`text-3xl font-bold mt-2 transition-colors ${
                 selectedFilter === 'items'
@@ -333,7 +335,7 @@ const CancelReasonsView = () => {
             }`} size={20} />
             <input
               type="text"
-              placeholder="البحث في أسباب الإلغاء..."
+              placeholder={t('cancelReasons.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-colors ${
@@ -388,7 +390,7 @@ const CancelReasonsView = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-            جاري تحميل أسباب الإلغاء...
+            {t('cancelReasons.loading')}
           </div>
         </div>
       ) : filteredReasons.length === 0 ? (
@@ -403,10 +405,10 @@ const CancelReasonsView = () => {
           <h3 className={`text-xl font-semibold mb-2 ${
             theme === 'dark' ? 'text-white' : 'text-gray-900'
           }`}>
-            لم يتم العثور على أسباب إلغاء
+            {t('cancelReasons.noReasons')}
           </h3>
           <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-            {searchTerm ? 'جرب تعديل بحثك.' : 'ابدأ بإضافة أول سبب إلغاء.'}
+            {searchTerm ? 'Try adjusting your search terms.' : 'Get started by adding your first cancel reason.'}
           </p>
         </div>
       ) : viewMode === 'list' ? (
@@ -426,6 +428,7 @@ const CancelReasonsView = () => {
               handleEditReason={handleEditReason}
               handleDeleteReason={handleDeleteReason}
               deletingReasonId={deletingReasonId}
+              t={t}
             />
           ))}
         </div>
@@ -441,7 +444,7 @@ const CancelReasonsView = () => {
         loading={confirmationModal.loading}
         type={confirmationModal.type}
         confirmText={confirmationModal.confirmText}
-        cancelText="إلغاء"
+        cancelText={t('common.cancel')}
       />
 
       {/* Notification Modal */}

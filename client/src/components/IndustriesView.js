@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, Plus, Trash2, Search, Users } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotification } from '../hooks/useNotification';
+import { useLocalization } from '../contexts/LocalizationContext';
 import axios from 'axios';
 
 axios.defaults.baseURL = 'http://localhost:3000';
@@ -10,6 +11,7 @@ axios.defaults.baseURL = 'http://localhost:3000';
 const IndustriesView = () => {
   const { theme } = useTheme();
   const { showSuccess, showError, showDelete } = useNotification();
+  const { t } = useLocalization();
   
   const [industries, setIndustries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +33,7 @@ const IndustriesView = () => {
       setIndustries(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching industries:', error);
-      showError('Failed to load industries');
+      showError(t('industries.addModal.addFailed'));
       setIndustries([]);
     } finally {
       setLoading(false);
@@ -42,7 +44,7 @@ const IndustriesView = () => {
     e.preventDefault();
     
     if (!newIndustryName.trim()) {
-      showError('Please enter an industry name');
+      showError(t('industries.addModal.enterName'));
       return;
     }
 
@@ -52,31 +54,31 @@ const IndustriesView = () => {
         name: newIndustryName.trim()
       });
       
-      showSuccess('Industry added successfully');
+      showSuccess(t('industries.addModal.addedSuccess'));
       setNewIndustryName('');
       setShowAddModal(false);
       fetchIndustries();
     } catch (error) {
       console.error('Error adding industry:', error);
-      showError(error.response?.data?.message || 'Failed to add industry');
+      showError(error.response?.data?.message || t('industries.addModal.addFailed'));
     } finally {
       setAddingIndustry(false);
     }
   };
 
   const handleDeleteIndustry = async (industryId, industryName) => {
-    if (!window.confirm(`Are you sure you want to delete "${industryName}"?`)) {
+    if (!window.confirm(t('industries.deleteConfirm', { name: industryName }))) {
       return;
     }
 
     try {
       setDeletingId(industryId);
       await axios.delete(`/api/industries/${industryId}`);
-      showDelete(`Industry "${industryName}" deleted successfully`);
+      showDelete(t('industries.deletedSuccess', { name: industryName }));
       fetchIndustries();
     } catch (error) {
       console.error('Error deleting industry:', error);
-      showError(error.response?.data?.message || 'Failed to delete industry');
+      showError(error.response?.data?.message || t('industries.deleteFailed'));
     } finally {
       setDeletingId(null);
     }
@@ -96,10 +98,10 @@ const IndustriesView = () => {
           </div>
           <div>
             <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              الصناعات
+              {t('industries.title')}
             </h1>
             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              إدارة صناعات العملاء
+              {t('industries.subtitle')}
             </p>
           </div>
         </div>
@@ -109,7 +111,7 @@ const IndustriesView = () => {
           className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
         >
           <Plus size={20} />
-          <span>إضافة صناعة</span>
+          <span>{t('industries.addIndustry')}</span>
         </button>
       </div>
 
@@ -119,7 +121,7 @@ const IndustriesView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                إجمالي الصناعات
+                {t('industries.totalIndustries')}
               </p>
               <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {industries.length}
@@ -135,7 +137,7 @@ const IndustriesView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                إجمالي العملاء
+                {t('industries.customersCount')}
               </p>
               <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {industries.reduce((sum, ind) => sum + (ind._count?.customers || 0), 0)}
@@ -151,7 +153,7 @@ const IndustriesView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                متوسط العملاء/الصناعة
+                {t('common.average')} {t('industries.customersCount')}/{t('industries.title')}
               </p>
               <p className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {industries.length > 0 
@@ -175,7 +177,7 @@ const IndustriesView = () => {
           }`} size={20} />
           <input
             type="text"
-            placeholder="البحث في الصناعات..."
+            placeholder={t('industries.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
@@ -191,16 +193,13 @@ const IndustriesView = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>جاري التحميل...</p>
+          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('industries.loading')}</p>
         </div>
       ) : filteredIndustries.length === 0 ? (
         <div className={`text-center py-12 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
           <Building2 className={`w-16 h-16 mx-auto mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
           <p className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            {searchTerm ? 'لم يتم العثور على صناعات' : 'لا توجد صناعات بعد'}
-          </p>
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            {searchTerm ? 'جرب مصطلح بحث مختلف' : 'انقر "إضافة صناعة" لإنشاء أول صناعة'}
+            {t('industries.noIndustries')}
           </p>
         </div>
       ) : (
@@ -212,17 +211,17 @@ const IndustriesView = () => {
                   <th className={`text-left px-6 py-4 text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                   }`}>
-                    اسم الصناعة
+                    {t('industries.industryName')}
                   </th>
                   <th className={`text-center px-6 py-4 text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                   }`}>
-                    العملاء
+                    {t('industries.customersCount')}
                   </th>
                   <th className={`text-right px-6 py-4 text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                   }`}>
-                    الإجراءات
+                    {t('common.actions')}
                   </th>
                 </tr>
               </thead>
@@ -299,10 +298,10 @@ const IndustriesView = () => {
                   </div>
                   <div>
                     <h2 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                      إضافة صناعة جديدة
+                      {t('industries.addModal.title')}
                     </h2>
                     <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      إنشاء فئة صناعة جديدة
+                      {t('industries.subtitle')}
                     </p>
                   </div>
                 </div>
@@ -312,13 +311,13 @@ const IndustriesView = () => {
                     <label className={`block text-sm font-medium mb-2 ${
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                     }`}>
-                      اسم الصناعة
+                      {t('industries.addModal.industryLabel')}
                     </label>
                     <input
                       type="text"
                       value={newIndustryName}
                       onChange={(e) => setNewIndustryName(e.target.value)}
-                      placeholder="مثال: تجارة تجزئة، تصنيع، رعاية صحية"
+                      placeholder={t('industries.addModal.industryPlaceholder')}
                       className={`w-full px-4 py-2 rounded-lg border ${
                         theme === 'dark'
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
@@ -341,7 +340,7 @@ const IndustriesView = () => {
                           : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                       } transition-colors`}
                     >
-                      إلغاء
+                      {t('common.cancel')}
                     </button>
                     <button
                       type="submit"
@@ -351,12 +350,12 @@ const IndustriesView = () => {
                       {addingIndustry ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          جاري الإضافة...
+                          {t('industries.addModal.adding')}
                         </>
                       ) : (
                         <>
                           <Plus size={18} />
-                          إضافة صناعة
+                          {t('industries.addIndustry')}
                         </>
                       )}
                     </button>

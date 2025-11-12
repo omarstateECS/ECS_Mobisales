@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, AlertCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const AddCancelReasonModal = ({ isOpen, onClose, onAdd }) => {
   const { theme } = useTheme();
+  const { t } = useLocalization();
   const [formData, setFormData] = useState({
     description: ''
   });
@@ -74,7 +76,7 @@ const AddCancelReasonModal = ({ isOpen, onClose, onAdd }) => {
             <h2 className={`text-2xl font-bold ${
               theme === 'dark' ? 'text-white' : 'text-gray-900'
             }`}>
-              إضافة سبب إلغاء
+              {t('cancelReasons.addModal.title')}
             </h2>
             <button
               onClick={handleClose}
@@ -95,7 +97,7 @@ const AddCancelReasonModal = ({ isOpen, onClose, onAdd }) => {
               <label className={`block text-sm font-medium mb-2 ${
                 theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
               }`}>
-                الوصف <span className="text-red-500">*</span>
+                {t('cancelReasons.addModal.nameLabel')} <span className="text-red-500">*</span>
               </label>
               <textarea
                 value={formData.description}
@@ -105,7 +107,7 @@ const AddCancelReasonModal = ({ isOpen, onClose, onAdd }) => {
                     setErrors({ ...errors, description: '' });
                   }
                 }}
-                placeholder="أدخل وصف سبب الإلغاء"
+                placeholder={t('cancelReasons.addModal.namePlaceholder')}
                 rows={4}
                 className={`w-full px-4 py-3 rounded-xl border transition-colors ${
                   errors.description
@@ -135,7 +137,7 @@ const AddCancelReasonModal = ({ isOpen, onClose, onAdd }) => {
               <p className={`text-sm ${
                 theme === 'dark' ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                تُستخدم أسباب الإلغاء عندما يتم إلغاء الزيارات. وهي تساعد في تتبع سبب عدم زيارة العملاء.
+                Cancel reasons are used when visits are cancelled. They help track why customers were not visited.
               </p>
             </div>
 
@@ -150,13 +152,13 @@ const AddCancelReasonModal = ({ isOpen, onClose, onAdd }) => {
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                إلغاء
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-slate-500 to-slate-600 text-white rounded-xl font-medium hover:from-slate-600 hover:to-slate-700 transition-all shadow-lg hover:shadow-xl"
               >
-                إضافة سبب
+                {t('cancelReasons.addModal.title')}
               </button>
             </div>
           </form>

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ShoppingCart, Users, MapPin, Package, Calendar, Hash, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotification } from '../hooks/useNotification';
+import { useLocalization } from '../contexts/LocalizationContext';
 import axios from 'axios';
 
 axios.defaults.baseURL = 'http://localhost:3000';
@@ -10,6 +11,7 @@ axios.defaults.baseURL = 'http://localhost:3000';
 const LoadOrdersView = () => {
   const { theme } = useTheme();
   const { showSuccess, showError } = useNotification();
+  const { t } = useLocalization();
   
   const [loadOrders, setLoadOrders] = useState([]);
   const [salesmen, setSalesmen] = useState([]);
@@ -45,7 +47,7 @@ const LoadOrdersView = () => {
       setSalesmen(Array.isArray(salesmenRes.data) ? salesmenRes.data : []);
     } catch (error) {
       console.error('Error fetching data:', error);
-      showError('Failed to load data');
+      showError(t('loadOrders.failedToLoad'));
     } finally {
       setLoading(false);
     }
@@ -84,7 +86,7 @@ const LoadOrdersView = () => {
       setLoadOrders(Array.isArray(orders) ? orders : []);
     } catch (error) {
       console.error('Error fetching load orders:', error);
-      showError('Failed to load orders');
+      showError(t('loadOrders.failedToLoad'));
       setLoadOrders([]);
     } finally {
       setLoading(false);
@@ -140,10 +142,10 @@ const LoadOrdersView = () => {
           </div>
           <div>
             <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              أوامر التحميل
+              {t('loadOrders.title')}
             </h1>
             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              عرض أوامر التحميل حسب المندوب والرحلة
+              {t('loadOrders.subtitle')}
             </p>
           </div>
         </div>
@@ -156,7 +158,7 @@ const LoadOrdersView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Users className="w-4 h-4 inline mr-2" />
-              المندوب
+              {t('loadOrders.salesman')}
             </label>
             <select
               value={selectedSalesman}
@@ -170,7 +172,7 @@ const LoadOrdersView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">جميع المندوبين</option>
+              <option value="">{t('loadOrders.allSalesmen')}</option>
               {filteredSalesmen.map(salesman => (
                 <option key={salesman.salesId} value={salesman.salesId}>
                   {salesman.name} (ID: {salesman.salesId})
@@ -183,7 +185,7 @@ const LoadOrdersView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <MapPin className="w-4 h-4 inline mr-2" />
-              الرحلة
+              {t('loadOrders.journey')}
             </label>
             <select
               value={selectedJourney}
@@ -195,10 +197,10 @@ const LoadOrdersView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50`}
             >
-              <option value="">جميع الرحلات</option>
+              <option value="">{t('loadOrders.allJourneys')}</option>
               {journeys.map(journey => (
                 <option key={journey.journeyId} value={journey.journeyId}>
-                  رحلة رقم #{journey.journeyId} - {new Date(journey.createdAt).toLocaleDateString()}
+                  {t('loadOrders.journey')} #{journey.journeyId} - {new Date(journey.createdAt).toLocaleDateString()}
                 </option>
               ))}
             </select>
@@ -210,16 +212,13 @@ const LoadOrdersView = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>جاري التحميل...</p>
+          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('loadOrders.loadingOrders')}</p>
         </div>
       ) : loadOrders.length === 0 ? (
         <div className={`text-center py-12 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
           <ShoppingCart className={`w-16 h-16 mx-auto mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
           <p className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            لم يتم العثور على أوامر تحميل
-          </p>
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            {selectedSalesman ? 'جرب اختيار مندوب أو رحلة مختلفة' : 'لم يتم إنشاء أي أوامر تحميل بعد'}
+            {t('loadOrders.noOrders')}
           </p>
         </div>
       ) : (
@@ -242,7 +241,7 @@ const LoadOrdersView = () => {
                       <MapPin className="w-5 h-5 text-blue-500" />
                       <div>
                         <h3 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          رحلة رقم #{group.journeyId}
+                          {t('loadOrders.journey')} #{group.journeyId}
                         </h3>
                         <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                           {salesman?.name || `Salesman #${group.salesId}`}
@@ -252,7 +251,7 @@ const LoadOrdersView = () => {
                     <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                       theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700'
                     }`}>
-                      {Object.keys(group.orders).length} {Object.keys(group.orders).length === 1 ? 'أمر' : 'أوامر'}
+                      {Object.keys(group.orders).length} {t('loadOrders.orders')}
                     </div>
                   </div>
                 </div>
@@ -265,17 +264,17 @@ const LoadOrdersView = () => {
                         <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
                           theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                         }`}>
-                          رقم الأمر
+                          {t('loadOrders.orderNumber')}
                         </th>
                         <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
                           theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                         }`}>
-                          العناصر
+                          {t('loadOrders.items')}
                         </th>
                         <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
                           theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                         }`}>
-                          تاريخ الإنشاء
+                          {t('common.date')}
                         </th>
                       </tr>
                     </thead>
@@ -306,7 +305,7 @@ const LoadOrdersView = () => {
                                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                                   theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700'
                                 }`}>
-                                  {order.items.length} {order.items.length === 1 ? 'عنصر' : 'عناصر'}
+                                  {order.items.length} {t('loadOrders.items')}
                                 </span>
                               </td>
                               <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -328,17 +327,17 @@ const LoadOrdersView = () => {
                                           <th className={`px-4 py-2 text-left text-xs font-medium ${
                                             theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                                           }`}>
-                                            المنتج
+                                            {t('loadOrders.product')}
                                           </th>
                                           <th className={`px-4 py-2 text-left text-xs font-medium ${
                                             theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                                           }`}>
-                                            الفئة
+                                            {t('loadOrders.category')}
                                           </th>
                                           <th className={`px-4 py-2 text-right text-xs font-medium ${
                                             theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                                           }`}>
-                                            الكمية
+                                            {t('loadOrders.quantity')}
                                           </th>
                                         </tr>
                                       </thead>

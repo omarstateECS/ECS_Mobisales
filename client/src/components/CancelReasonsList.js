@@ -1,7 +1,9 @@
 import React from 'react';
 import { XCircle, Edit, Trash2, CheckCircle, AlertCircle, FileText } from 'lucide-react';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const CancelReasonsList = ({ reasons, handleEditReason, handleDeleteReason, deletingReasonId, theme = 'dark' }) => {
+  const { t } = useLocalization();
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -19,10 +21,10 @@ const CancelReasonsList = ({ reasons, handleEditReason, handleDeleteReason, dele
       <table className="w-full">
         <thead>
           <tr className={`border-b ${theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200'}`}>
-            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>السبب</th>
-            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>الرقم التعريفي</th>
-            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>تاريخ الإنشاء</th>
-            <th className={`text-right px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>الإجراءات</th>
+            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('cancelReasons.reasonName')}</th>
+            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('common.id')}</th>
+            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('common.date')}</th>
+            <th className={`text-right px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('common.actions')}</th>
           </tr>
         </thead>
         <tbody>

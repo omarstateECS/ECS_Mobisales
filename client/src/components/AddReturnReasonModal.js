@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const AddReturnReasonModal = ({ isOpen, onClose, onAdd }) => {
   const { theme } = useTheme();
+  const { t } = useLocalization();
   const [formData, setFormData] = useState({
     description: '',
     isHeader: false,
@@ -55,7 +57,7 @@ const AddReturnReasonModal = ({ isOpen, onClose, onAdd }) => {
           <h2 className={`text-2xl font-bold ${
             theme === 'dark' ? 'text-white' : 'text-gray-900'
           }`}>
-            Add Return Reason
+            {t('returnReasons.addModal.title')}
           </h2>
           <button
             onClick={handleClose}
@@ -92,12 +94,12 @@ const AddReturnReasonModal = ({ isOpen, onClose, onAdd }) => {
             <label className={`block text-sm font-medium mb-2 ${
               theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
             }`}>
-              Description <span className="text-red-500">*</span>
+              {t('returnReasons.addModal.nameLabel')} <span className="text-red-500">*</span>
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Enter return reason description"
+              placeholder={t('returnReasons.addModal.namePlaceholder')}
               rows={3}
               disabled={loading}
               className={`w-full px-4 py-3 rounded-xl border transition-colors ${
@@ -128,7 +130,7 @@ const AddReturnReasonModal = ({ isOpen, onClose, onAdd }) => {
                 theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
               }`}
             >
-              Is Header Reason
+              {t('cancelReasons.header')} Reason
             </label>
           </div>
 
@@ -152,7 +154,7 @@ const AddReturnReasonModal = ({ isOpen, onClose, onAdd }) => {
                 theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
               }`}
             >
-              Sellable
+              {t('cancelReasons.sellable')}
             </label>
           </div>
 
@@ -168,7 +170,7 @@ const AddReturnReasonModal = ({ isOpen, onClose, onAdd }) => {
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
               } disabled:opacity-50`}
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -197,10 +199,10 @@ const AddReturnReasonModal = ({ isOpen, onClose, onAdd }) => {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                  Adding...
+                  {t('returnReasons.addModal.adding')}
                 </span>
               ) : (
-                'Add Return Reason'
+                t('returnReasons.addModal.title')
               )}
             </button>
           </div>

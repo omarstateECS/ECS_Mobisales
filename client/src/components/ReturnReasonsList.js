@@ -1,7 +1,9 @@
 import React from 'react';
 import { RotateCcw, Edit, Trash2, CheckCircle, AlertCircle, FileText } from 'lucide-react';
+import { useLocalization } from '../contexts/LocalizationContext';
 
 const ReturnReasonsList = ({ reasons, handleEditReason, handleDeleteReason, deletingReasonId, theme = 'dark' }) => {
+  const { t } = useLocalization();
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -19,12 +21,12 @@ const ReturnReasonsList = ({ reasons, handleEditReason, handleDeleteReason, dele
       <table className="w-full">
         <thead>
           <tr className={`border-b ${theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200'}`}>
-            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>السبب</th>
-            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>الرقم التعريفي</th>
-            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>النوع</th>
-            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>قابل للبيع</th>
-            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>تاريخ الإنشاء</th>
-            <th className={`text-right px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>الإجراءات</th>
+            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('returnReasons.reasonName')}</th>
+            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('common.id')}</th>
+            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('common.status')}</th>
+            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('cancelReasons.sellable')}</th>
+            <th className={`text-left px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('common.date')}</th>
+            <th className={`text-right px-6 py-4 text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('common.actions')}</th>
           </tr>
         </thead>
         <tbody>
@@ -62,7 +64,7 @@ const ReturnReasonsList = ({ reasons, handleEditReason, handleDeleteReason, dele
                       : 'bg-blue-100 text-blue-700'
                   }`}>
                     <FileText size={12} className="inline mr-1" />
-                    رأسي
+                    {t('cancelReasons.header')}
                   </span>
                 ) : (
                   <span className={`inline-block text-xs px-3 py-1 rounded-full ${
@@ -71,7 +73,7 @@ const ReturnReasonsList = ({ reasons, handleEditReason, handleDeleteReason, dele
                       : 'bg-gray-100 text-gray-600'
                   }`}>
                     <AlertCircle size={12} className="inline mr-1" />
-                    عنصر
+                    {t('cancelReasons.regular')}
                   </span>
                 )}
               </td>
@@ -79,7 +81,7 @@ const ReturnReasonsList = ({ reasons, handleEditReason, handleDeleteReason, dele
                 <div className="flex items-center space-x-2">
                   <div className={`w-2 h-2 rounded-full ${reason.sellable ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
                   <span className={`text-xs font-medium ${reason.sellable ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {reason.sellable ? 'نعم' : 'لا'}
+                    {reason.sellable ? t('common.yes') : t('common.no')}
                   </span>
                 </div>
               </td>

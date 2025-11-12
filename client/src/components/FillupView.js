@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Package, Plus, Trash2, Save, X, Search, Users, ChevronDown, Tag } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotification } from '../hooks/useNotification';
+import { useLocalization } from '../contexts/LocalizationContext';
 import axios from 'axios';
 
 axios.defaults.baseURL = 'http://localhost:3000';
@@ -10,6 +11,7 @@ axios.defaults.baseURL = 'http://localhost:3000';
 const FillupView = () => {
   const { theme } = useTheme();
   const { showSuccess, showError } = useNotification();
+  const { t } = useLocalization();
   
   const [salesmen, setSalesmen] = useState([]);
   const [products, setProducts] = useState([]);
@@ -54,7 +56,7 @@ const FillupView = () => {
       setProducts(Array.isArray(productsRes.data) ? productsRes.data : []);
     } catch (error) {
       console.error('Error fetching data:', error);
-      showError('Failed to load data');
+      showError(t('messages.error.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -63,13 +65,13 @@ const FillupView = () => {
 
   const addProduct = (product) => {
     if (selectedProducts.find(p => p.prodId === product.prodId)) {
-      showError('Product already added');
+      showError(t('fillup.productAlreadyAdded'));
       return;
     }
 
     // Check if product has stock available
     if (product.stock <= 0) {
-      showError(`${product.name} is out of stock`);
+      showError(t('fillup.outOfStock', { name: product.name }));
       return;
     }
 
@@ -92,7 +94,7 @@ const FillupView = () => {
       if (p.prodId === prodId) {
         // Validate against max stock and minimum 1
         if (qty > p.maxStock) {
-          showError(`Cannot exceed available stock of ${p.maxStock}`);
+          showError(t('fillup.cannotExceedStock', { max: p.maxStock }));
           return { ...p, quantity: p.maxStock };
         }
         if (qty < 1) {
@@ -110,17 +112,17 @@ const FillupView = () => {
 
   const handleSubmit = async () => {
     if (!selectedSalesman) {
-      showError('Please select a salesman');
+      showError(t('fillup.pleaseSelectSalesman'));
       return;
     }
 
     if (selectedProducts.length === 0) {
-      showError('Please add at least one product');
+      showError(t('fillup.pleaseAddProducts'));
       return;
     }
 
     if (selectedProducts.some(p => p.quantity <= 0)) {
-      showError('All products must have quantity greater than 0');
+      showError(t('fillup.quantityMustBeGreaterThanZero'));
       return;
     }
 
@@ -146,7 +148,7 @@ const FillupView = () => {
       });
 
       if (response.data?.success) {
-        showSuccess('Fillup created successfully!');
+        showSuccess(t('fillup.fillupCreatedSuccess'));
         // Reset form
         setSelectedProducts([]);
         setSelectedSalesman(null);
@@ -155,7 +157,7 @@ const FillupView = () => {
       }
     } catch (error) {
       console.error('Error creating fillup:', error);
-      showError(error.response?.data?.message || 'Failed to create fillup');
+      showError(t('fillup.failedToCreateFillup'));
     } finally {
       setSaving(false);
     }
@@ -211,7 +213,7 @@ const FillupView = () => {
               theme === 'dark' ? 'text-white' : 'text-gray-900'
             }`}>
               <Users size={24} />
-              اختيار المندوب
+              {t('fillup.selectSalesman')}
             </h2>
 
             {/* Search Bar */}
@@ -221,7 +223,7 @@ const FillupView = () => {
               }`} size={20} />
               <input
                 type="text"
-                placeholder="البحث عن المندوبين..."
+                placeholder={t('fillup.searchSalesmen')}
                 value={salesmanSearchTerm}
                 onChange={(e) => setSalesmanSearchTerm(e.target.value)}
                 className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-colors ${
@@ -268,7 +270,7 @@ const FillupView = () => {
 
             {filteredSalesmen.length === 0 && (
               <p className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                لم يتم العثور على مندوبين
+                {t('fillup.noSalesmenFound')}
               </p>
             )}
           </motion.div>
@@ -286,7 +288,7 @@ const FillupView = () => {
                 theme === 'dark' ? 'text-white' : 'text-gray-900'
               }`}>
                 <Package size={24} />
-                إضافة المنتجات
+                {t('fillup.addProducts')}
               </h2>
 
               {/* Search and Category Filter */}
@@ -294,7 +296,7 @@ const FillupView = () => {
                 {/* Search */}
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                    البحث
+                    {t('fillup.searchLabel')}
                   </label>
                   <div className="relative">
                     <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${
@@ -302,7 +304,7 @@ const FillupView = () => {
                     }`} size={20} />
                     <input
                       type="text"
-                      placeholder="البحث عن المنتجات..."
+                      placeholder={t('fillup.searchProducts')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-colors ${
@@ -317,7 +319,7 @@ const FillupView = () => {
                 {/* Category Filter */}
                 <div className="category-dropdown-container">
                   <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                    الفئة {selectedCategories.length > 0 && <span className="text-blue-400">({selectedCategories.length})</span>}
+                    {t('fillup.categoryFilter')} {selectedCategories.length > 0 && <span className="text-blue-400">({selectedCategories.length})</span>}
                   </label>
                   <div className="relative">
                     <Tag className={`absolute left-3 top-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
@@ -346,7 +348,7 @@ const FillupView = () => {
                           ))
                         ) : (
                           <span className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}>
-                            اختر الفئات...
+                            {t('fillup.selectCategories')}
                           </span>
                         )}
                       </div>
@@ -375,7 +377,7 @@ const FillupView = () => {
                                 : 'text-green-600 hover:bg-gray-50 border-gray-200'
                             }`}
                           >
-                            اختيار الكل
+                            {t('common.selectAll')}
                           </button>
                           <button
                             onClick={() => setSelectedCategories([])}
@@ -385,7 +387,7 @@ const FillupView = () => {
                                 : 'text-red-600 hover:bg-gray-50'
                             }`}
                           >
-                            مسح الكل
+                            {t('common.clearAll')}
                           </button>
                         </div>
                         
@@ -466,7 +468,7 @@ const FillupView = () => {
                       : 'bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200'
                   }`}
                 >
-                  اختيار جميع المنتجات ({filteredProducts.length})
+                  {t('fillup.selectAllProducts')} ({filteredProducts.length})
                 </button>
               )}
 
@@ -511,7 +513,7 @@ const FillupView = () => {
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                المنتجات المحددة ({selectedProducts.length})
+                {t('fillup.selectedProducts')} ({selectedProducts.length})
               </h2>
               {selectedProducts.length > 0 && (
                 <button
@@ -525,14 +527,14 @@ const FillupView = () => {
                       : 'bg-red-100 text-red-700 border border-red-300 hover:bg-red-200'
                   }`}
                 >
-                  إزالة الكل
+                  {t('common.removeAll')}
                 </button>
               )}
             </div>
 
             {selectedProducts.length === 0 ? (
               <p className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                لم يتم اختيار منتجات
+                {t('fillup.noProductsFound')}
               </p>
             ) : (
               <div className="space-y-3 mb-6 max-h-96 overflow-y-auto">
@@ -549,7 +551,7 @@ const FillupView = () => {
                           {product.name}
                         </p>
                         <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                          متاح: {product.maxStock}
+                          {t('fillup.availableStock', { stock: product.maxStock })}
                         </p>
                       </div>
                       <button
@@ -626,12 +628,12 @@ const FillupView = () => {
               {saving ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
-                  <span>جاري الإنشاء...</span>
+                  <span>{t('fillup.creating')}</span>
                 </>
               ) : (
                 <>
                   <Save size={20} />
-                  <span>إنشاء التحميل</span>
+                  <span>{t('fillup.createFillup')}</span>
                 </>
               )}
             </button>

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Shield, Users, Search, Edit, Plus, Trash2, CheckCircle, XCircle, UserCheck, X } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotification } from '../hooks/useNotification';
+import { useLocalization } from '../contexts/LocalizationContext';
 import axios from 'axios';
 
 axios.defaults.baseURL = 'http://localhost:3000';
@@ -10,6 +11,7 @@ axios.defaults.baseURL = 'http://localhost:3000';
 const AuthoritiesView = () => {
   const { theme } = useTheme();
   const { showSuccess, showError, showDelete } = useNotification();
+  const { t } = useLocalization();
   const [authorities, setAuthorities] = useState([]);
   const [salesmen, setSalesmen] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -99,7 +101,7 @@ const AuthoritiesView = () => {
 
   const handleAddAuthority = async () => {
     if (!newAuthority.name.trim()) {
-      showError('Please enter an authority name');
+      showError(t('authorities.addModal.nameRequired'));
       return;
     }
 
@@ -116,11 +118,11 @@ const AuthoritiesView = () => {
         setNewAuthority({ name: '', type: 'MOBILE' });
         setNewlyCreatedAuthority(response.data.data);
         setShowBulkAssign(true);
-        showSuccess('Authority added successfully!');
+        showSuccess(t('authorities.addModal.addedSuccess'));
       }
     } catch (error) {
       console.error('Error adding authority:', error);
-      showError(error.response?.data?.message || error.message || 'Failed to add authority');
+      showError(error.response?.data?.message || error.message || t('authorities.addModal.addFailed'));
     } finally {
       setSaving(false);
     }
@@ -128,7 +130,7 @@ const AuthoritiesView = () => {
 
   const handleBulkAssign = async () => {
     if (selectedSalesmen.length === 0) {
-      showError('Please select at least one salesman');
+      showError(t('authorities.bulkAssign.selectRequired'));
       return;
     }
 
@@ -197,7 +199,7 @@ const AuthoritiesView = () => {
       setSalesmanSearchTerm('');
     } catch (error) {
       console.error('Error bulk assigning:', error);
-      showError('Failed to assign authorities');
+      showError(t('authorities.bulkAssign.assignFailed'));
     } finally {
       setAssigning(false);
     }
@@ -234,10 +236,10 @@ const AuthoritiesView = () => {
       await axios.delete(`/api/authorities/${authorityToDelete.authorityId}`);
       
       setAuthorities(prev => prev.filter(auth => auth.authorityId !== authorityToDelete.authorityId));
-      showDelete(`Authority "${authorityToDelete.name}" deleted successfully!`);
+      showDelete(t('authorities.deletedSuccess', { name: authorityToDelete.name }));
     } catch (error) {
       console.error('Error deleting authority:', error);
-      showError(error.response?.data?.message || error.message || 'Failed to delete authority');
+      showError(error.response?.data?.message || error.message || t('authorities.deleteFailed'));
     } finally {
       setDeletingId(null);
       setAuthorityToDelete(null);
@@ -258,10 +260,10 @@ const AuthoritiesView = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-            إدارة الصلاحيات
+            {t('authorities.title')}
           </h1>
           <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            إدارة الصلاحيات وتعيينها للمندوبين
+            {t('authorities.subtitle')}
           </p>
         </div>
         <button
@@ -269,7 +271,7 @@ const AuthoritiesView = () => {
           className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
         >
           <Plus size={20} />
-          <span>Add Authority</span>
+          <span>{t('authorities.addAuthority')}</span>
         </button>
       </div>
 
@@ -286,7 +288,7 @@ const AuthoritiesView = () => {
           }`}
         >
           <Shield size={20} />
-          <span>جميع الصلاحيات</span>
+          <span>{t('authorities.allAuthorities')}</span>
         </button>
         <button
           onClick={() => setSelectedView('assignments')}
@@ -299,7 +301,7 @@ const AuthoritiesView = () => {
           }`}
         >
           <UserCheck size={20} />
-          <span>تعيينات المندوبين</span>
+          <span>{t('authorities.salesmanAssignments')}</span>
         </button>
       </div>
 
@@ -310,7 +312,7 @@ const AuthoritiesView = () => {
         }`} size={20} />
         <input
           type="text"
-          placeholder={selectedView === 'authorities' ? 'البحث في الصلاحيات...' : 'البحث في المندوبين...'}
+          placeholder={selectedView === 'authorities' ? t('authorities.searchPlaceholder') : t('authorities.searchSalesmen')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-colors ${
@@ -331,7 +333,7 @@ const AuthoritiesView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 text-xs font-medium uppercase tracking-wide">
-                إجمالي الصلاحيات
+                {t('authorities.totalAuthorities')}
               </p>
               <p className="text-4xl font-bold text-white mt-1">
                 {authorities.length}
@@ -353,7 +355,7 @@ const AuthoritiesView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-xs font-medium uppercase tracking-wide">
-                إجمالي المندوبين
+                {t('authorities.totalSalesmen')}
               </p>
               <p className="text-4xl font-bold text-white mt-1">
                 {salesmen.length}
@@ -375,7 +377,7 @@ const AuthoritiesView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-purple-100 text-xs font-medium uppercase tracking-wide">
-                إجمالي التعيينات
+                {t('authorities.totalAssignments')}
               </p>
               <p className="text-4xl font-bold text-white mt-1">
                 {salesmen.reduce((sum, s) => sum + (s.authorities?.length || 0), 0)}
@@ -396,10 +398,7 @@ const AuthoritiesView = () => {
           {filteredAuthorities.length === 0 ? (
             <div className={`text-center py-12 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
               <Shield size={48} className="mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">لم يتم العثور على صلاحيات</p>
-              <p className="text-sm mt-2">
-                {searchTerm ? 'جرب تعديل بحثك' : 'انقر "إضافة صلاحية" لإنشاء واحدة'}
-              </p>
+              <p className="text-lg font-medium">{t('authorities.noAuthorities')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -468,10 +467,10 @@ const AuthoritiesView = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between pt-3 border-t border-gray-700/50">
                   <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    معينة لـ
+                    {t('authorities.assignedTo')}
                   </span>
                   <span className="text-lg font-bold text-blue-500">
-                    {getAuthorityStats(authority.authorityId)} مندوب
+                    {getAuthorityStats(authority.authorityId)} {t('authorities.salesmen')}
                   </span>
                 </div>
 
@@ -479,12 +478,12 @@ const AuthoritiesView = () => {
                   {authority.authorityValue ? (
                     <>
                       <CheckCircle size={16} className="text-green-400" />
-                      <span className="text-xs font-medium text-green-400">نشط</span>
+                      <span className="text-xs font-medium text-green-400">{t('authorities.active')}</span>
                     </>
                   ) : (
                     <>
                       <XCircle size={16} className="text-gray-400" />
-                      <span className="text-xs font-medium text-gray-400">غير نشط</span>
+                      <span className="text-xs font-medium text-gray-400">{t('authorities.inactive')}</span>
                     </>
                   )}
                 </div>

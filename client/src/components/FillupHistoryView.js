@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Package, Users, MapPin, Calendar, ChevronDown, ChevronRight, Search, Filter, Eye } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotification } from '../hooks/useNotification';
+import { useLocalization } from '../contexts/LocalizationContext';
 import axios from 'axios';
 
 axios.defaults.baseURL = 'http://localhost:3000';
@@ -10,6 +11,7 @@ axios.defaults.baseURL = 'http://localhost:3000';
 const FillupHistoryView = () => {
   const { theme } = useTheme();
   const { showError } = useNotification();
+  const { t } = useLocalization();
   
   const [fillups, setFillups] = useState([]);
   const [salesmen, setSalesmen] = useState([]);
@@ -34,7 +36,7 @@ const FillupHistoryView = () => {
       setSalesmen(Array.isArray(salesmenRes.data) ? salesmenRes.data : []);
     } catch (error) {
       console.error('Error fetching salesmen:', error);
-      showError('Failed to load salesmen');
+      showError(t('messages.error.loadFailed'));
     }
   };
 
@@ -58,7 +60,7 @@ const FillupHistoryView = () => {
       setFillups(processed);
     } catch (error) {
       console.error('Error fetching fillups:', error);
-      showError('Failed to load fillups');
+      showError(t('fillup.fillupHistory.loadingFillups'));
       setFillups([]);
     } finally {
       setLoading(false);
@@ -108,10 +110,10 @@ const FillupHistoryView = () => {
           </div>
           <div>
             <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              تاريخ التحميل
+              {t('fillup.fillupHistory.title')}
             </h1>
             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              عرض جميع أوامر التحميل المرسلة للمندوبين
+              {t('fillup.fillupHistory.subtitle')}
             </p>
           </div>
         </div>
@@ -124,7 +126,7 @@ const FillupHistoryView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Search className="w-4 h-4 inline mr-2" />
-              البحث
+              {t('common.search')}
             </label>
             <div className="relative">
               <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
@@ -132,7 +134,7 @@ const FillupHistoryView = () => {
               }`} size={20} />
               <input
                 type="text"
-                placeholder="البحث في التحميلات..."
+                placeholder={t('fillup.fillupHistory.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
@@ -148,7 +150,7 @@ const FillupHistoryView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Users className="w-4 h-4 inline mr-2" />
-              المندوب
+              {t('fillup.fillupHistory.salesman')}
             </label>
             <select
               value={selectedSalesman}
@@ -159,7 +161,7 @@ const FillupHistoryView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">جميع المندوبين</option>
+              <option value="">{t('fillup.fillupHistory.allSalesmen')}</option>
               {salesmen.map(salesman => (
                 <option key={salesman.salesId} value={salesman.salesId}>
                   {salesman.name} (ID: {salesman.salesId})
@@ -174,16 +176,13 @@ const FillupHistoryView = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>جاري التحميل...</p>
+          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('fillup.fillupHistory.loadingFillups')}</p>
         </div>
       ) : filteredFillups.length === 0 ? (
         <div className={`text-center py-12 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
           <Package className={`w-16 h-16 mx-auto mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
           <p className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            لم يتم العثور على تحميلات
-          </p>
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            {selectedSalesman ? 'جرب اختيار مندوب مختلف' : 'لم يتم إنشاء أي تحميلات بعد'}
+            {t('fillup.fillupHistory.noFillups')}
           </p>
         </div>
       ) : (
@@ -222,12 +221,12 @@ const FillupHistoryView = () => {
                       <div>
                         <div className="flex items-center gap-3">
                           <h3 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                            أمر التحميل رقم #{fillup.fillupId}
+                            {t('fillup.fillupHistory.fillupId')} #{fillup.fillupId}
                           </h3>
                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                             theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700'
                           }`}>
-                            {totalItems} {totalItems === 1 ? 'عنصر' : 'عناصر'}
+                            {totalItems} {t('fillup.fillupHistory.items')}
                           </span>
                         </div>
                         <div className="flex items-center gap-4 mt-2">
@@ -255,7 +254,7 @@ const FillupHistoryView = () => {
                   >
                     <div className="p-6">
                       <h4 className={`text-sm font-semibold mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                        المنتجات
+                        {t('common.products')}
                       </h4>
                       <div className="overflow-x-auto">
                         <table className="w-full">
@@ -264,22 +263,22 @@ const FillupHistoryView = () => {
                               <th className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${
                                 theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                               }`}>
-                                المنتج
+                                {t('loadOrders.product')}
                               </th>
                               <th className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${
                                 theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                               }`}>
-                                الفئة
+                                {t('loadOrders.category')}
                               </th>
                               <th className={`text-center px-4 py-3 text-xs font-medium uppercase tracking-wider ${
                                 theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                               }`}>
-                                UOM
+                                {t('loadOrders.uom')}
                               </th>
                               <th className={`text-right px-4 py-3 text-xs font-medium uppercase tracking-wider ${
                                 theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                               }`}>
-                                الكمية
+                                {t('loadOrders.quantity')}
                               </th>
                             </tr>
                           </thead>

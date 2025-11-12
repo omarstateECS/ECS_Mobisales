@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, Search, MapPin, Plus, Edit2, Trash2, X } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotification } from '../hooks/useNotification';
+import { useLocalization } from '../contexts/LocalizationContext';
 import axios from 'axios';
 
 axios.defaults.baseURL = 'http://localhost:3000';
@@ -10,6 +11,7 @@ axios.defaults.baseURL = 'http://localhost:3000';
 const RegionsView = () => {
   const { theme } = useTheme();
   const { showError, showSuccess } = useNotification();
+  const { t } = useLocalization();
   
   const [regions, setRegions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +44,7 @@ const RegionsView = () => {
       setRegions(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching regions:', error);
-      showError('Failed to load regions');
+      showError(t('regions.addModal.addFailed'));
       setRegions([]);
     } finally {
       setLoading(false);
@@ -85,7 +87,7 @@ const RegionsView = () => {
   const handleAddRegion = async (e) => {
     e.preventDefault();
     if (!formData.region || !formData.city || !formData.country) {
-      showError('Please fill in all fields');
+      showError(t('regions.addModal.fillAllFields'));
       return;
     }
 
@@ -93,11 +95,11 @@ const RegionsView = () => {
       setSubmitting(true);
       const response = await axios.post('/api/regions', formData);
       setRegions(prev => [...prev, response.data]);
-      showSuccess('Region added successfully!');
+      showSuccess(t('regions.addModal.addedSuccess'));
       handleCloseModals();
     } catch (error) {
       console.error('Error adding region:', error);
-      showError(error.response?.data?.error || 'Failed to add region');
+      showError(error.response?.data?.error || t('regions.addModal.addFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -106,7 +108,7 @@ const RegionsView = () => {
   const handleEditRegion = async (e) => {
     e.preventDefault();
     if (!formData.region || !formData.city || !formData.country) {
-      showError('Please fill in all fields');
+      showError(t('regions.addModal.fillAllFields'));
       return;
     }
 
@@ -114,11 +116,11 @@ const RegionsView = () => {
       setSubmitting(true);
       const response = await axios.put(`/api/regions/${selectedRegion.id}`, formData);
       setRegions(prev => prev.map(r => r.id === selectedRegion.id ? response.data : r));
-      showSuccess('Region updated successfully!');
+      showSuccess(t('regions.editModal.updatedSuccess'));
       handleCloseModals();
     } catch (error) {
       console.error('Error updating region:', error);
-      showError(error.response?.data?.error || 'Failed to update region');
+      showError(error.response?.data?.error || t('regions.editModal.updateFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -129,11 +131,11 @@ const RegionsView = () => {
       setDeleting(true);
       await axios.delete(`/api/regions/${selectedRegion.id}`);
       setRegions(prev => prev.filter(r => r.id !== selectedRegion.id));
-      showSuccess('Region deleted successfully!');
+      showSuccess(t('regions.deleteModal.deletedSuccess'));
       handleCloseModals();
     } catch (error) {
       console.error('Error deleting region:', error);
-      showError(error.response?.data?.error || 'Failed to delete region');
+      showError(error.response?.data?.error || t('regions.deleteModal.deleteFailed'));
     } finally {
       setDeleting(false);
     }
@@ -173,10 +175,10 @@ const RegionsView = () => {
         <div>
           <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
             <Globe className="inline-block mr-3 mb-1" size={32} />
-            المناطق
+            {t('regions.title')}
           </h1>
           <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            إدارة جميع المناطق في النظام
+            {t('regions.subtitle')}
           </p>
         </div>
         <button
@@ -184,7 +186,7 @@ const RegionsView = () => {
           className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
         >
           <Plus size={20} />
-          <span>إضافة منطقة</span>
+          <span>{t('regions.addRegion')}</span>
         </button>
       </div>
 
@@ -195,7 +197,7 @@ const RegionsView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Search className="w-4 h-4 inline mr-2" />
-              البحث
+              {t('common.search')}
             </label>
             <div className="relative">
               <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
@@ -203,7 +205,7 @@ const RegionsView = () => {
               }`} size={20} />
               <input
                 type="text"
-                placeholder="البحث في المناطق..."
+                placeholder={t('regions.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
@@ -219,7 +221,7 @@ const RegionsView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <Globe className="w-4 h-4 inline mr-2" />
-              البلد
+              {t('regions.country')}
             </label>
             <select
               value={filterCountry}
@@ -230,7 +232,7 @@ const RegionsView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">جميع البلدان</option>
+              <option value="">{t('regions.allCountries')}</option>
               {countries.map(country => (
                 <option key={country} value={country}>
                   {country}
@@ -243,7 +245,7 @@ const RegionsView = () => {
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <MapPin className="w-4 h-4 inline mr-2" />
-              المدينة
+              {t('regions.city')}
             </label>
             <select
               value={filterCity}
@@ -254,7 +256,7 @@ const RegionsView = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             >
-              <option value="">جميع المدن</option>
+              <option value="">{t('regions.allCities')}</option>
               {cities.map(city => (
                 <option key={city} value={city}>
                   {city}
@@ -274,7 +276,7 @@ const RegionsView = () => {
             </div>
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                إجمالي المناطق
+                {t('regions.totalRegions')}
               </p>
               <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {filteredRegions.length}
@@ -290,7 +292,7 @@ const RegionsView = () => {
             </div>
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                البلدان
+                {t('regions.country')}
               </p>
               <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {countries.length}
@@ -306,7 +308,7 @@ const RegionsView = () => {
             </div>
             <div>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                المدن
+                {t('regions.city')}
               </p>
               <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {cities.length}
@@ -320,16 +322,13 @@ const RegionsView = () => {
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>جاري التحميل...</p>
+          <p className={`mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('common.loading')}</p>
         </div>
       ) : filteredRegions.length === 0 ? (
         <div className={`text-center py-12 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
           <Globe className={`w-16 h-16 mx-auto mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'}`} />
           <p className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            لم يتم العثور على مناطق
-          </p>
-          <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            جرب تعديل المرشحات
+            {t('regions.noRegions')}
           </p>
         </div>
       ) : (
@@ -341,32 +340,32 @@ const RegionsView = () => {
                   <th className={`px-6 py-4 text-left text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
                   }`}>
-                    الرقم التعريفي
+                    {t('common.id')}
                   </th>
                   <th className={`px-6 py-4 text-left text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
                   }`}>
-                    المنطقة
+                    {t('regions.regionName')}
                   </th>
                   <th className={`px-6 py-4 text-left text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
                   }`}>
-                    المدينة
+                    {t('regions.city')}
                   </th>
                   <th className={`px-6 py-4 text-left text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
                   }`}>
-                    البلد
+                    {t('regions.country')}
                   </th>
                   <th className={`px-6 py-4 text-left text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
                   }`}>
-                    تاريخ الإنشاء
+                    {t('common.date')}
                   </th>
                   <th className={`px-6 py-4 text-right text-xs font-medium uppercase tracking-wider ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-700'
                   }`}>
-                    الإجراءات
+                    {t('common.actions')}
                   </th>
                 </tr>
               </thead>
@@ -474,7 +473,7 @@ const RegionsView = () => {
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`}>
                   <Globe className="inline-block mr-2 mb-1" size={24} />
-                  إضافة منطقة جديدة
+                  {t('regions.addModal.title')}
                 </h2>
                 <button
                   onClick={handleCloseModals}
@@ -514,14 +513,14 @@ const RegionsView = () => {
                   <label className={`block text-sm font-medium mb-2 ${
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                   }`}>
-                    City *
+                    {t('regions.addModal.cityLabel')} *
                   </label>
                   <input
                     type="text"
                     name="city"
                     value={formData.city}
                     onChange={handleInputChange}
-                    placeholder="e.g., Alexandria"
+                    placeholder={t('regions.addModal.cityPlaceholder')}
                     className={`w-full px-4 py-2 rounded-lg border ${
                       theme === 'dark'
                         ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
@@ -535,14 +534,14 @@ const RegionsView = () => {
                   <label className={`block text-sm font-medium mb-2 ${
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                   }`}>
-                    Country *
+                    {t('regions.addModal.countryLabel')} *
                   </label>
                   <input
                     type="text"
                     name="country"
                     value={formData.country}
                     onChange={handleInputChange}
-                    placeholder="e.g., Egypt"
+                    placeholder={t('regions.addModal.countryPlaceholder')}
                     className={`w-full px-4 py-2 rounded-lg border ${
                       theme === 'dark'
                         ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
@@ -562,14 +561,14 @@ const RegionsView = () => {
                         : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                     } transition-colors`}
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
                     className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {submitting ? 'جاري الإضافة...' : 'إضافة منطقة'}
+                    {submitting ? t('regions.addModal.adding') : t('regions.addRegion')}
                   </button>
                 </div>
               </form>
@@ -597,7 +596,7 @@ const RegionsView = () => {
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`}>
                   <Edit2 className="inline-block mr-2 mb-1" size={24} />
-                  تعديل المنطقة
+                  {t('regions.editModal.title')}
                 </h2>
                 <button
                   onClick={handleCloseModals}
@@ -616,14 +615,14 @@ const RegionsView = () => {
                   <label className={`block text-sm font-medium mb-2 ${
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                   }`}>
-                    Region Name *
+                    {t('regions.addModal.regionLabel')} *
                   </label>
                   <input
                     type="text"
                     name="region"
                     value={formData.region}
                     onChange={handleInputChange}
-                    placeholder="e.g., Downtown"
+                    placeholder={t('regions.addModal.regionPlaceholder')}
                     className={`w-full px-4 py-2 rounded-lg border ${
                       theme === 'dark'
                         ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
@@ -637,14 +636,14 @@ const RegionsView = () => {
                   <label className={`block text-sm font-medium mb-2 ${
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                   }`}>
-                    City *
+                    {t('regions.addModal.cityLabel')} *
                   </label>
                   <input
                     type="text"
                     name="city"
                     value={formData.city}
                     onChange={handleInputChange}
-                    placeholder="e.g., Alexandria"
+                    placeholder={t('regions.addModal.cityPlaceholder')}
                     className={`w-full px-4 py-2 rounded-lg border ${
                       theme === 'dark'
                         ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
@@ -658,14 +657,14 @@ const RegionsView = () => {
                   <label className={`block text-sm font-medium mb-2 ${
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                   }`}>
-                    Country *
+                    {t('regions.addModal.countryLabel')} *
                   </label>
                   <input
                     type="text"
                     name="country"
                     value={formData.country}
                     onChange={handleInputChange}
-                    placeholder="e.g., Egypt"
+                    placeholder={t('regions.addModal.countryPlaceholder')}
                     className={`w-full px-4 py-2 rounded-lg border ${
                       theme === 'dark'
                         ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
@@ -685,14 +684,14 @@ const RegionsView = () => {
                         : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                     } transition-colors`}
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
                     className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {submitting ? 'جاري التحديث...' : 'تحديث المنطقة'}
+                    {submitting ? t('regions.editModal.updating') : t('common.edit')}
                   </button>
                 </div>
               </form>
@@ -718,7 +717,7 @@ const RegionsView = () => {
               }">
                 <h2 className={`text-xl font-bold text-red-500`}>
                   <Trash2 className="inline-block mr-2 mb-1" size={24} />
-                  حذف المنطقة
+                  {t('regions.deleteModal.title')}
                 </h2>
                 <button
                   onClick={handleCloseModals}
@@ -736,12 +735,17 @@ const RegionsView = () => {
                 <p className={`mb-4 ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  هل أنت متأكد من حذف المنطقة <strong>"{selectedRegion.region}"</strong> في <strong>{selectedRegion.city}, {selectedRegion.country}</strong>؟
+                  {t('regions.deleteModal.confirmMessage')}
+                </p>
+                <p className={`mb-4 ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  {t('regions.deleteModal.regionInfo', { region: selectedRegion.region, city: selectedRegion.city, country: selectedRegion.country })}
                 </p>
                 <p className={`text-sm ${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                 }`}>
-                  لا يمكن التراجع عن هذا الإجراء.
+                  {t('regions.deleteModal.warning')}
                 </p>
 
                 <div className="flex space-x-3 pt-6">
@@ -754,14 +758,14 @@ const RegionsView = () => {
                         : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                     } transition-colors`}
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     onClick={handleDeleteRegion}
                     disabled={deleting}
                     className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {deleting ? 'جاري الحذف...' : 'حذف'}
+                    {deleting ? t('regions.deleteModal.deleting') : t('common.delete')}
                   </button>
                 </div>
               </div>
