@@ -119,7 +119,7 @@ const SettingsPage = () => {
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
-      setMessage({ type: 'error', text: 'Failed to load settings' });
+      setMessage({ type: 'error', text: t('settings.loadFailed') });
     } finally {
       setLoading(false);
     }
@@ -143,7 +143,7 @@ const SettingsPage = () => {
   };
 
   const addTextSeparator = () => {
-    const separator = prompt('Enter separator text (e.g., "-", "_", "/"):');
+    const separator = prompt(t('settings.addTextPrompt'));
     if (separator) {
       const newPart = {
         id: `text-${Date.now()}-${Math.random()}`,
@@ -186,14 +186,14 @@ const SettingsPage = () => {
           visitSequence: data.data.visitSequence,
           filterCustomersByRegion: data.data.filterCustomersByRegion || false
         });
-        setMessage({ type: 'success', text: 'Settings saved successfully!' });
+        setMessage({ type: 'success', text: t('settings.savedSuccess') });
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
       } else {
         throw new Error('Failed to save settings');
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      setMessage({ type: 'error', text: 'Failed to save settings' });
+      setMessage({ type: 'error', text: t('settings.saveFailed') });
     } finally {
       setSaving(false);
     }
@@ -237,7 +237,7 @@ const SettingsPage = () => {
         className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 overflow-hidden"
       >
         <div className="p-6">
-          <h2 className="text-xl font-semibold text-white mb-6">Mobile App Settings</h2>
+          <h2 className="text-xl font-semibold text-white mb-6">{t('settings.mobileAppSettings')}</h2>
           
           {/* Settings Options */}
           <div className="space-y-6">
@@ -245,9 +245,9 @@ const SettingsPage = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-colors">
                 <div className="flex-1">
-                  <h3 className="text-lg font-medium text-white mb-1">Custom Invoice</h3>
+                  <h3 className="text-lg font-medium text-white mb-1">{t('settings.customInvoice')}</h3>
                   <p className="text-sm text-gray-400">
-                    Enable custom invoice functionality for salesmen
+                    {t('settings.customInvoiceDescription')}
                   </p>
                 </div>
                 <button
@@ -281,10 +281,10 @@ const SettingsPage = () => {
                         </div>
                         <div className="flex-1">
                           <label className="block text-sm font-medium text-white mb-2">
-                            Custom Invoice Sequence Builder
+                            {t('settings.customInvoiceSequenceBuilder')}
                           </label>
                           <p className="text-xs text-gray-400 mb-3">
-                            Drag and drop elements to build custom invoice sequence pattern
+                            {t('settings.sequenceBuilderDescription')}
                           </p>
                           
                           {/* Draggable Sequence Builder */}
@@ -293,7 +293,7 @@ const SettingsPage = () => {
                             <div className="min-h-[60px] p-3 bg-gray-800/50 border-2 border-dashed border-gray-600 rounded-lg">
                               {sequenceParts.length === 0 ? (
                                 <p className="text-gray-500 text-sm text-center py-2">
-                                  Add elements below to build sequence
+                                  {t('settings.emptySequence')}
                                 </p>
                               ) : (
                                 <Reorder.Group
@@ -333,15 +333,15 @@ const SettingsPage = () => {
 
                             {/* Preview */}
                             <div className="p-3 bg-gray-900/50 rounded-lg border border-gray-700/50">
-                              <p className="text-xs text-gray-500 mb-1">Preview:</p>
+                              <p className="text-xs text-gray-500 mb-1">{t('settings.preview')}</p>
                               <p className="text-sm font-mono text-white">
-                                {settings.customInvoiceSequence || 'No sequence defined'}
+                                {settings.customInvoiceSequence || t('settings.noSequenceDefined')}
                               </p>
                             </div>
 
                             {/* Available Placeholders */}
                             <div>
-                              <p className="text-xs text-gray-400 mb-2">Available elements:</p>
+                              <p className="text-xs text-gray-400 mb-2">{t('settings.availableElements')}</p>
                               <div className="flex flex-wrap gap-2">
                                 {availablePlaceholders.map((placeholder) => (
                                   <button
@@ -358,7 +358,7 @@ const SettingsPage = () => {
                                   className="flex items-center gap-1 px-3 py-1.5 bg-gray-700/30 hover:bg-gray-700/50 text-gray-300 border border-gray-600/30 rounded-lg text-sm font-medium transition-colors"
                                 >
                                   <Plus size={14} />
-                                  Add Text
+                                  {t('settings.addText')}
                                 </button>
                               </div>
                             </div>
@@ -369,7 +369,7 @@ const SettingsPage = () => {
                                 onClick={clearSequence}
                                 className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 rounded-lg transition-colors text-sm font-medium"
                               >
-                                Clear All
+                                {t('settings.clearAll')}
                               </button>
                               <button
                                 onClick={handleSave}
@@ -379,12 +379,12 @@ const SettingsPage = () => {
                                 {saving ? (
                                   <>
                                     <RefreshCw className="w-4 h-4 animate-spin" />
-                                    <span>Saving...</span>
+                                    <span>{t('settings.saving')}</span>
                                   </>
                                 ) : (
                                   <>
                                     <Save className="w-4 h-4" />
-                                    <span>Save Sequence</span>
+                                    <span>{t('settings.saveSequence')}</span>
                                   </>
                                 )}
                               </button>
@@ -401,9 +401,9 @@ const SettingsPage = () => {
             {/* Visit Sequence Toggle */}
             <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-colors">
               <div className="flex-1">
-                <h3 className="text-lg font-medium text-white mb-1">Visit Sequence</h3>
+                <h3 className="text-lg font-medium text-white mb-1">{t('settings.visitSequence')}</h3>
                 <p className="text-sm text-gray-400">
-                  Force sequential visit order for salesmen
+                  {t('settings.visitSequenceDescription')}
                 </p>
               </div>
               <button
@@ -423,9 +423,9 @@ const SettingsPage = () => {
             {/* Filter Customers by Region Toggle */}
             <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-colors">
               <div className="flex-1">
-                <h3 className="text-lg font-medium text-white mb-1">Filter Customers by Region</h3>
+                <h3 className="text-lg font-medium text-white mb-1">{t('settings.filterCustomersByRegion')}</h3>
                 <p className="text-sm text-gray-400">
-                  Send only customers in journey region to mobile app (when disabled, sends all customers)
+                  {t('settings.filterCustomersByRegionDescription')}
                 </p>
               </div>
               <button
@@ -468,12 +468,12 @@ const SettingsPage = () => {
               {saving ? (
                 <>
                   <RefreshCw className="w-5 h-5 animate-spin" />
-                  <span>Saving...</span>
+                  <span>{t('settings.saving')}</span>
                 </>
               ) : (
                 <>
                   <Save className="w-5 h-5" />
-                  <span>Save Settings</span>
+                  <span>{t('settings.saveSettings')}</span>
                 </>
               )}
             </button>
@@ -488,10 +488,9 @@ const SettingsPage = () => {
         transition={{ delay: 0.2 }}
         className="mt-6 bg-blue-500/10 backdrop-blur-xl rounded-2xl border border-blue-500/30 p-6"
       >
-        <h3 className="text-lg font-semibold text-blue-400 mb-2">About Settings</h3>
+        <h3 className="text-lg font-semibold text-blue-400 mb-2">{t('settings.aboutSettings')}</h3>
         <p className="text-gray-400 text-sm leading-relaxed">
-          These settings will be synced with the mobile app during the next data sync. 
-          Changes will affect all salesmen using the mobile app.
+          {t('settings.aboutSettingsDescription')}
         </p>
       </motion.div>
     </div>
